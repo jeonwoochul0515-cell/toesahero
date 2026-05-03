@@ -62,14 +62,23 @@ export function ChatModal({ open, onClose }: Props) {
           },
         ]);
       }
-    } catch {
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
+      const code = e?.code ?? "unknown";
+      const msg = e?.message ?? String(err);
+      const userClosed =
+        code === "auth/popup-closed-by-user" ||
+        code === "auth/cancelled-popup-request";
       setMessages((m) => [
         ...m,
         {
           who: "them",
-          text: "카카오 로그인이 취소됐거나 실패했어요. 그냥 진행하셔도 됩니다.",
+          text: userClosed
+            ? "카카오 로그인 창이 닫혔어요. 그냥 진행하셔도 됩니다."
+            : `카카오 로그인 실패 — 변호사한테 이 코드 알려주시면 도와드려요\n[${code}] ${msg}`,
         },
       ]);
+      console.error("[kakao-login]", code, msg, err);
     } finally {
       setSigningIn(false);
     }
