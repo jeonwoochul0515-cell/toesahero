@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { logChatMessage, saveConsultation } from "../firebase";
+import {
+  logChatMessage,
+  saveConsultation,
+  signInWithKakao,
+  signOut,
+  watchAuth,
+  type AppUser,
+} from "../firebase";
 
 type Msg = { who: "me" | "them"; text: string };
 
@@ -36,7 +43,37 @@ export function ChatModal({ open, onClose }: Props) {
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => watchAuth(setUser), []);
+
+  const handleKakaoLogin = async () => {
+    setSigningIn(true);
+    try {
+      const u = await signInWithKakao();
+      if (u) {
+        setMessages((m) => [
+          ...m,
+          {
+            who: "them",
+            text: `${u.displayName ?? "고객"}님 본인 인증 완료됐어요 ✓\n이제부터 상담 내용은 변호사가 직접 확인합니다.`,
+          },
+        ]);
+      }
+    } catch {
+      setMessages((m) => [
+        ...m,
+        {
+          who: "them",
+          text: "카카오 로그인이 취소됐거나 실패했어요. 그냥 진행하셔도 됩니다.",
+        },
+      ]);
+    } finally {
+      setSigningIn(false);
+    }
+  };
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -91,6 +128,31 @@ export function ChatModal({ open, onClose }: Props) {
             ×
           </button>
         </div>
+
+        {user ? (
+          <div className="auth-bar verified">
+            <span className="auth-check">✓</span>
+            <span className="auth-text">
+              <strong>{user.displayName ?? "고객"}</strong>님 카카오 인증 완료
+            </span>
+            <button className="auth-out" onClick={() => void signOut()}>
+              로그아웃
+            </button>
+          </div>
+        ) : (
+          <div className="auth-bar">
+            <span className="auth-text">
+              <strong>본인 인증하면</strong> 변호사가 더 정확한 답변 줄 수 있어요
+            </span>
+            <button
+              className="auth-kakao"
+              onClick={handleKakaoLogin}
+              disabled={signingIn}
+            >
+              {signingIn ? "로그인 중..." : "카카오로 시작"}
+            </button>
+          </div>
+        )}
         <div className="modal-body" ref={bodyRef}>
           {messages.map((m, i) => (
             <div
