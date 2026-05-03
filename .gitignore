@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.firebase
+firebase-debug.log
+*.log
+.DS_Store
+.claude/
+
+# tsc -b composite project artifacts
+vite.config.d.ts
+vite.config.js
+*.tsbuildinfo
