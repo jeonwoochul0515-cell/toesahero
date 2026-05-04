@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchPublishedPosts, type PostDoc } from "../firebase";
+import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
   if (!ts) return "";
@@ -14,6 +15,28 @@ function fmtDate(ts: PostDoc["publishedAt"]): string {
 export function BlogList() {
   const [posts, setPosts] = useState<PostDoc[]>([]);
   const [loaded, setLoaded] = useState(false);
+
+  usePageMeta({
+    title: "법률 칼럼 — 변호사가 직접 쓰는 노동법 이야기",
+    description:
+      "법률사무소 청송 김창희 변호사가 직접 작성하는 노동법·퇴사 절차·변호사법 §109 관련 정보성 칼럼. 변협 광고규정에 따른 일반 정보 제공 콘텐츠입니다.",
+    canonical: "/blog",
+    keywords: [
+      "법률 칼럼",
+      "노동법",
+      "변호사 칼럼",
+      "퇴사 절차",
+      "퇴직금",
+      "직장 내 괴롭힘",
+      "변호사법 109조",
+      "김창희 변호사",
+      "법률사무소 청송",
+    ],
+    jsonLd: breadcrumbJsonLd([
+      { name: "홈", url: "/" },
+      { name: "법률 칼럼", url: "/blog" },
+    ]),
+  });
 
   useEffect(() => {
     let cancel = false;

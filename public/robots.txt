@@ -4,5 +4,39 @@ Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
+Disallow: /api/
+
+# 네이버 검색 — Yeti 봇 명시 환영
+User-agent: Yeti
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# 다음 검색 — Daum 봇
+User-agent: Daum
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# 구글
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# 빙
+User-agent: bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
 
 Sitemap: https://toesahero.com/sitemap.xml
+Sitemap: https://toesahero.com/rss.xml

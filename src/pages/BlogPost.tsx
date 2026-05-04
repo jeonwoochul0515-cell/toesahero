@@ -3,6 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { fetchPostBySlug, type PostDoc } from "../firebase";
+import {
+  usePageMeta,
+  articleJsonLd,
+  breadcrumbJsonLd,
+} from "../hooks/usePageMeta";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
   if (!ts) return "";
@@ -18,6 +23,38 @@ export function BlogPost() {
   const [post, setPost] = useState<PostDoc | null>(null);
   const [loaded, setLoaded] = useState(false);
 
+  const isoDate = post?.publishedAt
+    ? new Date(post.publishedAt.seconds * 1000).toISOString()
+    : undefined;
+  const updatedIso = post?.updatedAt
+    ? new Date(post.updatedAt.seconds * 1000).toISOString()
+    : isoDate;
+
+  usePageMeta({
+    title: post?.title ?? "법률 칼럼",
+    description: post?.excerpt ?? "법률사무소 청송 김창희 변호사 법률 칼럼",
+    canonical: `/blog/${slug ?? ""}`,
+    keywords: post?.tags ?? ["법률 칼럼", "노동법", "변호사", "김창희"],
+    ogType: post ? "article" : "website",
+    jsonLd: post
+      ? [
+          articleJsonLd({
+            title: post.title,
+            description: post.excerpt,
+            url: `/blog/${post.slug}`,
+            datePublished: isoDate,
+            dateModified: updatedIso,
+            author: post.author,
+          }),
+          breadcrumbJsonLd([
+            { name: "홈", url: "/" },
+            { name: "법률 칼럼", url: "/blog" },
+            { name: post.title, url: `/blog/${post.slug}` },
+          ]),
+        ]
+      : undefined,
+  });
+
   useEffect(() => {
     let cancel = false;
     if (!slug) {
@@ -28,10 +65,6 @@ export function BlogPost() {
       if (cancel) return;
       setPost(p);
       setLoaded(true);
-      // SEO: title 동적 변경
-      if (p) {
-        document.title = `${p.title} — 퇴사히어로 법률 칼럼`;
-      }
     });
     return () => {
       cancel = true;

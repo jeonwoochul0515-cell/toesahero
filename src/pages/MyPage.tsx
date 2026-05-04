@@ -8,6 +8,7 @@ import {
   type AppUser,
   type ConsultationDoc,
 } from "../firebase";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 const STATUS_LABEL: Record<NonNullable<ConsultationDoc["status"]>, string> = {
   new: "신규 접수",
@@ -51,6 +52,14 @@ export function MyPage() {
   const [authLoading, setAuthLoading] = useState(true);
   const [cases, setCases] = useState<ConsultationDoc[]>([]);
   const [signingIn, setSigningIn] = useState(false);
+
+  usePageMeta({
+    title: "마이페이지 — 의뢰인 본인 사건 진행 상황",
+    description:
+      "카카오 본인 확인 후 본인이 신청한 사건 진행 상황을 실시간 조회. 변호사 비밀유지 의무 적용.",
+    canonical: "/my",
+    noIndex: true, // 본인 정보 페이지 — 검색 노출 X
+  });
 
   useEffect(() => {
     return watchAuth((u) => {

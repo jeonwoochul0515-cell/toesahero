@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveNoticeConsultation } from "../firebase";
+import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
 
 const fmt = new Intl.NumberFormat("ko-KR").format;
 
@@ -64,6 +65,27 @@ function calc(inputs: Inputs) {
 
 export function CalcPage() {
   const nav = useNavigate();
+
+  usePageMeta({
+    title: "임금·연차수당·퇴직금 자동 계산기",
+    description:
+      "월급·근속·미사용 연차·야근시간 입력만으로 청구 가능 항목을 자동 산정합니다. 변호사가 검토하는 1차 자료. 결과는 보장하지 않습니다 (변협 규정).",
+    canonical: "/calc",
+    keywords: [
+      "퇴직금 계산기",
+      "연차수당 계산기",
+      "야근수당 계산기",
+      "미지급 임금",
+      "통상임금",
+      "권고사직 실업급여",
+      "변호사 검토",
+      "법률사무소 청송",
+    ],
+    jsonLd: breadcrumbJsonLd([
+      { name: "홈", url: "/" },
+      { name: "자동 계산기", url: "/calc" },
+    ]),
+  });
   const [inputs, setInputs] = useState<Inputs>({
     monthlySalary: 3000000,
     yearsWorked: 2,

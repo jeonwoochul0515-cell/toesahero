@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Nav } from "./components/Nav";
+import { usePageMeta } from "./hooks/usePageMeta";
 import { Hero } from "./components/Hero";
 import { Marquee } from "./components/Marquee";
 import { Audience } from "./components/Audience";
@@ -14,6 +15,26 @@ import { FloatingButton } from "./components/FloatingButton";
 
 export function Home() {
   const [chatOpen, setChatOpen] = useState(false);
+
+  usePageMeta({
+    title: "퇴사히어로 — 변호사가 직접 운영하는 퇴사대행",
+    description:
+      "법률사무소 청송 김창희 변호사가 직접 운영하는 퇴사대행. 통보부터 임금 회수·괴롭힘·부당해고 분쟁까지 — 노무사가 다룰 수 없는 영역까지 변호사가 직접 처리합니다.",
+    canonical: "/",
+    keywords: [
+      "퇴사대행",
+      "변호사 퇴사대행",
+      "법률사무소 청송",
+      "김창희 변호사",
+      "퇴직금",
+      "직장 내 괴롭힘",
+      "노동법 자문",
+      "변호사법 109조",
+      "권고사직",
+      "부당해고",
+      "임금 체불",
+    ],
+  });
 
   useEffect(() => {
     const els = document.querySelectorAll(".reveal");

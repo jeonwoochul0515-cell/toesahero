@@ -1,4 +1,9 @@
 import { Link } from "react-router-dom";
+import {
+  usePageMeta,
+  faqJsonLd,
+  breadcrumbJsonLd,
+} from "../hooks/usePageMeta";
 
 type Q = { q: string; a: string };
 
@@ -54,6 +59,31 @@ const FAQ: Q[] = [
 ];
 
 export function FAQPage() {
+  usePageMeta({
+    title: "자주 묻는 질문 — 변호사 운영 퇴사대행 12문항",
+    description:
+      "변호사 vs 노무사 차이, 변호사법 109조, 사장 사직서 거부, 퇴직금 미지급, 직장 내 괴롭힘, 5인 미만 사업장 등 퇴사대행 자주 묻는 12문항. 변호사 김창희 직접 답변.",
+    canonical: "/faq",
+    keywords: [
+      "퇴사대행 FAQ",
+      "변호사 vs 노무사",
+      "변호사법 109조",
+      "사직서 거부",
+      "퇴직금 미지급",
+      "5인 미만 사업장",
+      "외국인 노동자",
+      "직장 내 괴롭힘",
+      "법률사무소 청송",
+    ],
+    jsonLd: [
+      faqJsonLd(FAQ),
+      breadcrumbJsonLd([
+        { name: "홈", url: "/" },
+        { name: "자주 묻는 질문", url: "/faq" },
+      ]),
+    ],
+  });
+
   return (
     <div className="page-static">
       <header className="page-static-header">
