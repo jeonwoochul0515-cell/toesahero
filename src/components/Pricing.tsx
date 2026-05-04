@@ -14,53 +14,53 @@ type Tier = {
 const tiers: Tier[] = [
   {
     id: "basic",
-    name: "기본 퇴사",
+    name: "기본 절차",
     tag: "BASIC",
     price: "199,000",
-    sub: "그냥 깔끔하게 나가고 싶을 때",
+    sub: "통보·연락 응대 중심 절차",
     pop: false,
     perks: [
       "변호사 명의 공식 통보 1회",
-      "회사 연락 차단 + 응대 대행",
-      "사직서 작성 가이드",
+      "회사 연락 응대 대행",
+      "사직서 양식 안내",
       "퇴직 절차 체크리스트",
-      "카톡 상담 (영업일 24시간)",
+      "카톡 상담 (영업일 응답)",
     ],
-    cta: "이거로 시작",
+    cta: "상담 신청",
   },
   {
     id: "pro",
-    name: "안전 퇴사",
-    tag: "MOST POPULAR",
+    name: "표준 절차",
+    tag: "STANDARD",
     price: "390,000",
-    sub: "퇴직금·연차수당까지 다 받고 나가기",
+    sub: "통보 + 임금·수당 자문 포함",
     pop: true,
     perks: [
-      "기본 퇴사 전체 포함",
+      "기본 절차 전체 포함",
       "근로계약서·임금명세서 검토",
-      "퇴직금·연차수당·야근수당 산정",
-      "사용자 측과 직접 협상",
-      "노동청 진정 1건 무료",
-      "실업급여 권고사직 협상",
+      "퇴직금·연차수당·야근수당 산정 자문",
+      "사용자 측과의 교섭 자문",
+      "노동청 진정 1건 자문 포함",
+      "실업급여 절차 안내",
     ],
-    cta: "이거 ㄹㅇ 추천",
+    cta: "상담 신청",
   },
   {
     id: "max",
-    name: "올인원 퇴사",
+    name: "분쟁 대응",
     tag: "FULL",
     price: "790,000",
-    sub: "괴롭힘·임금체불 등 분쟁 케이스",
+    sub: "괴롭힘·임금체불 등 분쟁 사안",
     pop: false,
     perks: [
-      "안전 퇴사 전체 포함",
-      "직장 내 괴롭힘 신고 대행",
-      "산재 신청 컨설팅",
-      "민사 손해배상 청구 (별도)",
+      "표준 절차 전체 포함",
+      "직장 내 괴롭힘 신고 자문",
+      "산재 신청 자문",
+      "민사 손해배상 청구 검토 (소송 비용 별도)",
       "형사고소 검토",
-      "전담 변호사 1:1 배정",
+      "전담 변호사 배정",
     ],
-    cta: "변호사랑 상담",
+    cta: "변호사 상담",
   },
 ];
 
@@ -85,7 +85,7 @@ export function Pricing({ openChat }: Props) {
           className="reveal"
           style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}
         >
-          <span className="eyebrow">Pricing</span>
+          <span className="eyebrow">Service</span>
           <h2 className="h2">
             <span
               style={{
@@ -98,17 +98,16 @@ export function Pricing({ openChat }: Props) {
                 boxShadow: "3px 3px 0 0 var(--ink)",
               }}
             >
-              가격
+              서비스 안내
             </span>
-            도
             <br />
-            그냥 다 까놓을게요
+            (보수 기준)
           </h2>
           <p className="lead" style={{ margin: "0 auto" }}>
-            결제 전 무료 상담 필수임. 진짜 필요한 거만 추천드림.
+            상담 후 사안에 적합한 절차를 안내드립니다. 표시 금액은 위임계약 기준 보수이며, 사안에 따라 변동될 수 있습니다.
             <br />
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
-              ※ 1년 미만 근속자 / 학생 / 사회초년생 20% 할인
+              ※ 위 보수에는 부가세가 별도로 부과될 수 있습니다.
             </span>
           </p>
         </div>
@@ -116,7 +115,7 @@ export function Pricing({ openChat }: Props) {
         <div className="price-grid reveal">
           {tiers.map((t) => (
             <div key={t.id} className={`price-card ${t.pop ? "pop" : ""}`}>
-              {t.pop && <div className="price-pop">★ 90%가 이거 선택함</div>}
+              {t.pop && <div className="price-pop">표준 절차</div>}
               <div className="price-tag">{t.tag}</div>
               <h3 className="price-name">{t.name}</h3>
               <p className="price-sub">{t.sub}</p>
@@ -147,20 +146,20 @@ export function Pricing({ openChat }: Props) {
         <div className="price-foot reveal">
           <div className="foot-row">
             <span className="foot-key">소송 진행 시</span>
-            <span className="foot-val">착수금 + 성공보수 별도 (사건별 안내)</span>
+            <span className="foot-val">착수금 + 성공보수 별도 (사안별 위임계약 시 안내)</span>
           </div>
           <div className="foot-row">
-            <span className="foot-key">결과 안 나오면</span>
-            <span
-              className="foot-val"
-              style={{ color: "var(--orange)", fontWeight: 800 }}
-            >
-              50% 환불 보장
-            </span>
+            <span className="foot-key">상담료</span>
+            <span className="foot-val">초기 카톡 문의 후 안내</span>
           </div>
           <div className="foot-row">
             <span className="foot-key">결제 방식</span>
-            <span className="foot-val">카드 · 무통장 · 분할납부 (3개월) 가능</span>
+            <span className="foot-val">위임계약 시 안내</span>
+          </div>
+          <div className="foot-row" style={{ marginTop: 8, paddingTop: 12, borderTop: "1px dashed var(--ink-2)" }}>
+            <span className="foot-val" style={{ fontSize: 12, color: "var(--muted)" }}>
+              본 사이트는 변호사법 제23조에 따른 광고물입니다. 표시된 보수액은 일반적 위임 기준이며, 사안의 난이도·특수성에 따라 협의 후 결정됩니다. 결과를 보장하지 않습니다.
+            </span>
           </div>
         </div>
       </div>

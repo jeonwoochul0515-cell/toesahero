@@ -85,7 +85,7 @@ export function Calculator() {
     const pickedItems = items.filter((i) => picked.has(i.id)).map((i) => i.label);
     void saveConsultation({
       source: "form",
-      message: "계산기에서 받을 수 있는지 문의",
+      message: "체크리스트 기반 상담 요청",
       pickedItems,
       estimatedAmount: total,
     });
@@ -98,34 +98,37 @@ export function Calculator() {
         <div className="calc-grid">
           <div>
             <span className="eyebrow" style={{ color: "var(--yellow)" }}>
-              Calculator
+              Self-check
             </span>
             <h2 className="h2" style={{ color: "var(--cream)" }}>
-              나도 모르게
+              놓치고 있을 수 있는
               <br />
-              <span style={{ color: "var(--yellow)" }}>떼이고 있던 돈</span>
+              <span style={{ color: "var(--yellow)" }}>청구 항목</span>
               <br />
-              계산기
+              체크리스트
             </h2>
             <p className="lead" style={{ color: "var(--gray-2)" }}>
-              해당되는 거 체크만 하면 끝. 진짜 받을 수 있는지는 변호사가 무료로 봐드림.
+              해당 항목을 선택하시면 변호사가 검토할 수 있는 청구 가능성 항목을 정리해드립니다.
+              <strong style={{ display: "block", marginTop: 8, color: "var(--yellow)", fontWeight: 800 }}>
+                ※ 본 계산은 단순 참고용 합산이며 실제 청구 가능 금액·결과를 보장하지 않습니다.
+              </strong>
             </p>
             <div className="calc-total">
-              <div className="calc-total-label">예상 청구액</div>
+              <div className="calc-total-label">선택 항목 단순 합산 (참고용)</div>
               <div className="calc-total-value">
                 <span className="amount-num">{fmt(total)}</span>
                 <span className="amount-unit">원</span>
               </div>
               <div className="calc-total-note">
                 <span className="dot-warn" />
-                실제 결과는 사안에 따라 달라짐. 그래도 일단 받을 수 있는 건 받아야지.
+                위 금액은 항목별 일반 예시값을 단순 합산한 참고 수치이며, 실제 청구 가능액은 사안별로 변호사 검토가 필요합니다.
               </div>
               <button
                 className="btn yellow"
                 style={{ marginTop: 20, width: "100%", fontSize: 16 }}
                 onClick={handleAsk}
               >
-                💬 이거 받을 수 있는지 물어보기
+                💬 변호사에게 상담 요청
               </button>
             </div>
           </div>

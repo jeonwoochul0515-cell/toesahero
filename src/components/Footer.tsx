@@ -36,7 +36,7 @@ export function Footer({ openChat }: Props) {
               margin: "0 0 18px",
             }}
           >
-            진짜 마지막 출근,
+            퇴사 절차,
             <br />
             <span
               style={{
@@ -48,7 +48,7 @@ export function Footer({ openChat }: Props) {
                 transform: "rotate(-1deg)",
               }}
             >
-              우리가 같이 함.
+              변호사와 함께.
             </span>
           </h2>
           <p
@@ -60,7 +60,7 @@ export function Footer({ openChat }: Props) {
               lineHeight: 1.6,
             }}
           >
-            카톡 한 번이면 시작. 무료 상담임. 비밀 보장 ㄹㅇ.
+            카톡으로 문의 주시면 영업일 기준 변호사가 직접 답변드립니다. 변호사 비밀유지 의무 적용.
           </p>
           <div
             style={{
@@ -75,7 +75,7 @@ export function Footer({ openChat }: Props) {
               style={{ fontSize: 17, padding: "16px 28px" }}
               onClick={openChat}
             >
-              💬 지금 카톡 상담
+              💬 카톡으로 문의
             </button>
             <a
               href="tel:1660-4452"
@@ -130,9 +130,9 @@ export function Footer({ openChat }: Props) {
             <div>
               <strong className="foot-h">서비스</strong>
               <a href="#audience">이런 분들에게</a>
-              <a href="#process">서비스 프로세스</a>
-              <a href="#pricing">가격 / 패키지</a>
-              <a href="#reviews">후기</a>
+              <a href="#process">절차 안내</a>
+              <a href="#pricing">서비스 안내 (보수)</a>
+              <a href="#lawyer">변호사 소개</a>
             </div>
             <div>
               <strong className="foot-h">법률사무소 청송</strong>

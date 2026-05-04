@@ -11,34 +11,34 @@ const steps: Step[] = [
   {
     n: "01",
     emoji: "💬",
-    title: "카톡으로 톡 ㄱㄱ",
-    body: "카톡 채널 추가하고 상황 한 줄만. 변호사가 답변 (24시간 내). 비밀 보장 ㄹㅇ.",
+    title: "카톡으로 문의",
+    body: "카톡 채널로 상황을 간단히 보내주세요. 영업일 기준 변호사가 직접 답변드립니다. 변호사 비밀유지 의무 적용.",
     time: "5분",
-    side: "무료",
+    side: "초기 문의",
   },
   {
     n: "02",
     emoji: "🤝",
-    title: "전략 짜고 위임장 ㅇㅋ",
-    body: "퇴사 시점 · 협상 카드 · 받을 돈까지 변호사가 직접 컨설팅. 위임장은 비대면으로.",
-    time: "30분",
-    side: "유료 시작",
+    title: "상담·위임 절차",
+    body: "퇴사 시점·교섭 방향·법적 쟁점을 변호사가 직접 검토합니다. 위임 절차는 비대면으로 진행 가능합니다.",
+    time: "30분~",
+    side: "법률 자문",
   },
   {
     n: "03",
     emoji: "📣",
-    title: "사장한테 우리가 통보",
-    body: "법률사무소 명의로 공식 통보. 그 다음부터 회사는 우리한테만 연락 가능함.",
-    time: "당일",
-    side: "후련함 ☑",
+    title: "법률사무소 명의 통보",
+    body: "법률사무소 명의로 사용자에게 공식 통보합니다. 이후 회사 연락은 사무소가 응대합니다.",
+    time: "당일~",
+    side: "변호사 명의",
   },
   {
     n: "04",
     emoji: "💰",
-    title: "받을 돈 받고 끝",
-    body: "퇴직금·연차수당·실업급여까지 챙겨드림. 안 주면 노동청 진정·가압류·소송까지.",
-    time: "2~6주",
-    side: "케이스마다 다름",
+    title: "사후 절차 자문",
+    body: "퇴직금·연차수당·실업급여 등 사후 절차에 관한 자문 및 노동청 진정·민사 절차 검토를 진행합니다.",
+    time: "사안별",
+    side: "사안에 따라 상이",
   },
 ];
 
@@ -49,7 +49,7 @@ export function Process() {
         <div className="reveal">
           <span className="eyebrow">How it works</span>
           <h2 className="h2">
-            전화 한 통이면
+            카톡 문의 한 번으로
             <br />
             <span
               style={{
@@ -63,10 +63,10 @@ export function Process() {
                 boxShadow: "4px 4px 0 0 var(--ink)",
               }}
             >
-              퇴사 끝남
+              4단계 절차
             </span>
           </h2>
-          <p className="lead">진짜로 4단계임. 길어야 한 달. 짧으면 당일.</p>
+          <p className="lead">상담 → 위임 → 통보 → 사후 자문. 사안에 따라 기간은 달라집니다.</p>
         </div>
         <div className="proc-grid reveal">
           {steps.map((s, i) => (

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#FFD60A" stroke="#0A0A0A" stroke-width="6"/>
+  <path d="M22 42 Q50 34 78 42 L78 52 Q50 44 22 52 Z" fill="#0A0A0A"/>
+  <circle cx="38" cy="48" r="3" fill="#FFFBF0"/>
+  <circle cx="62" cy="48" r="3" fill="#FFFBF0"/>
+  <rect x="38" y="64" width="24" height="14" rx="3" fill="#FF6B35" stroke="#0A0A0A" stroke-width="3"/>
+  <text x="50" y="76" text-anchor="middle" fill="#FFFBF0" font-size="11" font-weight="900" font-family="Space Grotesk, system-ui, sans-serif">H</text>
+</svg>

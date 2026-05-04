@@ -5,23 +5,23 @@ export function Marquee() {
         <span>
           <em>변호사 직접 운영</em>
           <span className="star">★</span>
-          <em>비밀 보장 ㄹㅇ</em>
+          <em>비밀 유지 의무</em>
           <span className="star">★</span>
-          <em>당일 통보 가능</em>
+          <em>법률사무소 청송</em>
           <span className="star">★</span>
-          <em>퇴직금 못 받으면 환불</em>
+          <em>근로기준법 자문</em>
           <span className="star">★</span>
-          <em>4,200+ 케이스</em>
+          <em>김창희 변호사</em>
           <span className="star">★</span>
           <em>변호사 직접 운영</em>
           <span className="star">★</span>
-          <em>비밀 보장 ㄹㅇ</em>
+          <em>비밀 유지 의무</em>
           <span className="star">★</span>
-          <em>당일 통보 가능</em>
+          <em>법률사무소 청송</em>
           <span className="star">★</span>
-          <em>퇴직금 못 받으면 환불</em>
+          <em>근로기준법 자문</em>
           <span className="star">★</span>
-          <em>4,200+ 케이스</em>
+          <em>김창희 변호사</em>
           <span className="star">★</span>
         </span>
       </div>

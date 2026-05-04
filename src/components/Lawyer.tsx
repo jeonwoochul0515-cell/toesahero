@@ -50,7 +50,7 @@ export function Lawyer() {
           <div className="lawyer-info">
             <span className="eyebrow">Founder's Note</span>
             <h2 className="h2">
-              "혼자 끙끙대지 말고
+              "퇴사도 협상이고,
               <br />
               <span
                 style={{
@@ -63,7 +63,7 @@ export function Lawyer() {
                   transform: "rotate(-1deg)",
                 }}
               >
-                변호사한테 떠넘겨요.
+                협상은 변호사 영역입니다.
               </span>
               "
             </h2>
@@ -76,21 +76,21 @@ export function Lawyer() {
             >
               안녕하세요. 김창희 변호사입니다.
               <br />
-              10년간 1,000건 넘게 사건을 다루면서,{" "}
-              <strong>가장 안타까웠던 게 '혼자 결정 내리는 사람들'</strong>이었어요.
-              특히 퇴사는요... 말 한 번 잘못 꺼내면 받을 돈도 못 받고 나오게 됨. ㄹㅇ로요.
+              10여 년간 1,000건 이상의 사건을 다루면서{" "}
+              <strong>가장 자주 본 패턴은 '혼자 결정 내리시는 분들'</strong>이었습니다.
+              특히 퇴사 단계에서는 절차에 대한 이해 없이 진행할 경우 근로자가 보장받을 수 있는 권리를 충분히 검토하지 못한 채 퇴직하게 되는 경우가 적지 않습니다.
               <br />
               <br />
-              그래서 만들었습니다.{" "}
+              그래서{" "}
               <strong
                 style={{
                   background: "var(--yellow-soft)",
                   padding: "1px 4px",
                 }}
               >
-                변호사가 처음부터 끝까지 책임지는 퇴사대행
+                변호사가 처음부터 끝까지 직접 운영하는 퇴사 자문 서비스
               </strong>
-              . 다른 곳처럼 메시지만 대신 보내주고 끝내지 않습니다. 받을 돈 받는 것까지 — 그게 진짜 퇴사니까요.
+              를 시작했습니다. 통보부터 사후 노동법 자문까지, 변호사 비밀유지 의무 하에 진행합니다.
             </p>
             <div className="lawyer-creds">
               {credentials.map((c, i) => (
