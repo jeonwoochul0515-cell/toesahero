@@ -1,10 +1,10 @@
-# AI 챗봇 활성화 가이드
+# AI 챗봇 + 통보문 자동 초안 가이드
 
 ## 변협 컴플라이언스 (필수 인지)
 
 대한변호사협회 「변호사 광고에 관한 규정」 (2025.2.6 개정) 에 의해 변호사가 AI를 사용한다고 광고할 때:
 
-1. **AI 시스템을 협회에 사전 등록**
+1. **AI 시스템을 협회에 사전 등록** ← 운영 시작 전 필수
 2. **AI 결과물을 검토한 변호사 이름 명시**
 
 본 챗봇은 다음과 같이 컴플라이언스를 준수합니다:
@@ -13,73 +13,189 @@
 - **결과/금액 예측 금지**
 - **무료/할인/환불/최고/유일 표현 금지**
 - 응답 끝에 변호사 직접 상담 권유 자동 삽입
-- ChatModal 푸터에 **"AI 응답은 변호사 사후 검토"** 고지 표시
-- 채팅 로그가 Firestore `chat_messages` 컬렉션에 자동 저장 → **변호사가 어드민 페이지에서 검토 가능**
+- ChatModal 푸터에 **"AI 응답은 변호사 사후 검토"** 고지
+- 채팅 로그 + 통보문 초안 모두 Firestore 자동 저장 → **변호사가 어드민 페이지에서 검토**
 
-> ⚠️ **운영 시작 전 대한변호사협회에 AI 챗봇 사용 사전 등록을 진행해 주세요.** 등록 미완료 시 광고규정 위반 가능성.
+> ⚠️ **운영 시작 전 대한변호사협회에 AI 챗봇 사용 사전 등록을 진행해 주세요.** 등록 미완료 시 광고규정 위반.
 
-## API 키 발급
+---
 
-### Anthropic Claude (권장)
+## 1. 채팅 트리아지 (`/api/chat`)
 
-1. https://console.anthropic.com 가입 (또는 로그인)
-2. **API Keys** 메뉴 → **Create Key**
-3. 이름: `toesahero-chatbot` 등
+### Endpoint
+- POST `/api/chat`
+- Body: `{ messages: [{role, content}], userName? }`
+- Response: `{ text }`
+
+### 모델
+- `claude-haiku-4-5` (Anthropic)
+- max_tokens: 600
+- 컨텍스트: 최근 12개 메시지
+
+### System Prompt 핵심
+- 사실관계 명확화 질문
+- 사안을 카테고리(퇴직금 미지급/임금 체불/괴롭힘/권고사직/부당해고/단순 통보)로 분류
+- 적절한 패키지 (199K/390K/790K) 안내
+- **법률 자문 직접 제공 금지**
+
+System prompt 수정은 `functions/api/chat.ts` 의 `SYSTEM_PROMPT` 상수 편집 → git push → 자동 재배포.
+
+---
+
+## 2. 통보문 자동 초안 생성 (`/api/draft`) ⭐ **신규**
+
+### 워크플로우
+
+```
+의뢰인 채팅 (2턴+30자 이상 대화)
+   ↓ AI 챗봇이 사실관계 자동 수집
+[📝 통보문 초안 생성하기] 버튼 자동 노출
+   ↓ 의뢰인 클릭
+/api/draft 호출
+   ↓ Anthropic Claude 가 표준 양식 통보문 1차 초안 생성
+   ↓ 의뢰인이 알 수 없는 사항은 [대괄호] placeholder
+의뢰인 화면에 초안 표시
+   ↓ 의뢰인 [✓ 변호사 검토 요청] 클릭
+Firestore consultations 에 source='draft' + draftLetter + draftStatus='pending_review' 로 저장
+   ↓
+변호사가 어드민에서 알림 확인 (`/admin/consultations`)
+   ↓ ConsultationDetail 페이지에서 통보문 표시
+   ↓ [대괄호] 부분을 변호사가 채워 넣음 (회사명·입사일 등)
+   ↓ [수정 저장] (draftStatus='edited') 또는
+   ↓ [✓ 승인 (발송 준비)] (draftStatus='approved')
+   ↓ [📤 발송 완료 표시] (draftStatus='sent', status='contacted')
+```
+
+### 표준 통보문 양식 (자동 생성됨)
+
+```
+[발신] 법률사무소 청송
+       부산광역시 연제구 법원남로15번길 10, 202호
+       대표 변호사 김창희 (☎ 1660-4452)
+
+[수신] [회사명] 대표이사 귀하
+
+[사건명] 의뢰인 [○○○]님의 퇴직 의사 통보 및 후속 절차 안내
+
+[통보 내용]
+당 사무소는 의뢰인 [○○○]님으로부터 귀사에 대한 퇴직 의사 표시 및 관련 후속 절차 일체를 위임받아, 다음과 같이 통보합니다.
+
+1. 의뢰인은 [퇴사 예정일] 자로 귀사를 퇴직할 의사를 표시하였습니다.
+2. 마지막 출근일은 [최종출근일]이며, 인수인계 사항은 [인수인계 안내] 합니다.
+3. 본 통보 이후 의뢰인 본인에 대한 직접적 연락은 자제하시고, 모든 연락은 본 사무소(1660-4452)로 일원화하여 주시기 바랍니다.
+4. 미지급 임금·퇴직금·연차수당 등 사후 정산 사항은 [별도 청구 통보] / [정상 지급 요청] 합니다.
+5. 본 통보 후 7일 이내 회신이 없거나 부당한 지연이 발생할 경우, 근로기준법 등 관련 법령에 따른 후속 조치(노동청 진정·민사 청구 등)를 검토할 수 있음을 알립니다.
+
+[관계 법령] 근로기준법 제7조, 민법 제660조, 변호사법 제3조
+
+[작성일] [YYYY년 MM월 DD일]
+[작성자] 법률사무소 청송 대표 변호사 김창희 (인)
+
+※ 본 통보문은 AI가 생성한 1차 초안이며, 변호사 김창희가 검토·수정 후 최종 발송합니다.
+```
+
+### 어드민 검토 화면
+
+`/admin/consultations/:id` 의 통보문 카드:
+- 의뢰인 대화 로그 펼쳐보기 (사실관계 검증용)
+- 통보문 textarea (변호사가 직접 수정 가능)
+- 💾 수정 저장 / ⬇ .txt 다운로드 / ✓ 승인 / 📤 발송 완료 표시
+
+### draftStatus 전이
+
+```
+pending_review (의뢰인이 검토 요청)
+    ↓ 변호사 수정
+edited
+    ↓ 변호사 승인
+approved (발송 준비 완료)
+    ↓ 변호사가 메일/우편 발송 후 표시
+sent (consultation.status도 'contacted'로 자동 전이)
+```
+
+---
+
+## 3. API 키 발급
+
+### Anthropic Claude (현재 적용됨)
+
+1. https://console.anthropic.com 가입 / 로그인
+2. **API Keys** → **Create Key**
+3. 이름: `toesahero-chatbot`
 4. 생성된 `sk-ant-api03-...` 형식 키 복사
 
-### 비용
+### 비용 (claude-haiku-4-5)
 
-- 모델: `claude-haiku-4-5` (가장 저렴)
 - 입력: $0.25 / 1M 토큰
 - 출력: $1.25 / 1M 토큰
-- 평균 대화 1회: 약 $0.001~$0.005 (월 100건 = $1 미만)
-- **결제 카드 등록 필요** (사용량만큼 청구)
-- 무료 크레딧 $5 제공 (일정 기간)
+- 평균 대화 1회: 약 $0.001~$0.005
+- 통보문 1건 생성: 약 $0.005~$0.010 (출력 길이 기준)
+- **월 예상 비용 (월 100건 기준)**: 채팅 ~$1 + 통보문 초안 50건 ~$0.5 = **$1.5 미만**
 
-## Cloudflare Pages 환경변수 등록
+---
 
-1. https://dash.cloudflare.com → Workers & Pages → **toesahero**
-2. **Settings** 탭 → **Variables and Secrets** 또는 **Environment Variables**
-3. **Production** 환경에 추가:
-   - 변수 이름: `ANTHROPIC_API_KEY`
-   - 값: `sk-ant-api03-...` (위에서 복사)
-   - **Encrypt** (Secret 으로) 체크
-4. 저장
-5. **Production** 의 가장 최근 배포를 **Retry** 또는 빈 커밋 푸시 → Functions 가 새 환경변수 인식
+## 4. Cloudflare Pages 환경변수 등록
 
-## 동작 검증
+이미 등록되어 있음. 갱신·재발급 시:
 
-1. https://toesahero.pages.dev 새로고침 (`Ctrl+Shift+R`)
-2. 우하단 💬 카톡 문의 → 모달 열기
-3. 빠른답장 또는 직접 입력으로 메시지 보내기
-4. **첫 응답이 1~3초 후 도착**: AI 작동 (이전엔 1.1초 즉시 = hardcoded 폴백)
-5. 어드민 페이지 `/admin/chats` 에서 의뢰인 메시지 + 봇 응답 모두 기록되는지 확인
+```bash
+echo "sk-ant-api03-..." | npx wrangler pages secret put ANTHROPIC_API_KEY --project-name=toesahero
+```
 
-## 폴백 동작 (API 키 미설정 시)
+또는 Cloudflare Dashboard:
+1. Workers & Pages → toesahero → Settings → Variables and Secrets
+2. Production 환경에 `ANTHROPIC_API_KEY` 추가/수정 (Encrypt)
 
-`ANTHROPIC_API_KEY` 가 설정되지 않으면 `/api/chat` 가 503 응답 → ChatModal 이 자동으로 **기존 hardcoded 응답**(4가지 빠른답장 매핑)으로 폴백. 사이트가 깨지지 않습니다.
+설정 후 다음 배포부터 자동 반영. 즉시 반영하려면 빈 push 또는 워크플로우 수동 실행:
+```bash
+gh workflow run "Deploy to Cloudflare Pages" --repo jeonwoochul0515-cell/toesahero --ref main
+```
 
-## System Prompt 수정
+---
 
-`functions/api/chat.ts` 의 `SYSTEM_PROMPT` 상수를 편집한 뒤 git push → 자동 재배포.
+## 5. 폴백 동작 (API 키 미설정 시)
 
-수정 가이드:
-- **금지 표현 리스트는 유지** (변협 규정 준수)
-- 가격 정보(199K/390K/790K)는 가격표 변경 시 같이 갱신
-- 톤·이모지 사용 정도는 자유롭게 조정 가능
+- `/api/chat`, `/api/draft` 모두 503 응답 → ChatModal 자동으로 hardcoded 폴백 모드
+- 통보문 생성 버튼 클릭 시 "일시적 오류" 안내 → 카카오톡 채널 연결로 유도
 
-## 비용 모니터링
+---
 
-https://console.anthropic.com → **Usage** 탭에서 일/월 사용량 확인.
+## 6. 운영 중 챗봇 응답 검토 워크플로
 
-권장: **월 한도(Monthly Budget)** 를 설정해서 예상치 못한 비용 폭증 방지.
+### 매일 (5분)
+1. 어드민 `/admin/chats` 진입
+2. 최근 24시간 메시지 검토
+3. 부적절 답변 발견 시 → System Prompt 강화 후 재배포
 
-## 운영 중 챗봇 응답 검토 워크플로
+### 매주 (15분)
+1. 어드민 `/admin/consultations` 에서 `draftStatus='pending_review'` 필터링
+2. 통보문 초안 검토 + 의뢰인 대화 로그 확인
+3. [대괄호] 채워 넣기 → 승인 → 발송 (메일/우편)
 
-1. 매일 어드민 `/admin/chats` 들어가서 최근 메시지 검토
-2. 챗봇이 부적절한 답변(법률 자문 비슷한 내용)을 한 경우 → System Prompt 추가 강화
-3. 의뢰인 본인 문의 사항이 명확하게 분류된 경우 → `/admin/consultations` 에서 상세 보기 → 직접 카톡 회신
+### 매월 (30분)
+1. 통계 검토 (대시보드)
+2. AI 응답 품질 평가 — 의뢰인 만족도 / 변호사 수정 비율
+3. System Prompt 개선
 
-## 챗봇 끄는 방법 (필요 시)
+---
 
-CF Pages 환경변수 `ANTHROPIC_API_KEY` 를 삭제하면 즉시 폴백 모드로 전환됩니다.
+## 7. 보안·비용 한도
+
+### Anthropic Console 설정 권장
+- **Monthly Budget**: $50/월 정도로 시작 (예상 사용량의 10배 안전 마진)
+- **Email alerts**: 80% 사용 시 알림
+
+### Cloudflare Pages
+- Functions 무료 티어: 100K 요청/일
+- 예상 사용량: 월 3,000~10,000 요청 → **무료 한도 내** 충분
+
+---
+
+## 8. 끄는 방법 (긴급 상황)
+
+CF Pages 환경변수 `ANTHROPIC_API_KEY` 삭제:
+```bash
+npx wrangler pages secret delete ANTHROPIC_API_KEY --project-name=toesahero
+```
+
+즉시 폴백 모드 전환. ChatModal은 hardcoded 응답으로 작동, 통보문 자동 생성은 비활성.
