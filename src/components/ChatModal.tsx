@@ -17,16 +17,46 @@ const replies = [
   "퇴사 절차 안내",
 ];
 
-const responses: Record<string, string> = {
+// AI 챗봇 미설정 시 폴백 응답
+const fallbackResponses: Record<string, string> = {
   "사장과 연락이 안 됩니다":
     "변호사 명의로 공식 통보를 진행하는 절차가 있습니다. 사안에 따라 적합한 절차를 변호사가 안내드립니다.",
   "퇴직금 관련 문의":
-    "근속기간과 평균임금 정보를 알려주시면 변호사가 검토 후 안내드립니다. 사안에 따라 노동청 진정 등 후속 절차 자문이 가능합니다.",
+    "근속기간과 평균임금 정보를 알려주시면 변호사가 검토 후 안내드립니다.",
   "직장 내 괴롭힘 상담":
     "관련 증거가 있는 경우 산재 신청·민사 청구 등의 절차 검토가 가능합니다. 비대면 상담 가능하니 카카오톡 채널로 연결드릴까요?",
   "퇴사 절차 안내":
-    "기본 절차 위임은 199,000원부터 안내드리고 있습니다 (사안별 협의). 자세한 사항은 위임계약 시 안내드립니다.",
+    "기본 절차 위임은 199,000원부터 안내드리고 있습니다. 자세한 사항은 위임계약 시 안내드립니다.",
 };
+
+const FALLBACK_DEFAULT =
+  "메시지 확인했습니다. 정확한 답변을 위해 카카오톡 채널 또는 1660-4452로 변호사와 직접 연결드리겠습니다.";
+
+async function callAiChat(
+  messages: Array<{ role: "user" | "assistant"; content: string }>,
+  userName: string | null
+): Promise<string | null> {
+  try {
+    const resp = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ messages, userName }),
+    });
+    if (resp.status === 503) {
+      // AI not configured — fall back
+      return null;
+    }
+    if (!resp.ok) {
+      console.warn("[chat] upstream error", resp.status);
+      return null;
+    }
+    const data = (await resp.json()) as { text?: string };
+    return data.text ?? null;
+  } catch (e) {
+    console.warn("[chat] network error", e);
+    return null;
+  }
+}
 
 type Props = {
   open: boolean;
@@ -146,10 +176,11 @@ export function ChatModal({ open, onClose }: Props) {
     };
   }, [open]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
     const userMsg: Msg = { who: "me", text };
-    setMessages((m) => [...m, userMsg]);
+    const nextMsgs = [...messages, userMsg];
+    setMessages(nextMsgs);
     setInput("");
     setTyping(true);
     void logChatMessage(text, "me");
@@ -157,14 +188,30 @@ export function ChatModal({ open, onClose }: Props) {
       source: "chat",
       message: text,
     });
-    setTimeout(() => {
-      setTyping(false);
-      const reply =
-        responses[text] ??
-        "메시지 확인했습니다. 정확한 답변을 위해 카카오톡 채널 또는 변호사 직통으로 연결드릴 수 있습니다. 영업일 기준 변호사가 직접 답변드립니다.";
-      setMessages((m) => [...m, { who: "them", text: reply }]);
-      void logChatMessage(reply, "them");
-    }, 1100);
+
+    // AI 챗봇 호출 (변협 컴플라이언스 system prompt 적용)
+    const aiHistory = nextMsgs
+      .filter((m) => m.who === "me" || m.who === "them")
+      .map(
+        (m) =>
+          ({
+            role: m.who === "me" ? "user" : "assistant",
+            content: m.text,
+          } as const)
+      );
+    const aiText = await callAiChat(aiHistory, user?.displayName ?? null);
+
+    setTyping(false);
+
+    let reply: string;
+    if (aiText) {
+      reply = aiText;
+    } else {
+      reply = fallbackResponses[text] ?? FALLBACK_DEFAULT;
+    }
+
+    setMessages((m) => [...m, { who: "them", text: reply }]);
+    void logChatMessage(reply, "them");
   };
 
   if (!open) return null;
@@ -241,7 +288,7 @@ export function ChatModal({ open, onClose }: Props) {
         </div>
         <div className="quick-replies">
           {replies.map((r) => (
-            <button key={r} className="qr" onClick={() => send(r)}>
+            <button key={r} className="qr" onClick={() => void send(r)}>
               {r}
             </button>
           ))}
@@ -254,10 +301,10 @@ export function ChatModal({ open, onClose }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") send(input);
+              if (e.key === "Enter") void send(input);
             }}
           />
-          <button className="btn primary" onClick={() => send(input)}>
+          <button className="btn primary" onClick={() => void send(input)}>
             보내기
           </button>
         </div>
@@ -273,7 +320,7 @@ export function ChatModal({ open, onClose }: Props) {
           </a>
         </div>
         <div className="chat-foot-note">
-          🔒 변호사 비밀유지 의무 적용 · 영업일 기준 변호사 직접 응답 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
+          🔒 변호사 비밀유지 의무 적용 · AI 응답은 변호사 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
         </div>
       </div>
     </div>

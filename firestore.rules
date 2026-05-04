@@ -1,7 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 익명/카카오 로그인 사용자 모두 상담 요청 생성 가능. uid 필드는 있다면 본인 것이어야 함.
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // 익명/카카오/이메일 로그인 사용자 모두 상담 요청 생성 가능.
+    // 어드민만 읽기/수정/삭제 가능.
     match /consultations/{docId} {
       allow create: if request.resource.data.keys().hasAll(['source', 'createdAt'])
                     && request.resource.data.source in ['chat', 'form', 'floating']
@@ -10,8 +21,15 @@ service cloud.firestore {
                       || request.resource.data.uid == null
                       || request.resource.data.uid == request.auth.uid
                     );
-      allow read, update, delete: if false;
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+                    && request.resource.data.diff(resource.data)
+                       .affectedKeys()
+                       .hasOnly(['status', 'notes', 'updatedAt', 'assignedTo']);
+      allow delete: if isAdmin();
     }
+
+    // 채팅 메시지 로그.
     match /chat_messages/{docId} {
       allow create: if request.resource.data.keys().hasAll(['text', 'role', 'createdAt'])
                     && request.resource.data.role in ['me', 'them']
@@ -20,8 +38,17 @@ service cloud.firestore {
                       || request.resource.data.uid == null
                       || request.resource.data.uid == request.auth.uid
                     );
-      allow read, update, delete: if false;
+      allow read: if isAdmin();
+      allow update, delete: if false;
     }
+
+    // 어드민 식별 컬렉션. Firebase Console 또는 어드민이 직접 추가.
+    match /admins/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

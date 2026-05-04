@@ -4,6 +4,7 @@ import App from "./App";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "@fontsource-variable/space-grotesk";
 import "./styles.css";
+import "./admin/admin.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

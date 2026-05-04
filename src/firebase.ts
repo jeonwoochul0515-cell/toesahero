@@ -10,11 +10,23 @@ import {
   getAuth,
   OAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
   signOut as fbSignOut,
   onAuthStateChanged,
   type Auth,
   type User,
 } from "firebase/auth";
+import {
+  doc,
+  getDoc,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  updateDoc,
+  type DocumentData,
+  type QueryDocumentSnapshot,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -98,6 +110,108 @@ export async function signOut(): Promise<void> {
   const a = getAuthOrNull();
   if (!a) return;
   await fbSignOut(a);
+}
+
+export async function signInAdminWithEmail(
+  email: string,
+  password: string
+): Promise<AppUser> {
+  const a = getAuthOrNull();
+  if (!a) throw new Error("Firebase Auth 가 초기화되지 않았습니다.");
+  const result = await signInWithEmailAndPassword(a, email, password);
+  return toAppUser(result.user)!;
+}
+
+export async function checkIsAdmin(uid: string): Promise<boolean> {
+  const database = getDb();
+  if (!database) return false;
+  try {
+    const snap = await getDoc(doc(database, "admins", uid));
+    return snap.exists();
+  } catch {
+    return false;
+  }
+}
+
+export type ConsultationDoc = {
+  id: string;
+  source: "chat" | "form" | "floating";
+  message?: string;
+  pickedItems?: string[];
+  estimatedAmount?: number;
+  contact?: string;
+  meta?: Record<string, unknown>;
+  uid?: string | null;
+  userName?: string | null;
+  userEmail?: string | null;
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+  status?: "new" | "contacted" | "consulted" | "contracted" | "closed";
+  notes?: string;
+  userAgent?: string;
+  path?: string;
+};
+
+export type ChatMessageDoc = {
+  id: string;
+  text: string;
+  role: "me" | "them";
+  uid?: string | null;
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+};
+
+function snapToConsultation(
+  s: QueryDocumentSnapshot<DocumentData>
+): ConsultationDoc {
+  return { id: s.id, ...(s.data() as Omit<ConsultationDoc, "id">) };
+}
+
+function snapToChatMessage(
+  s: QueryDocumentSnapshot<DocumentData>
+): ChatMessageDoc {
+  return { id: s.id, ...(s.data() as Omit<ChatMessageDoc, "id">) };
+}
+
+export function watchConsultations(
+  cb: (rows: ConsultationDoc[]) => void,
+  max = 100
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(
+    collection(database, "consultations"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToConsultation)));
+}
+
+export function watchChatMessages(
+  cb: (rows: ChatMessageDoc[]) => void,
+  max = 200
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(
+    collection(database, "chat_messages"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToChatMessage)));
+}
+
+export async function updateConsultation(
+  id: string,
+  patch: Partial<Pick<ConsultationDoc, "status" | "notes">>
+): Promise<void> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  await updateDoc(doc(database, "consultations", id), patch);
 }
 
 export type ConsultationPayload = {
