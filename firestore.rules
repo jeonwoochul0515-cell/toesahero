@@ -11,21 +11,25 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    function isOwner() {
+      return isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
     // 익명/카카오/이메일 로그인 사용자 모두 상담 요청 생성 가능.
-    // 어드민만 읽기/수정/삭제 가능.
+    // 어드민과 본인(uid 일치)만 읽기. 어드민만 수정/삭제.
     match /consultations/{docId} {
       allow create: if request.resource.data.keys().hasAll(['source', 'createdAt'])
-                    && request.resource.data.source in ['chat', 'form', 'floating', 'draft']
+                    && request.resource.data.source in ['chat', 'form', 'floating', 'draft', 'notice']
                     && (
                       !('uid' in request.resource.data)
                       || request.resource.data.uid == null
                       || request.resource.data.uid == request.auth.uid
                     );
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isOwner();
       allow update: if isAdmin()
                     && request.resource.data.diff(resource.data)
                        .affectedKeys()
-                       .hasOnly(['status', 'notes', 'updatedAt', 'assignedTo', 'draftLetter', 'draftStatus', 'draftApprovedAt']);
+                       .hasOnly(['status', 'notes', 'updatedAt', 'assignedTo', 'draftLetter', 'draftStatus', 'draftApprovedAt', 'noticeLetter', 'noticeStatus']);
       allow delete: if isAdmin();
     }
 
@@ -38,7 +42,7 @@ service cloud.firestore {
                       || request.resource.data.uid == null
                       || request.resource.data.uid == request.auth.uid
                     );
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isOwner();
       allow update, delete: if false;
     }
 

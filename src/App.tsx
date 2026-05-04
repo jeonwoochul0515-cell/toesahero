@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Home } from "./Home";
+import { MyPage } from "./pages/MyPage";
+import { CalcPage } from "./pages/CalcPage";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
 import { AdminLogin } from "./admin/AdminLogin";
 import { RequireAdmin } from "./admin/RequireAdmin";
@@ -18,6 +20,8 @@ export default function App() {
       <AdminAuthProvider>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/my" element={<MyPage />} />
+          <Route path="/calc" element={<CalcPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin/consultations/:id/print"

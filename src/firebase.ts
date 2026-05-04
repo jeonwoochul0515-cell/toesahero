@@ -20,6 +20,7 @@ import {
   doc,
   getDoc,
   query,
+  where,
   orderBy,
   limit,
   onSnapshot,
@@ -135,7 +136,7 @@ export async function checkIsAdmin(uid: string): Promise<boolean> {
 
 export type ConsultationDoc = {
   id: string;
-  source: "chat" | "form" | "floating" | "draft";
+  source: "chat" | "form" | "floating" | "draft" | "notice";
   message?: string;
   pickedItems?: string[];
   estimatedAmount?: number;
@@ -149,11 +150,14 @@ export type ConsultationDoc = {
   notes?: string;
   userAgent?: string;
   path?: string;
-  // AI 초안 자동화 필드
+  // AI 통보문 초안 (베이직)
   draftLetter?: string | null;
   draftStatus?: "pending_review" | "edited" | "approved" | "sent" | null;
   draftApprovedAt?: { seconds: number; nanoseconds: number } | null;
   conversationLog?: string | null;
+  // 내용증명 (표준)
+  noticeLetter?: string | null;
+  noticeStatus?: "pending_review" | "edited" | "approved" | "sent" | null;
 };
 
 export type ChatMessageDoc = {
@@ -208,6 +212,70 @@ export function watchChatMessages(
     limit(max)
   );
   return onSnapshot(q, (snap) => cb(snap.docs.map(snapToChatMessage)));
+}
+
+// 의뢰인 본인 사건 조회 (마이페이지용)
+export function watchMyCases(
+  uid: string,
+  cb: (rows: ConsultationDoc[]) => void,
+  max = 50
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(
+    collection(database, "consultations"),
+    where("uid", "==", uid),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToConsultation)));
+}
+
+// 표준 패키지: 내용증명 초안 저장
+export type NoticeSubmission = {
+  noticeLetter: string;
+  computedItems: Array<{ label: string; amount: number }>;
+  computedTotal: number;
+  factSummary: string; // 의뢰인 입력 (계산기) 요약
+  userName?: string | null;
+};
+
+export async function saveNoticeConsultation(
+  payload: NoticeSubmission
+): Promise<string | null> {
+  const database = getDb();
+  if (!database) {
+    console.info("[firebase] config missing — skipping notice save");
+    return null;
+  }
+  const a = getAuthOrNull();
+  const user = a?.currentUser ?? null;
+  try {
+    const ref = await addDoc(collection(database, "consultations"), {
+      source: "notice",
+      message: "표준 패키지: 내용증명 1차 초안 — 변호사 검토 대기",
+      uid: user?.uid ?? null,
+      userName: user?.displayName ?? payload.userName ?? null,
+      userEmail: user?.email ?? null,
+      pickedItems: payload.computedItems.map((i) => i.label),
+      estimatedAmount: payload.computedTotal,
+      meta: { factSummary: payload.factSummary, items: payload.computedItems },
+      noticeLetter: payload.noticeLetter,
+      noticeStatus: "pending_review",
+      status: "new",
+      createdAt: serverTimestamp(),
+      userAgent:
+        typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+      path: typeof window !== "undefined" ? window.location.pathname : "/",
+    });
+    return ref.id;
+  } catch (e) {
+    console.warn("[firebase] saveNoticeConsultation failed", e);
+    return null;
+  }
 }
 
 export async function updateConsultation(

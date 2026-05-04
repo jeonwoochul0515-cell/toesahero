@@ -20,9 +20,10 @@ export function Nav({ openChat }: Props) {
         <div className="links">
           <a href="#audience">이런 분에게</a>
           <a href="#process">절차</a>
+          <a href="/calc">계산기</a>
           <a href="#lawyer">변호사</a>
           <a href="#pricing">서비스 안내</a>
-          <a href="#reviews">후기</a>
+          <a href="/my">마이페이지</a>
         </div>
         <button
           className="btn primary"

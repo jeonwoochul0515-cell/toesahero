@@ -141,6 +141,20 @@ export function Pricing({ openChat }: Props) {
               >
                 {t.cta}
               </button>
+              {t.id === "pro" && (
+                <a
+                  href="/calc"
+                  className="btn"
+                  style={{
+                    width: "100%",
+                    marginTop: 8,
+                    fontSize: 13,
+                    background: "var(--yellow)",
+                  }}
+                >
+                  📊 자동 계산기로 견적
+                </a>
+              )}
             </div>
           ))}
         </div>
