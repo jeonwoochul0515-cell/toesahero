@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /__/
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
 
-Sitemap: https://toesahero.pages.dev/sitemap.xml
+Sitemap: https://toesahero.com/sitemap.xml

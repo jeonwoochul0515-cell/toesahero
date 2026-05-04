@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Home } from "./Home";
 import { MyPage } from "./pages/MyPage";
 import { CalcPage } from "./pages/CalcPage";
@@ -29,6 +29,14 @@ export default function App() {
           <Route path="/calc" element={<CalcPage />} />
           <Route path="/checkout/:id" element={<CheckoutPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route
+            path="/terms"
+            element={<Navigate to="/terms.html" replace />}
+          />
+          <Route
+            path="/privacy"
+            element={<Navigate to="/privacy.html" replace />}
+          />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/faq" element={<FAQPage />} />
