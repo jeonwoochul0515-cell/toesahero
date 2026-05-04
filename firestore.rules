@@ -60,6 +60,12 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // 블로그. 어드민만 작성/수정/삭제. status='published' 인 글만 공개.
+    match /posts/{docId} {
+      allow read: if isAdmin() || resource.data.status == 'published';
+      allow create, update, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

@@ -396,6 +396,123 @@ export async function deleteReview(id: string): Promise<void> {
   await deleteDoc(doc(database, "reviews", id));
 }
 
+// ─── 블로그 / 칼럼 ───
+export type PostDoc = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string; // markdown
+  tags: string[];
+  coverEmoji?: string;
+  author: string;
+  status: "draft" | "published";
+  publishedAt?: { seconds: number; nanoseconds: number } | null;
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+  updatedAt?: { seconds: number; nanoseconds: number } | null;
+};
+
+function snapToPost(s: QueryDocumentSnapshot<DocumentData>): PostDoc {
+  return { id: s.id, ...(s.data() as Omit<PostDoc, "id">) };
+}
+
+export function watchPostsAdmin(
+  cb: (rows: PostDoc[]) => void,
+  max = 200
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(
+    collection(database, "posts"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToPost)));
+}
+
+export async function fetchPublishedPosts(): Promise<PostDoc[]> {
+  const database = getDb();
+  if (!database) return [];
+  try {
+    const { getDocs } = await import("firebase/firestore");
+    const q = query(
+      collection(database, "posts"),
+      orderBy("publishedAt", "desc"),
+      limit(50)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map(snapToPost)
+      .filter((p) => p.status === "published");
+  } catch (e) {
+    console.warn("[firebase] fetchPublishedPosts failed", e);
+    return [];
+  }
+}
+
+export async function fetchPostBySlug(slug: string): Promise<PostDoc | null> {
+  const database = getDb();
+  if (!database) return null;
+  try {
+    const { getDocs } = await import("firebase/firestore");
+    const q = query(
+      collection(database, "posts"),
+      where("slug", "==", slug),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    const doc1 = snap.docs[0];
+    if (!doc1) return null;
+    const post = snapToPost(doc1);
+    if (post.status !== "published") return null;
+    return post;
+  } catch (e) {
+    console.warn("[firebase] fetchPostBySlug failed", e);
+    return null;
+  }
+}
+
+export async function createPost(
+  payload: Omit<PostDoc, "id" | "createdAt" | "updatedAt" | "publishedAt">
+): Promise<string | null> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  const ref = await addDoc(collection(database, "posts"), {
+    ...payload,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    publishedAt:
+      payload.status === "published" ? serverTimestamp() : null,
+  });
+  return ref.id;
+}
+
+export async function updatePost(
+  id: string,
+  patch: Partial<Omit<PostDoc, "id" | "createdAt">>
+): Promise<void> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  const data: Record<string, unknown> = {
+    ...patch,
+    updatedAt: serverTimestamp(),
+  };
+  if (patch.status === "published" && !patch.publishedAt) {
+    data.publishedAt = serverTimestamp();
+  }
+  await updateDoc(doc(database, "posts", id), data);
+}
+
+export async function deletePost(id: string): Promise<void> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  const { deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(database, "posts", id));
+}
+
 export type DraftSubmission = {
   conversationLog: string;
   draftLetter: string;

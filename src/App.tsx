@@ -3,6 +3,10 @@ import { Home } from "./Home";
 import { MyPage } from "./pages/MyPage";
 import { CalcPage } from "./pages/CalcPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
+import { BlogList } from "./pages/BlogList";
+import { BlogPost } from "./pages/BlogPost";
+import { FAQPage } from "./pages/FAQPage";
+import { BlogAdmin } from "./admin/BlogAdmin";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
 import { AdminLogin } from "./admin/AdminLogin";
 import { RequireAdmin } from "./admin/RequireAdmin";
@@ -25,6 +29,9 @@ export default function App() {
           <Route path="/calc" element={<CalcPage />} />
           <Route path="/checkout/:id" element={<CheckoutPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/faq" element={<FAQPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin/consultations/:id/print"
@@ -50,6 +57,7 @@ export default function App() {
             />
             <Route path="kanban" element={<Kanban />} />
             <Route path="reviews" element={<ReviewsAdmin />} />
+            <Route path="blog" element={<BlogAdmin />} />
             <Route path="chats" element={<ChatLogs />} />
           </Route>
         </Routes>

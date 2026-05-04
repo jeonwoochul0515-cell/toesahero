@@ -2276,3 +2276,323 @@ body[data-mascot="false"] .mascot {
 .checkout-result.fail {
   box-shadow: 12px 12px 0 0 var(--orange);
 }
+
+/* ─── 정적 페이지 공통 (Blog, FAQ) ─── */
+.page-static {
+  min-height: 100vh;
+  background: var(--cream);
+}
+.page-static-header {
+  background: var(--paper);
+  border-bottom: 2.5px solid var(--ink);
+  padding: 22px 24px 26px;
+}
+.page-static-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  margin: 8px 0 6px;
+  line-height: 1.2;
+}
+.page-static-sub {
+  color: var(--ink-2);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.6;
+}
+.page-static-main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+}
+.page-static-foot {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ─── Blog ─── */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.blog-card {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  padding: 22px;
+  text-decoration: none;
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.blog-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 6px 6px 0 0 var(--ink);
+}
+.blog-card-emoji {
+  font-size: 36px;
+  line-height: 1;
+}
+.blog-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.blog-tag {
+  font-family: var(--font-en);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--yellow);
+  border: 1.5px solid var(--ink);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.blog-card-title {
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.blog-card-excerpt {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  margin: 0;
+  flex: 1;
+}
+.blog-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--muted);
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--ink-2);
+}
+
+.blog-post {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 36px 38px;
+  box-shadow: var(--shadow);
+  max-width: 760px;
+  margin: 0 auto;
+}
+.blog-post-emoji {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.blog-post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.blog-post-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin: 0 0 16px;
+}
+.blog-post-meta {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--muted);
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 26px;
+}
+.blog-post-meta strong {
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 14px;
+}
+.blog-post-body {
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--ink-2);
+}
+.blog-post-body h2 {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 32px 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--ink);
+}
+.blog-post-body h3 {
+  font-size: 18px;
+  font-weight: 900;
+  margin: 28px 0 10px;
+  color: var(--ink);
+}
+.blog-post-body p {
+  margin: 0 0 14px;
+}
+.blog-post-body ul,
+.blog-post-body ol {
+  padding-left: 22px;
+  margin: 0 0 14px;
+}
+.blog-post-body li {
+  margin-bottom: 6px;
+}
+.blog-post-body strong {
+  color: var(--ink);
+  background: var(--yellow-soft);
+  padding: 0 3px;
+}
+.blog-post-body code {
+  background: var(--gray-1);
+  border: 1px solid var(--ink);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: monospace;
+}
+.blog-post-body blockquote {
+  border-left: 4px solid var(--orange);
+  padding: 8px 16px;
+  margin: 16px 0;
+  background: var(--yellow-soft);
+  font-style: italic;
+}
+.blog-post-body a {
+  color: var(--orange);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  font-weight: 700;
+}
+.blog-post-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 14px 0;
+}
+.blog-post-body th,
+.blog-post-body td {
+  border: 1.5px solid var(--ink);
+  padding: 8px 12px;
+  text-align: left;
+}
+.blog-post-body th {
+  background: var(--yellow);
+  font-weight: 800;
+}
+.blog-post-foot {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 2.5px dashed var(--ink-2);
+}
+.blog-post-foot p {
+  background: var(--gray-1);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+.blog-post-foot strong {
+  color: var(--ink);
+}
+.blog-post-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ─── FAQ ─── */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.faq-item {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.faq-item summary {
+  cursor: pointer;
+  padding: 18px 22px;
+  font-weight: 800;
+  font-size: 15px;
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  user-select: none;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary::after {
+  content: "+";
+  margin-left: auto;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--orange);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.faq-item[open] summary::after {
+  transform: rotate(45deg);
+}
+.faq-q-num {
+  font-family: var(--font-en);
+  color: var(--orange);
+  font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+}
+.faq-q-text {
+  flex: 1;
+  line-height: 1.5;
+}
+.faq-answer {
+  padding: 0 22px 22px;
+  border-top: 1.5px dashed var(--ink-2);
+  margin-top: -2px;
+  padding-top: 18px;
+  background: var(--cream);
+}
+.faq-answer p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+.faq-answer p:last-child {
+  margin-bottom: 0;
+}
+.faq-cta {
+  margin-top: 40px;
+  padding: 24px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  text-align: center;
+}
+.faq-cta p {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+}

@@ -16,6 +16,71 @@ function fmtDate(ts: ConsultationDoc["createdAt"]): string {
   return d.toLocaleString("ko-KR", { hour12: false });
 }
 
+function csvEscape(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const s = typeof value === "string" ? value : String(value);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function exportCsv(rows: ConsultationDoc[]) {
+  if (rows.length === 0) return;
+  const headers = [
+    "id",
+    "createdAt",
+    "source",
+    "status",
+    "userName",
+    "userEmail",
+    "uid",
+    "message",
+    "pickedItems",
+    "estimatedAmount",
+    "draftStatus",
+    "noticeStatus",
+    "paymentStatus",
+    "paymentAmount",
+    "notes",
+    "path",
+  ];
+  const rowsCsv = rows.map((r) =>
+    [
+      r.id,
+      r.createdAt
+        ? new Date(r.createdAt.seconds * 1000).toISOString()
+        : "",
+      r.source,
+      r.status ?? "new",
+      r.userName ?? "",
+      r.userEmail ?? "",
+      r.uid ?? "",
+      (r.message ?? "").replace(/\r?\n/g, " · "),
+      (r.pickedItems ?? []).join(" / "),
+      r.estimatedAmount ?? "",
+      r.draftStatus ?? "",
+      r.noticeStatus ?? "",
+      r.paymentStatus ?? "",
+      r.paymentAmount ?? "",
+      (r.notes ?? "").replace(/\r?\n/g, " · "),
+      r.path ?? "",
+    ]
+      .map(csvEscape)
+      .join(",")
+  );
+  const csv = [headers.join(","), ...rowsCsv].join("\r\n");
+  // BOM for Excel UTF-8 compatibility
+  const blob = new Blob(["﻿" + csv], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `toesahero_consultations_${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function ConsultationsList() {
   const [rows, setRows] = useState<ConsultationDoc[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -65,6 +130,13 @@ export function ConsultationsList() {
           <option value="closed">종료</option>
         </select>
         <span className="admin-count">{filtered.length}건</span>
+        <button
+          className="admin-export-btn"
+          onClick={() => exportCsv(filtered)}
+          disabled={filtered.length === 0}
+        >
+          ⬇ CSV 내보내기
+        </button>
       </div>
 
       <table className="admin-table">
