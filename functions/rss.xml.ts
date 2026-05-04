@@ -30,6 +30,19 @@ type FirestoreDoc = {
   updateTime?: string;
 };
 
+// 마크다운 → 매우 단순한 텍스트 변환 (RSS 본문용)
+function markdownToText(md: string): string {
+  return md
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/^>\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function escapeXml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -111,6 +124,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     const slug = getString(f.slug);
     const title = getString(f.title);
     const excerpt = getString(f.excerpt);
+    const body = getString(f.body);
     const author = getString(f.author) || "김창희 변호사";
     const tags = getStringArray(f.tags);
     const publishedAt = getTimestamp(f.publishedAt);
@@ -121,6 +135,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     const categories = tags
       .map((t) => `<category><![CDATA[${t}]]></category>`)
       .join("");
+    // 네이버 가이드: RSS 본문 전체 포함 권장
+    const fullText = body ? markdownToText(body) : excerpt;
 
     items.push(`
     <item>
@@ -130,13 +146,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
       <pubDate>${pubDate}</pubDate>
       <author><![CDATA[${author}]]></author>
       <description><![CDATA[${excerpt}]]></description>
+      <content:encoded><![CDATA[${fullText}]]></content:encoded>
       ${categories}
     </item>`);
   }
 
   const lastBuildDate = new Date().toUTCString();
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>퇴사히어로 — 법률 칼럼</title>
     <link>${SITE_HOST}/blog</link>

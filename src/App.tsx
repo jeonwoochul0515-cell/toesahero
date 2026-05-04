@@ -6,6 +6,7 @@ import { CheckoutPage } from "./pages/CheckoutPage";
 import { BlogList } from "./pages/BlogList";
 import { BlogPost } from "./pages/BlogPost";
 import { FAQPage } from "./pages/FAQPage";
+import { NotFound } from "./pages/NotFound";
 import { BlogAdmin } from "./admin/BlogAdmin";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
 import { AdminLogin } from "./admin/AdminLogin";
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="blog" element={<BlogAdmin />} />
             <Route path="chats" element={<ChatLogs />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AdminAuthProvider>
     </BrowserRouter>

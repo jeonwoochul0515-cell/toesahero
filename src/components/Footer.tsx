@@ -142,8 +142,17 @@ export function Footer({ openChat }: Props) {
                 href="https://chang-hee.kim"
                 target="_blank"
                 rel="noopener noreferrer"
+                title="법률사무소 청송 김창희 변호사 홈페이지"
               >
                 변호사 김창희 ↗
+              </a>
+              <a
+                href="https://pf.kakao.com/_zkzIX/chat"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="카카오톡 채널 상담"
+              >
+                카카오톡 채널 ↗
               </a>
               <a href="tel:1660-4452">☎ 1660-4452</a>
               <a href="mailto:lawchungsong@daum.net">lawchungsong@daum.net</a>
