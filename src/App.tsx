@@ -8,6 +8,9 @@ import { AdminDashboard } from "./admin/AdminDashboard";
 import { ConsultationsList } from "./admin/ConsultationsList";
 import { ConsultationDetail } from "./admin/ConsultationDetail";
 import { ChatLogs } from "./admin/ChatLogs";
+import { PrintLetter } from "./admin/PrintLetter";
+import { Kanban } from "./admin/Kanban";
+import { ReviewsAdmin } from "./admin/ReviewsAdmin";
 
 export default function App() {
   return (
@@ -16,6 +19,14 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin/consultations/:id/print"
+            element={
+              <RequireAdmin>
+                <PrintLetter />
+              </RequireAdmin>
+            }
+          />
           <Route
             path="/admin"
             element={
@@ -30,6 +41,8 @@ export default function App() {
               path="consultations/:id"
               element={<ConsultationDetail />}
             />
+            <Route path="kanban" element={<Kanban />} />
+            <Route path="reviews" element={<ReviewsAdmin />} />
             <Route path="chats" element={<ChatLogs />} />
           </Route>
         </Routes>

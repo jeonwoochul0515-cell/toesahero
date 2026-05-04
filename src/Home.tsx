@@ -7,7 +7,7 @@ import { Calculator } from "./components/Calculator";
 import { Process } from "./components/Process";
 import { Lawyer } from "./components/Lawyer";
 import { Pricing } from "./components/Pricing";
-// import { Reviews } from "./components/Reviews"; // 변협 광고규정 검토 후 활성화
+import { Reviews } from "./components/Reviews";
 import { Footer } from "./components/Footer";
 import { ChatModal } from "./components/ChatModal";
 import { FloatingButton } from "./components/FloatingButton";
@@ -50,6 +50,7 @@ export function Home() {
       <Process />
       <Lawyer />
       <Pricing openChat={openChat} />
+      <Reviews />
       <Footer openChat={openChat} />
       <FloatingButton openChat={openChat} />
       <ChatModal open={chatOpen} onClose={() => setChatOpen(false)} />

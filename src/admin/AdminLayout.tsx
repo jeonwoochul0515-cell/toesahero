@@ -14,7 +14,9 @@ export function AdminLayout() {
           <NavLink to="/admin" end>
             대시보드
           </NavLink>
+          <NavLink to="/admin/kanban">칸반</NavLink>
           <NavLink to="/admin/consultations">상담 요청</NavLink>
+          <NavLink to="/admin/reviews">후기 관리</NavLink>
           <NavLink to="/admin/chats">채팅 로그</NavLink>
         </nav>
         <div className="admin-user">

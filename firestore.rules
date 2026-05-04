@@ -49,6 +49,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // 후기. 어드민만 작성/수정/삭제. 공개(approved + display=true)는 누구나 읽기.
+    match /reviews/{docId} {
+      allow read: if isAdmin()
+                  || (resource.data.status == 'approved' && resource.data.display == true);
+      allow create, update, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

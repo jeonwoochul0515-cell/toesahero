@@ -257,6 +257,15 @@ export function ConsultationDetail() {
               >
                 ⬇ .txt 다운로드
               </button>
+              <a
+                className="btn"
+                href={`/admin/consultations/${row.id}/print`}
+                target="_blank"
+                rel="noopener"
+                style={{ background: "var(--yellow)" }}
+              >
+                🖨 PDF 인쇄
+              </a>
               {row.draftStatus !== "approved" && row.draftStatus !== "sent" && (
                 <button
                   className="btn primary"

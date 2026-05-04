@@ -228,6 +228,99 @@ export async function updateConsultation(
   await updateDoc(doc(database, "consultations", id), data);
 }
 
+// ─── Reviews (후기 시스템) ───
+export type ReviewDoc = {
+  id: string;
+  title: string;
+  body: string;
+  tag: string; // 예: "30대 · 직장인", "사무직 5년차"
+  status: "pending" | "approved" | "rejected";
+  consentNote?: string; // 의뢰인 동의 받은 내용 메타정보 (서면 동의서 보관 위치 등)
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+  approvedAt?: { seconds: number; nanoseconds: number } | null;
+  approvedBy?: string | null;
+  bg?: "yellow" | "orange" | "paper";
+  display?: boolean; // 사이트 게재 여부 (어드민 토글)
+};
+
+function snapToReview(s: QueryDocumentSnapshot<DocumentData>): ReviewDoc {
+  return { id: s.id, ...(s.data() as Omit<ReviewDoc, "id">) };
+}
+
+export function watchReviewsAdmin(
+  cb: (rows: ReviewDoc[]) => void,
+  max = 200
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(
+    collection(database, "reviews"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToReview)));
+}
+
+// 사이트(공개) 후기 — approved + display=true 만 일회성 조회
+export async function fetchPublicReviews(): Promise<ReviewDoc[]> {
+  const database = getDb();
+  if (!database) return [];
+  try {
+    const q = query(
+      collection(database, "reviews"),
+      orderBy("approvedAt", "desc"),
+      limit(30)
+    );
+    const { getDocs } = await import("firebase/firestore");
+    const snap = await getDocs(q);
+    return snap.docs
+      .map(snapToReview)
+      .filter((r) => r.status === "approved" && r.display !== false);
+  } catch (e) {
+    console.warn("[firebase] fetchPublicReviews failed", e);
+    return [];
+  }
+}
+
+export async function createReview(
+  payload: Omit<ReviewDoc, "id" | "createdAt" | "status" | "approvedAt" | "approvedBy">
+): Promise<string | null> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  const ref = await addDoc(collection(database, "reviews"), {
+    ...payload,
+    status: "pending",
+    display: payload.display ?? false,
+    createdAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateReview(
+  id: string,
+  patch: Partial<Pick<ReviewDoc, "status" | "display" | "title" | "body" | "tag" | "bg" | "consentNote">>
+): Promise<void> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  const a = getAuthOrNull();
+  const data: Record<string, unknown> = { ...patch };
+  if (patch.status === "approved") {
+    data.approvedAt = serverTimestamp();
+    data.approvedBy = a?.currentUser?.email ?? a?.currentUser?.uid ?? null;
+  }
+  await updateDoc(doc(database, "reviews", id), data);
+}
+
+export async function deleteReview(id: string): Promise<void> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  const { deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(database, "reviews", id));
+}
+
 export type DraftSubmission = {
   conversationLog: string;
   draftLetter: string;
