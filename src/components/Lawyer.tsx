@@ -18,32 +18,20 @@ export function Lawyer() {
         <div className="lawyer-grid reveal">
           <div className="lawyer-portrait">
             <div className="portrait-frame">
-              <div className="portrait-bg">
-                <span className="portrait-placeholder">
-                  <span
-                    style={{
-                      fontFamily: "var(--font-en)",
-                      fontSize: 12,
-                      letterSpacing: ".1em",
-                    }}
-                  >
-                    PORTRAIT
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      color: "var(--muted)",
-                      marginTop: 4,
-                    }}
-                  >
-                    김창희 변호사 사진
-                  </span>
-                </span>
+              <div className="portrait-photo">
+                <img
+                  src="/lawyer-changhee.png"
+                  alt="법률사무소 청송 김창희 변호사"
+                  width={480}
+                  height={600}
+                  loading="eager"
+                  decoding="async"
+                />
               </div>
               <div className="portrait-stamp">
                 <Mascot size={70} pose="wink" />
               </div>
-              <div className="portrait-tag">10년+ · 1,000건+</div>
+              <div className="portrait-tag">10년+ 변호사 경력</div>
             </div>
           </div>
 

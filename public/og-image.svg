@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#FFFBF0"/>
+  <rect x="40" y="40" width="1120" height="550" rx="32" fill="#FFD60A" stroke="#0A0A0A" stroke-width="8"/>
+
+  <g transform="translate(140 220)">
+    <circle cx="0" cy="0" r="100" fill="#FFD60A" stroke="#0A0A0A" stroke-width="8"/>
+    <path d="M-78 -16 Q0 -36 78 -16 L78 0 Q0 -16 -78 0 Z" fill="#0A0A0A"/>
+    <circle cx="-30" cy="-8" r="8" fill="#FFFBF0"/>
+    <circle cx="30" cy="-8" r="8" fill="#FFFBF0"/>
+    <path d="M-22 28 Q0 50 22 28" stroke="#0A0A0A" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <rect x="-30" y="62" width="60" height="34" rx="6" fill="#FF6B35" stroke="#0A0A0A" stroke-width="6"/>
+    <text x="0" y="86" text-anchor="middle" fill="#FFFBF0" font-size="28" font-weight="900" font-family="Space Grotesk, system-ui, sans-serif">H</text>
+  </g>
+
+  <text x="290" y="220" fill="#0A0A0A" font-size="76" font-weight="900" font-family="Pretendard Variable, system-ui, sans-serif" letter-spacing="-3">
+    퇴사히어로
+  </text>
+  <text x="290" y="290" fill="#0A0A0A" font-size="40" font-weight="800" font-family="Pretendard Variable, system-ui, sans-serif" letter-spacing="-1">
+    변호사가 직접 운영하는
+  </text>
+  <text x="290" y="340" fill="#0A0A0A" font-size="40" font-weight="800" font-family="Pretendard Variable, system-ui, sans-serif" letter-spacing="-1">
+    퇴사대행 서비스
+  </text>
+
+  <rect x="290" y="380" width="280" height="60" rx="14" fill="#0A0A0A"/>
+  <text x="430" y="420" text-anchor="middle" fill="#FFFBF0" font-size="22" font-weight="800" font-family="Pretendard Variable, system-ui, sans-serif">
+    법률사무소 청송
+  </text>
+
+  <text x="290" y="490" fill="#2A2A2A" font-size="22" font-weight="700" font-family="Pretendard Variable, system-ui, sans-serif">
+    김창희 변호사 · 1660-4452
+  </text>
+</svg>

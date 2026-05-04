@@ -151,9 +151,11 @@ export function Footer({ openChat }: Props) {
             </div>
             <div>
               <strong className="foot-h">법적 고지</strong>
-              <a href="#">이용약관</a>
-              <a href="#">개인정보처리방침</a>
-              <a href="#">변호사 광고 심의기준 준수</a>
+              <a href="/terms.html">이용약관</a>
+              <a href="/privacy.html">개인정보처리방침</a>
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                변호사법 제23조에 따른 광고물
+              </span>
             </div>
           </div>
           <div className="foot-bottom">

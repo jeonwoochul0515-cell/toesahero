@@ -97,6 +97,55 @@ export function ChatModal({ open, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Focus trap for accessibility
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+
+    const root = modalRef.current;
+    if (!root) return;
+
+    const focusable = () =>
+      Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("aria-hidden"));
+
+    const first = focusable()[0];
+    if (first) first.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const items = focusable();
+      if (items.length === 0) return;
+      const firstEl = items[0];
+      const lastEl = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === firstEl || !root.contains(active)) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (active === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    };
+
+    root.addEventListener("keydown", onKeyDown);
+    return () => {
+      root.removeEventListener("keydown", onKeyDown);
+      previouslyFocusedRef.current?.focus?.();
+    };
+  }, [open]);
+
   const send = (text: string) => {
     if (!text.trim()) return;
     const userMsg: Msg = { who: "me", text };
@@ -120,8 +169,18 @@ export function ChatModal({ open, onClose }: Props) {
 
   if (!open) return null;
   return (
-    <div className="modal-back open" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="modal-back open"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="김창희 변호사 상담 창"
+    >
+      <div
+        className="modal"
+        onClick={(e) => e.stopPropagation()}
+        ref={modalRef}
+      >
         <div className="modal-head">
           <div className="who">
             <div className="ava">변</div>
@@ -201,6 +260,17 @@ export function ChatModal({ open, onClose }: Props) {
           <button className="btn primary" onClick={() => send(input)}>
             보내기
           </button>
+        </div>
+        <div className="modal-kakao-link">
+          <a
+            href="https://pf.kakao.com/_zkzIX/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn yellow"
+            style={{ width: "100%", fontSize: 14, padding: "12px 16px" }}
+          >
+            🟡 카카오톡 채널에서 직접 상담
+          </a>
         </div>
         <div className="chat-foot-note">
           🔒 변호사 비밀유지 의무 적용 · 영업일 기준 변호사 직접 응답 · 본 사이트는 변호사법 제23조에 따른 광고물입니다

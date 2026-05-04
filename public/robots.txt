@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /__/
+
+Sitemap: https://toesahero.pages.dev/sitemap.xml
