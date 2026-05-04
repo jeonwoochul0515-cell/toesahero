@@ -17,7 +17,7 @@ const tiers: Tier[] = [
     name: "기본 절차",
     tag: "BASIC",
     price: "199,000",
-    sub: "통보·연락 응대 중심 절차",
+    sub: "통보·연락 응대 (분쟁 없음 가정)",
     pop: false,
     perks: [
       "변호사 명의 공식 통보 1회",
@@ -33,7 +33,7 @@ const tiers: Tier[] = [
     name: "표준 절차",
     tag: "STANDARD",
     price: "390,000",
-    sub: "통보 + 임금·수당 자문 포함",
+    sub: "임금·연차수당 청구 통합",
     pop: true,
     perks: [
       "기본 절차 전체 포함",
@@ -50,7 +50,7 @@ const tiers: Tier[] = [
     name: "분쟁 대응",
     tag: "FULL",
     price: "790,000",
-    sub: "괴롭힘·임금체불 등 분쟁 사안",
+    sub: "고소·민사 등 변호사 전속 사무",
     pop: false,
     perks: [
       "표준 절차 전체 포함",
@@ -104,6 +104,8 @@ export function Pricing({ openChat }: Props) {
             (보수 기준)
           </h2>
           <p className="lead" style={{ margin: "0 auto" }}>
+            <strong>노무사·일반 업체가 다룰 수 없는 영역까지 변호사가 직접 처리합니다.</strong>
+            <br />
             상담 후 사안에 적합한 절차를 안내드립니다. 표시 금액은 위임계약 기준 보수이며, 사안에 따라 변동될 수 있습니다.
             <br />
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
