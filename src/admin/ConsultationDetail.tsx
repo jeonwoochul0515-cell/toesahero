@@ -24,6 +24,7 @@ export function ConsultationDetail() {
   const { id } = useParams();
   const [row, setRow] = useState<ConsultationDoc | null>(null);
   const [notes, setNotes] = useState("");
+  const [draftEdit, setDraftEdit] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
@@ -31,8 +32,14 @@ export function ConsultationDetail() {
     return watchConsultations((rows) => {
       const found = rows.find((r) => r.id === id) ?? null;
       setRow(found);
-      if (found) setNotes(found.notes ?? "");
+      if (found) {
+        setNotes(found.notes ?? "");
+        if (found.draftLetter && draftEdit === "") {
+          setDraftEdit(found.draftLetter);
+        }
+      }
     }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (!row) {
@@ -64,6 +71,70 @@ export function ConsultationDetail() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveDraft = async () => {
+    setSaving(true);
+    try {
+      await updateConsultation(row.id, {
+        draftLetter: draftEdit,
+        draftStatus: "edited",
+      });
+      setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const approveDraft = async () => {
+    if (
+      !confirm(
+        "이 통보문을 승인합니다. 발송 준비가 완료된 상태로 표시됩니다. 진행하시겠습니까?"
+      )
+    )
+      return;
+    setSaving(true);
+    try {
+      await updateConsultation(row.id, {
+        draftLetter: draftEdit,
+        draftStatus: "approved",
+      });
+      setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const markSent = async () => {
+    if (
+      !confirm(
+        "통보문을 회사 측에 발송했음을 표시합니다. 진행하시겠습니까?"
+      )
+    )
+      return;
+    setSaving(true);
+    try {
+      await updateConsultation(row.id, {
+        draftStatus: "sent",
+        status: "contacted",
+      });
+      setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const downloadDraft = () => {
+    const filename = `tongbo_${row.id.slice(0, 8)}_${
+      new Date().toISOString().slice(0, 10)
+    }.txt`;
+    const blob = new Blob([draftEdit], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -117,6 +188,111 @@ export function ConsultationDetail() {
             </>
           )}
         </div>
+
+        {row.draftLetter && (
+          <div className="admin-detail-card admin-detail-actions">
+            <h3>
+              ⚖️ 변호사 명의 통보문 — AI 1차 초안
+              <span
+                className={`admin-status st-${
+                  row.draftStatus === "approved"
+                    ? "contracted"
+                    : row.draftStatus === "sent"
+                    ? "closed"
+                    : row.draftStatus === "edited"
+                    ? "consulted"
+                    : "new"
+                }`}
+                style={{ marginLeft: 12, fontSize: 11 }}
+              >
+                {row.draftStatus === "approved"
+                  ? "승인됨 (발송 대기)"
+                  : row.draftStatus === "sent"
+                  ? "발송됨"
+                  : row.draftStatus === "edited"
+                  ? "수정됨"
+                  : "검토 대기"}
+              </span>
+            </h3>
+            {row.conversationLog && (
+              <details style={{ marginBottom: 12 }}>
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: "var(--muted)",
+                    fontWeight: 700,
+                  }}
+                >
+                  의뢰인 대화 로그 보기
+                </summary>
+                <pre
+                  className="admin-message"
+                  style={{ fontSize: 12, marginTop: 8 }}
+                >
+                  {row.conversationLog}
+                </pre>
+              </details>
+            )}
+            <textarea
+              className="admin-textarea"
+              value={draftEdit}
+              onChange={(e) => setDraftEdit(e.target.value)}
+              rows={20}
+              style={{ fontFamily: "monospace", fontSize: 13 }}
+              placeholder="통보문 초안 — [대괄호] 부분을 채우세요"
+            />
+            <div className="admin-detail-actions-row" style={{ flexWrap: "wrap" }}>
+              <button
+                className="btn"
+                onClick={() => void saveDraft()}
+                disabled={saving || draftEdit === (row.draftLetter ?? "")}
+              >
+                {saving ? "저장 중..." : "💾 수정 저장"}
+              </button>
+              <button
+                className="btn"
+                onClick={downloadDraft}
+                style={{ background: "var(--gray-1)" }}
+              >
+                ⬇ .txt 다운로드
+              </button>
+              {row.draftStatus !== "approved" && row.draftStatus !== "sent" && (
+                <button
+                  className="btn primary"
+                  onClick={() => void approveDraft()}
+                  disabled={saving}
+                  style={{ background: "var(--green)", color: "var(--ink)" }}
+                >
+                  ✓ 승인 (발송 준비)
+                </button>
+              )}
+              {row.draftStatus === "approved" && (
+                <button
+                  className="btn primary"
+                  onClick={() => void markSent()}
+                  disabled={saving}
+                  style={{ background: "var(--orange)" }}
+                >
+                  📤 발송 완료 표시
+                </button>
+              )}
+              {savedAt && <span className="admin-saved">✓ {savedAt}</span>}
+            </div>
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--muted)",
+                marginTop: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              ⚠️ 본 초안은 AI가 1차 작성한 것이며, 변호사가 사실관계 확인 및 법적
+              검토 후 최종 발송됩니다. 변호사법·변협 윤리장전상 발송 전 변호사
+              본인의 검토가 의무입니다.
+            </p>
+          </div>
+        )}
 
         <div className="admin-detail-card admin-detail-actions">
           <h3>상태 변경</h3>

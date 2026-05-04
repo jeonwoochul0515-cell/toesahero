@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   logChatMessage,
   saveConsultation,
+  saveDraftConsultation,
   signInWithKakao,
   signOut,
   watchAuth,
@@ -75,9 +76,105 @@ export function ChatModal({ open, onClose }: Props) {
   const [typing, setTyping] = useState(false);
   const [user, setUser] = useState<AppUser | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [draftLetter, setDraftLetter] = useState<string | null>(null);
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftSubmitted, setDraftSubmitted] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => watchAuth(setUser), []);
+
+  // 의뢰인이 충분히 정보를 제공했는지 추정 (말한 횟수 + 글자 수)
+  const userTurnCount = useMemo(
+    () => messages.filter((m) => m.who === "me").length,
+    [messages]
+  );
+  const userTotalChars = useMemo(
+    () =>
+      messages
+        .filter((m) => m.who === "me")
+        .reduce((sum, m) => sum + m.text.length, 0),
+    [messages]
+  );
+  const showDraftButton =
+    !draftSubmitted &&
+    !draftLetter &&
+    userTurnCount >= 2 &&
+    userTotalChars >= 30;
+
+  const requestDraft = async () => {
+    setDraftLoading(true);
+    try {
+      const conversation = messages
+        .filter((m) => m.who === "me" || m.who === "them")
+        .map((m) => ({
+          role: (m.who === "me" ? "user" : "assistant") as
+            | "user"
+            | "assistant",
+          content: m.text,
+        }));
+      const resp = await fetch("/api/draft", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          conversation,
+          userName: user?.displayName ?? null,
+        }),
+      });
+      if (!resp.ok) {
+        setMessages((m) => [
+          ...m,
+          {
+            who: "them",
+            text: "통보문 초안 생성에 일시적인 오류가 있습니다. 잠시 후 다시 시도하시거나 카카오톡 채널로 문의해 주세요.",
+          },
+        ]);
+        return;
+      }
+      const data = (await resp.json()) as { text?: string };
+      const draft = data.text ?? "";
+      if (!draft) return;
+      setDraftLetter(draft);
+      setMessages((m) => [
+        ...m,
+        {
+          who: "them",
+          text: "변호사 명의 공식 통보문 1차 초안이 생성되었습니다. 아래에서 내용을 확인하세요. 변호사가 검토·수정 후 발송합니다.",
+        },
+      ]);
+    } catch (e) {
+      console.error("[draft]", e);
+    } finally {
+      setDraftLoading(false);
+    }
+  };
+
+  const submitDraftForReview = async () => {
+    if (!draftLetter) return;
+    const conversationLog = messages
+      .filter((m) => m.who === "me" || m.who === "them")
+      .map((m) => `${m.who === "me" ? "[의뢰인]" : "[챗봇]"} ${m.text}`)
+      .join("\n");
+    const id = await saveDraftConsultation({
+      conversationLog,
+      draftLetter,
+      userName: user?.displayName ?? null,
+    });
+    setDraftSubmitted(true);
+    setMessages((m) => [
+      ...m,
+      {
+        who: "them",
+        text: id
+          ? `위임 검토 신청이 접수되었습니다. (접수번호: ${id.slice(
+              0,
+              8
+            )})\n변호사 김창희가 통보문을 검토 후 ${
+              user?.email ?? "카카오톡"
+            }으로 안내드립니다.`
+          : "검토 신청 저장에 실패했습니다. 카카오톡 채널로 직접 문의해 주세요.",
+      },
+    ]);
+  };
 
   const handleKakaoLogin = async () => {
     setSigningIn(true);
@@ -308,6 +405,59 @@ export function ChatModal({ open, onClose }: Props) {
             보내기
           </button>
         </div>
+        {showDraftButton && (
+          <div className="draft-cta">
+            <p className="draft-cta-text">
+              지금까지 정보로 <strong>변호사 명의 통보문 1차 초안</strong>을 자동
+              생성해드릴 수 있습니다.
+              <br />
+              <span className="draft-cta-note">
+                (변호사 검토·수정 후 발송됩니다 · 베이직 199,000원 패키지)
+              </span>
+            </p>
+            <button
+              className="btn primary"
+              onClick={() => void requestDraft()}
+              disabled={draftLoading}
+              style={{ width: "100%" }}
+            >
+              {draftLoading
+                ? "AI가 초안 작성 중..."
+                : "📝 통보문 초안 생성하기"}
+            </button>
+          </div>
+        )}
+
+        {draftLetter && !draftSubmitted && (
+          <div className="draft-preview">
+            <div className="draft-preview-head">
+              <strong>변호사 명의 통보문 — AI 1차 초안</strong>
+              <span className="draft-tag">검토 대기</span>
+            </div>
+            <pre className="draft-preview-body">{draftLetter}</pre>
+            <p className="draft-preview-note">
+              [대괄호] 부분은 의뢰인이 알려주지 않은 정보로, 변호사 검토 시
+              채워집니다. 위 내용을 변호사에게 검토 요청하시겠습니까?
+            </p>
+            <div className="draft-preview-actions">
+              <button
+                className="btn primary"
+                onClick={() => void submitDraftForReview()}
+                style={{ flex: 1 }}
+              >
+                ✓ 변호사 검토 요청
+              </button>
+              <button
+                className="btn"
+                onClick={() => setDraftLetter(null)}
+                style={{ flex: 0 }}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="modal-kakao-link">
           <a
             href="https://pf.kakao.com/_zkzIX/chat"

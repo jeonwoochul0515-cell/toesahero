@@ -135,7 +135,7 @@ export async function checkIsAdmin(uid: string): Promise<boolean> {
 
 export type ConsultationDoc = {
   id: string;
-  source: "chat" | "form" | "floating";
+  source: "chat" | "form" | "floating" | "draft";
   message?: string;
   pickedItems?: string[];
   estimatedAmount?: number;
@@ -149,6 +149,11 @@ export type ConsultationDoc = {
   notes?: string;
   userAgent?: string;
   path?: string;
+  // AI 초안 자동화 필드
+  draftLetter?: string | null;
+  draftStatus?: "pending_review" | "edited" | "approved" | "sent" | null;
+  draftApprovedAt?: { seconds: number; nanoseconds: number } | null;
+  conversationLog?: string | null;
 };
 
 export type ChatMessageDoc = {
@@ -207,11 +212,59 @@ export function watchChatMessages(
 
 export async function updateConsultation(
   id: string,
-  patch: Partial<Pick<ConsultationDoc, "status" | "notes">>
+  patch: Partial<
+    Pick<
+      ConsultationDoc,
+      "status" | "notes" | "draftLetter" | "draftStatus"
+    >
+  >
 ): Promise<void> {
   const database = getDb();
   if (!database) throw new Error("Firestore 미초기화");
-  await updateDoc(doc(database, "consultations", id), patch);
+  const data: Record<string, unknown> = { ...patch };
+  if (patch.draftStatus === "approved") {
+    data.draftApprovedAt = serverTimestamp();
+  }
+  await updateDoc(doc(database, "consultations", id), data);
+}
+
+export type DraftSubmission = {
+  conversationLog: string;
+  draftLetter: string;
+  userName?: string | null;
+};
+
+export async function saveDraftConsultation(
+  payload: DraftSubmission
+): Promise<string | null> {
+  const database = getDb();
+  if (!database) {
+    console.info("[firebase] config missing — skipping draft save");
+    return null;
+  }
+  const a = getAuthOrNull();
+  const user = a?.currentUser ?? null;
+  try {
+    const ref = await addDoc(collection(database, "consultations"), {
+      source: "draft",
+      message: "AI 자동 생성 통보문 초안 — 변호사 검토 대기",
+      uid: user?.uid ?? null,
+      userName: user?.displayName ?? payload.userName ?? null,
+      userEmail: user?.email ?? null,
+      conversationLog: payload.conversationLog,
+      draftLetter: payload.draftLetter,
+      draftStatus: "pending_review",
+      status: "new",
+      createdAt: serverTimestamp(),
+      userAgent:
+        typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+      path: typeof window !== "undefined" ? window.location.pathname : "/",
+    });
+    return ref.id;
+  } catch (e) {
+    console.warn("[firebase] saveDraftConsultation failed", e);
+    return null;
+  }
 }
 
 export type ConsultationPayload = {
