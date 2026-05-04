@@ -29,7 +29,7 @@ service cloud.firestore {
       allow update: if isAdmin()
                     && request.resource.data.diff(resource.data)
                        .affectedKeys()
-                       .hasOnly(['status', 'notes', 'updatedAt', 'assignedTo', 'draftLetter', 'draftStatus', 'draftApprovedAt', 'noticeLetter', 'noticeStatus']);
+                       .hasOnly(['status', 'notes', 'updatedAt', 'assignedTo', 'draftLetter', 'draftStatus', 'draftApprovedAt', 'noticeLetter', 'noticeStatus', 'packageId', 'paymentAmount', 'paymentStatus', 'paymentKey', 'paymentApprovedAt', 'paymentOrderId']);
       allow delete: if isAdmin();
     }
 

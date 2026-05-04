@@ -137,6 +137,63 @@ export function ConsultationDetail() {
     URL.revokeObjectURL(url);
   };
 
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult] = useState<string | null>(null);
+
+  const sendEmail = async () => {
+    if (!emailTo.trim()) {
+      alert("회사 측 수신 이메일을 입력해 주세요.");
+      return;
+    }
+    if (!confirm(`${emailTo} 로 통보문을 발송합니다. 진행하시겠습니까?`)) return;
+    setEmailSending(true);
+    setEmailResult(null);
+    try {
+      const resp = await fetch("/api/send-letter", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          to: emailTo,
+          kind: "draft",
+          letterText: draftEdit,
+          caseId: row.id,
+          clientName: row.userName ?? null,
+        }),
+      });
+      const data = (await resp.json()) as {
+        ok?: boolean;
+        emailId?: string;
+        error?: string;
+        message?: string;
+      };
+      if (resp.status === 503) {
+        setEmailResult(
+          "❌ 이메일 인프라(Resend) 미설정. .txt 다운로드 후 수동 발송하세요."
+        );
+        return;
+      }
+      if (!resp.ok || !data.ok) {
+        setEmailResult(
+          `❌ 발송 실패: ${data.error ?? resp.statusText} ${
+            data.message ?? ""
+          }`
+        );
+        return;
+      }
+      // 성공 시 draftStatus = sent + status = contacted
+      await updateConsultation(row.id, {
+        draftStatus: "sent",
+        status: "contacted",
+      });
+      setEmailResult(`✓ 발송 완료 · email id: ${data.emailId ?? "—"}`);
+    } catch (e) {
+      setEmailResult(`❌ ${String(e)}`);
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   return (
     <div className="admin-dash">
       <Link to="/admin/consultations" className="admin-link">
@@ -283,11 +340,51 @@ export function ConsultationDetail() {
                   disabled={saving}
                   style={{ background: "var(--orange)" }}
                 >
-                  📤 발송 완료 표시
+                  📤 발송 완료 (수동)
                 </button>
               )}
               {savedAt && <span className="admin-saved">✓ {savedAt}</span>}
             </div>
+
+            {row.draftStatus === "approved" && (
+              <div className="admin-send-row">
+                <h4 style={{ margin: "16px 0 8px", fontSize: 13 }}>
+                  📧 회사 측 자동 이메일 발송
+                </h4>
+                <div className="admin-send-fields">
+                  <input
+                    className="admin-input"
+                    type="email"
+                    placeholder="회사 인사담당자 이메일"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    className="btn primary"
+                    onClick={() => void sendEmail()}
+                    disabled={emailSending || !emailTo.trim()}
+                    style={{ background: "var(--orange)" }}
+                  >
+                    {emailSending ? "발송 중..." : "📧 이메일 발송"}
+                  </button>
+                </div>
+                {emailResult && (
+                  <p
+                    style={{
+                      fontSize: 12,
+                      marginTop: 8,
+                      color: emailResult.startsWith("✓")
+                        ? "var(--green)"
+                        : "var(--orange)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {emailResult}
+                  </p>
+                )}
+              </div>
+            )}
             <p
               style={{
                 fontSize: 11,

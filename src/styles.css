@@ -2156,3 +2156,123 @@ body[data-mascot="false"] .mascot {
   margin: 0 auto 20px;
   color: var(--ink);
 }
+
+/* ─── Checkout 페이지 ─── */
+.checkout-page {
+  min-height: 100vh;
+  background: var(--cream);
+}
+.checkout-summary {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  padding: 24px 26px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+}
+.checkout-summary h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.checkout-desc {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin: 0 0 14px;
+}
+.checkout-price {
+  font-family: var(--font-en);
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--orange);
+}
+.checkout-price span {
+  font-size: 1em;
+}
+.checkout-case-ref {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1.5px dashed var(--ink-2);
+  font-size: 12px;
+  color: var(--muted);
+}
+.checkout-case-ref code {
+  background: var(--gray-1);
+  border: 1px solid var(--ink);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+.checkout-terms {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.checkout-terms h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--orange);
+}
+.checkout-terms ul {
+  padding-left: 20px;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.checkout-agree {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--yellow-soft);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.checkout-agree input {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--orange);
+}
+.checkout-not-ready {
+  margin-top: 14px;
+  padding: 14px 18px;
+  background: var(--orange-soft);
+  border: 2px solid var(--orange);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.checkout-result {
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  padding: 32px 28px;
+  margin: 30px auto;
+  max-width: 600px;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+.checkout-result.ok {
+  box-shadow: 12px 12px 0 0 var(--green);
+}
+.checkout-result.fail {
+  box-shadow: 12px 12px 0 0 var(--orange);
+}

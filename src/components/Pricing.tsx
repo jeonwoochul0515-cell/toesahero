@@ -141,6 +141,20 @@ export function Pricing({ openChat }: Props) {
               >
                 {t.cta}
               </button>
+              <a
+                href={`/checkout?pkg=${t.id}`}
+                className="btn"
+                style={{
+                  width: "100%",
+                  marginTop: 6,
+                  fontSize: 12,
+                  padding: "9px 14px",
+                  background: "var(--gray-1)",
+                  color: "var(--ink-2)",
+                }}
+              >
+                위임 진행 / 결제 안내 →
+              </a>
               {t.id === "pro" && (
                 <a
                   href="/calc"

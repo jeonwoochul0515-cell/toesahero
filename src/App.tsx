@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Home } from "./Home";
 import { MyPage } from "./pages/MyPage";
 import { CalcPage } from "./pages/CalcPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
 import { AdminLogin } from "./admin/AdminLogin";
 import { RequireAdmin } from "./admin/RequireAdmin";
@@ -22,6 +23,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/calc" element={<CalcPage />} />
+          <Route path="/checkout/:id" element={<CheckoutPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin/consultations/:id/print"

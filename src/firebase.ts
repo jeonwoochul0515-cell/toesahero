@@ -158,6 +158,13 @@ export type ConsultationDoc = {
   // 내용증명 (표준)
   noticeLetter?: string | null;
   noticeStatus?: "pending_review" | "edited" | "approved" | "sent" | null;
+  // 결제
+  packageId?: "basic" | "pro" | "max" | null;
+  paymentAmount?: number | null;
+  paymentStatus?: "pending" | "paid" | "canceled" | "failed" | null;
+  paymentKey?: string | null;
+  paymentApprovedAt?: { seconds: number; nanoseconds: number } | null;
+  paymentOrderId?: string | null;
 };
 
 export type ChatMessageDoc = {
