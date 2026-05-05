@@ -1,3 +1,18 @@
-/terms     /terms.html     200
-/privacy   /privacy.html   200
-/*         /index.html     200
+# 정적 페이지 (HTML 직접 서빙)
+/terms                  /terms.html     200
+/privacy                /privacy.html   200
+
+# SPA 라우트 (React Router 처리)
+/                       /index.html     200
+/calc                   /index.html     200
+/my                     /index.html     200
+/checkout               /index.html     200
+/checkout/*             /index.html     200
+/blog                   /index.html     200
+/blog/*                 /index.html     200
+/faq                    /index.html     200
+/admin                  /index.html     200
+/admin/*                /index.html     200
+
+# 알려지지 않은 경로 → 진짜 404 (네이버 가이드 권장: HTTP 200 OK + 내용만 출력 회피)
+/*                      /404.html       404
