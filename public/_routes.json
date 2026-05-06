@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/favicon.svg",
+    "/apple-touch-icon.svg",
+    "/og-image.svg",
+    "/lawyer-changhee.png",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/_headers",
+    "/_redirects",
+    "/_routes.json",
+    "/404.html",
+    "/terms.html",
+    "/privacy.html"
+  ]
+}
