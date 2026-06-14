@@ -180,11 +180,48 @@ export function CheckoutPage() {
       alert("결제 진행을 위해 카카오 로그인이 필요합니다.");
       return;
     }
-    const orderId = `${pkg.id}_${caseId ?? "noref"}_${Date.now()}`;
+
+    // 서버에서 주문 생성 — 금액·orderId 는 서버가 결정(클라 금액 위변조 차단)
+    let orderId: string;
+    let amount: number;
+    try {
+      const resp = await fetch("/api/payment/order", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          packageId: pkg.id,
+          caseId: caseId ?? null,
+          uid: user.uid,
+        }),
+      });
+      const data = (await resp.json()) as {
+        ok?: boolean;
+        orderId?: string;
+        amount?: number;
+        message?: string;
+      };
+      if (resp.status === 503) {
+        alert(
+          data.message ??
+            "결제 인프라가 아직 설정되지 않았습니다. ☎ 1660-4452 로 문의해 주세요."
+        );
+        return;
+      }
+      if (!resp.ok || !data.ok || !data.orderId || typeof data.amount !== "number") {
+        alert("주문 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+      orderId = data.orderId;
+      amount = data.amount;
+    } catch {
+      alert("주문 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+
     const tp = window.TossPayments(TOSS_CLIENT_KEY);
     try {
       await tp.requestPayment("카드", {
-        amount: pkg.price,
+        amount,
         orderId,
         orderName: `퇴사히어로 ${pkg.name} 패키지`,
         customerName: user.displayName ?? "의뢰인",

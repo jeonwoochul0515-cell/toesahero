@@ -241,6 +241,19 @@ export function watchMyCases(
   return onSnapshot(q, (snap) => cb(snap.docs.map(snapToConsultation)));
 }
 
+// 신규 상담 신청 시 변호사에게 문자 알림 (서버 /api/notify 경유). fire-and-forget — 저장 흐름을 막지 않는다.
+function notifyNewConsultation(
+  type: "consultation" | "draft" | "notice",
+  caseId: string,
+  summary?: string
+): void {
+  void fetch("/api/notify", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ type, caseId, summary }),
+  }).catch(() => {});
+}
+
 // 표준 패키지: 내용증명 초안 저장
 export type NoticeSubmission = {
   noticeLetter: string;
@@ -278,6 +291,7 @@ export async function saveNoticeConsultation(
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
+    notifyNewConsultation("notice", ref.id, payload.userName ?? undefined);
     return ref.id;
   } catch (e) {
     console.warn("[firebase] saveNoticeConsultation failed", e);
@@ -545,6 +559,7 @@ export async function saveDraftConsultation(
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
+    notifyNewConsultation("draft", ref.id, payload.userName ?? undefined);
     return ref.id;
   } catch (e) {
     console.warn("[firebase] saveDraftConsultation failed", e);
@@ -580,6 +595,7 @@ export async function saveConsultation(payload: ConsultationPayload) {
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
+    notifyNewConsultation("consultation", ref.id, payload.message?.slice(0, 80));
     return ref.id;
   } catch (e) {
     console.warn("[firebase] saveConsultation failed", e);

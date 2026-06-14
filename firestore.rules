@@ -46,6 +46,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // 결제 주문. 서버(서비스계정 REST)만 생성/수정 — 보안규칙을 우회하므로 클라 write=false.
+    // 의뢰인 본인(uid 일치)과 어드민만 조회 가능.
+    match /orders/{orderId} {
+      allow read: if isAdmin() || isOwner();
+      allow create, update, delete: if false;
+    }
+
     // 어드민 식별 컬렉션.
     match /admins/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
