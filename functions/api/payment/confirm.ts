@@ -24,7 +24,22 @@ type RequestBody = {
   amount: number;
 };
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async (ctx) => {
+  // 결제 엔드포인트는 어떤 경우에도 CF 502가 아닌 구조화된 JSON을 반환해야 한다.
+  try {
+    return await handleConfirm(ctx);
+  } catch (e) {
+    return json(
+      { error: "unhandled", detail: String(e), stack: (e as Error)?.stack ?? null },
+      500
+    );
+  }
+};
+
+async function handleConfirm({
+  request,
+  env,
+}: Parameters<PagesFunction<Env>>[0]): Promise<Response> {
   if (!env.TOSS_SECRET_KEY || !env.FIREBASE_SERVICE_ACCOUNT) {
     return json(
       {
@@ -65,7 +80,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const { storedAmount, packageId, caseId } = decision;
 
   // 4) 토스 승인 — 저장된 금액으로 호출
-  const auth = btoa(`${env.TOSS_SECRET_KEY}:`);
+  // 키에 공백/줄바꿈이 섞여 들어온 경우 대비해 trim. btoa는 비-Latin1 문자에서 throw 하므로 방어.
+  let auth: string;
+  try {
+    auth = btoa(`${env.TOSS_SECRET_KEY.trim()}:`);
+  } catch (e) {
+    return json(
+      {
+        error: "toss_key_invalid",
+        message:
+          "TOSS_SECRET_KEY 값에 잘못된 문자가 있습니다. 토스 시크릿 키(live_sk_...)를 공백 없이 다시 등록해 주세요.",
+        detail: String(e),
+      },
+      500
+    );
+  }
   let upstream: Response;
   try {
     upstream = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
@@ -81,7 +110,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       }),
     });
   } catch (e) {
-    return json({ error: "upstream_fetch_failed", detail: String(e) }, 502);
+    // 503 사용: Cloudflare 엣지가 502 응답을 자체 에러 페이지로 가로채므로 502는 피한다.
+    return json({ error: "upstream_fetch_failed", detail: String(e) }, 503);
   }
 
   const data = (await upstream.json().catch(() => null)) as
@@ -89,7 +119,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     | null;
 
   if (!upstream.ok || !data) {
-    return json({ error: "toss_error", status: upstream.status, body: data }, 502);
+    // 402(Payment Required): 토스가 결제를 거부한 비즈니스 오류. 502는 CF가 가로채므로 사용 안 함.
+    return json({ error: "toss_error", status: upstream.status, body: data }, 402);
   }
 
   // 5) Firestore 반영 + 문자 알림 (멱등 공통 경로)
