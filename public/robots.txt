@@ -38,5 +38,60 @@ Disallow: /my
 Disallow: /checkout
 Disallow: /api/
 
+# ─── AI 답변엔진 크롤러(GEO) — 공개 페이지 인용 환영, 개인정보 페이지는 차단 ───
+# ChatGPT
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# Claude (Anthropic)
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# Google AI (Gemini/AI Overviews 학습)
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# Common Crawl (다수 LLM 학습 기반)
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
 Sitemap: https://toesahero.com/sitemap.xml
 Sitemap: https://toesahero.com/rss.xml
