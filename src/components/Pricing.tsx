@@ -115,6 +115,16 @@ export function Pricing({ openChat }: Props) {
           </p>
         </div>
 
+        <div className="reveal" style={{ textAlign: "center", margin: "0 auto 28px" }}>
+          <a
+            href="/diagnose"
+            className="btn"
+            style={{ background: "var(--yellow)", fontWeight: 800 }}
+          >
+            🧭 어떤 절차가 맞는지 모르겠다면 — 1분 셀프 진단
+          </a>
+        </div>
+
         <div
           className="reveal"
           style={{

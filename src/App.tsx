@@ -3,6 +3,7 @@ import { Home } from "./Home";
 import { MyPage } from "./pages/MyPage";
 import { CalcPage } from "./pages/CalcPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
+import { DiagnosePage } from "./pages/DiagnosePage";
 import { BlogList } from "./pages/BlogList";
 import { BlogPost } from "./pages/BlogPost";
 import { FAQPage } from "./pages/FAQPage";
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/calc" element={<CalcPage />} />
+          <Route path="/diagnose" element={<DiagnosePage />} />
           <Route path="/checkout/:id" element={<CheckoutPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route
