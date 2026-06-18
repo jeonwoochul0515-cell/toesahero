@@ -189,6 +189,39 @@ function snapToChatMessage(
   return { id: s.id, ...(s.data() as Omit<ChatMessageDoc, "id">) };
 }
 
+export type OrderDoc = {
+  id: string;
+  orderId?: string;
+  packageId?: "basic" | "pro" | "max" | string;
+  amount?: number;
+  caseId?: string | null;
+  uid?: string | null;
+  status?: "ready" | "paid" | "canceled" | "failed";
+  paymentKey?: string | null;
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+  approvedAt?: { seconds: number; nanoseconds: number } | null;
+};
+
+// 결제 주문 실시간 구독 (어드민 전용 — orders 읽기는 보안 규칙상 어드민만 허용).
+export function watchOrders(
+  cb: (rows: OrderDoc[]) => void,
+  max = 200
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(
+    collection(database, "orders"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(q, (snap) =>
+    cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<OrderDoc, "id">) })))
+  );
+}
+
 export function watchConsultations(
   cb: (rows: ConsultationDoc[]) => void,
   max = 100
