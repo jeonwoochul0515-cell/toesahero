@@ -141,10 +141,10 @@ export function Footer({ openChat }: Props) {
               <a
                 href="https://chang-hee.kim"
                 target="_blank"
-                rel="noopener noreferrer"
-                title="법률사무소 청송 김창희 변호사 홈페이지"
+                rel="me noopener noreferrer"
+                title="법률사무소 청송 김창희 변호사 공식 홈페이지"
               >
-                변호사 김창희 ↗
+                공식 홈페이지 (chang-hee.kim) ↗
               </a>
               <a
                 href="https://pf.kakao.com/_zkzIX/chat"
@@ -172,6 +172,17 @@ export function Footer({ openChat }: Props) {
           <div className="foot-bottom">
             <span>
               © 2026 법률사무소 청송. 변호사 김창희. 대한변호사협회 등록.
+            </span>
+            <span>
+              본 서비스는 법률사무소 청송(
+              <a
+                href="https://chang-hee.kim"
+                target="_blank"
+                rel="me noopener noreferrer"
+              >
+                chang-hee.kim
+              </a>
+              )이 운영합니다.
             </span>
             <span>이 사이트는 변호사법에 따른 광고물입니다.</span>
           </div>

@@ -98,7 +98,7 @@ export function Lawyer() {
               <a
                 href="https://chang-hee.kim"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="me noopener noreferrer"
                 className="btn"
               >
                 변호사 프로필 보기 ↗

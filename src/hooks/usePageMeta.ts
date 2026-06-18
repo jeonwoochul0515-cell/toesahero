@@ -144,14 +144,19 @@ export const articleJsonLd = (params: {
     "@type": "Person",
     name: params.author,
     jobTitle: "변호사",
+    url: "https://chang-hee.kim",
+    sameAs: ["https://chang-hee.kim"],
     worksFor: {
       "@type": "LegalService",
       name: "법률사무소 청송",
+      url: "https://chang-hee.kim",
     },
   },
   publisher: {
     "@type": "Organization",
     name: "법률사무소 청송",
+    url: SITE_HOST,
+    sameAs: ["https://chang-hee.kim"],
     logo: {
       "@type": "ImageObject",
       url: `${SITE_HOST}/apple-touch-icon.svg`,
