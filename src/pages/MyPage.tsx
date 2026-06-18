@@ -18,13 +18,14 @@ const STATUS_LABEL: Record<NonNullable<ConsultationDoc["status"]>, string> = {
   closed: "종료",
 };
 
-const STATUS_PROGRESS: Record<NonNullable<ConsultationDoc["status"]>, number> = {
-  new: 20,
-  contacted: 40,
-  consulted: 60,
-  contracted: 80,
-  closed: 100,
-};
+// 진행 단계 타임라인 정의 (status 순서 = 단계 인덱스)
+const STAGES: { key: NonNullable<ConsultationDoc["status"]>; label: string; desc: string }[] = [
+  { key: "new", label: "신규 접수", desc: "사건이 접수되었습니다." },
+  { key: "contacted", label: "변호사 응대", desc: "변호사가 사안을 확인하고 연락드립니다." },
+  { key: "consulted", label: "상담 완료", desc: "1차 상담을 마쳤습니다." },
+  { key: "contracted", label: "위임 체결", desc: "위임계약·결제가 완료되어 절차를 진행합니다." },
+  { key: "closed", label: "종료", desc: "사건이 종료되었습니다." },
+];
 
 const SOURCE_LABEL: Record<ConsultationDoc["source"], string> = {
   chat: "카톡 상담",
@@ -144,7 +145,7 @@ export function MyPage() {
           <div className="my-cases">
             {cases.map((c) => {
               const status = c.status ?? "new";
-              const progress = STATUS_PROGRESS[status];
+              const currentIndex = STAGES.findIndex((s) => s.key === status);
               return (
                 <article key={c.id} className="my-case">
                   <header className="my-case-head">
@@ -155,25 +156,36 @@ export function MyPage() {
                       <span className={`admin-status st-${status}`}>
                         {STATUS_LABEL[status]}
                       </span>
+                      {c.paymentStatus === "paid" && (
+                        <span className="admin-status st-contracted" style={{ marginLeft: 6 }}>
+                          결제완료
+                        </span>
+                      )}
                     </div>
                     <time className="my-case-time">{fmtDate(c.createdAt)}</time>
                   </header>
 
-                  <div className="my-case-progress">
-                    <div className="my-progress-track">
-                      <div
-                        className="my-progress-bar"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <div className="my-progress-labels">
-                      <span>접수</span>
-                      <span>응대</span>
-                      <span>상담</span>
-                      <span>위임</span>
-                      <span>종료</span>
-                    </div>
-                  </div>
+                  <ol className="my-timeline">
+                    {STAGES.map((st, i) => {
+                      const state =
+                        i < currentIndex
+                          ? "done"
+                          : i === currentIndex
+                          ? "current"
+                          : "pending";
+                      return (
+                        <li key={st.key} className={`my-tl-step ${state}`}>
+                          <span className="my-tl-dot">
+                            {state === "done" ? "✓" : state === "current" ? "●" : ""}
+                          </span>
+                          <div className="my-tl-body">
+                            <span className="my-tl-label">{st.label}</span>
+                            <span className="my-tl-desc">{st.desc}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
 
                   {c.message && (
                     <div className="my-case-msg">
