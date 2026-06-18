@@ -220,6 +220,15 @@ export function ConsultationDetail() {
       </Link>
       <h1 className="admin-h1" style={{ marginTop: 12 }}>
         상담 #{row.id.slice(0, 8)}
+        {row.damageThreat && (
+          <span
+            className="admin-status st-new"
+            style={{ marginLeft: 12, fontSize: 12, verticalAlign: "middle" }}
+            title="회사의 손해배상·위약금 협박이 감지된 건"
+          >
+            ⚠️ 손배 위협
+          </span>
+        )}
       </h1>
 
       <div className="admin-detail-grid">

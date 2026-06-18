@@ -40,6 +40,7 @@ const tiers: Tier[] = [
       "근로계약서·임금명세서 검토",
       "퇴직금·연차수당·야근수당 산정 자문",
       "사용자 측과의 교섭 자문",
+      "회사의 손해배상·위약금 협박 대응",
       "노동청 진정 1건 자문 포함",
       "실업급여 절차 안내",
     ],
@@ -111,6 +112,28 @@ export function Pricing({ openChat }: Props) {
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
               ※ 위 보수에는 부가세가 별도로 부과될 수 있습니다.
             </span>
+          </p>
+        </div>
+
+        <div
+          className="reveal"
+          style={{
+            maxWidth: 720,
+            margin: "0 auto 40px",
+            padding: "18px 22px",
+            background: "var(--paper)",
+            border: "2.5px solid var(--ink)",
+            borderRadius: 14,
+            boxShadow: "4px 4px 0 0 var(--ink)",
+          }}
+        >
+          <strong style={{ fontSize: 16 }}>
+            ⚖️ "퇴사하면 손해배상 청구하겠다"는 협박을 받고 계신가요?
+          </strong>
+          <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)" }}>
+            회사의 <strong>손해배상·위약금 협박 대응</strong>은 노무사·일반 업체가
+            대리할 수 없는 <strong>변호사 전속 영역</strong>입니다. 위축되지 마세요.
+            변호사가 직접 사실관계와 계약서를 검토해 대응합니다.
           </p>
         </div>
 

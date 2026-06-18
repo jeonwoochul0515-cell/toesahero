@@ -151,6 +151,7 @@ export type ConsultationDoc = {
   userAgent?: string;
   path?: string;
   sessionId?: string | null; // 같은 채팅 대화를 묶는 키
+  damageThreat?: boolean; // 회사의 손해배상·위약금 협박 감지 (변호사 우선 대응 플래그)
   // AI 통보문 초안 (베이직)
   draftLetter?: string | null;
   draftStatus?: "pending_review" | "edited" | "approved" | "sent" | null;
@@ -636,6 +637,7 @@ export type ConsultationPayload = {
   contact?: string;
   meta?: Record<string, unknown>;
   sessionId?: string | null;
+  damageThreat?: boolean;
 };
 
 export async function saveConsultation(payload: ConsultationPayload) {

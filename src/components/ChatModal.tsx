@@ -295,10 +295,14 @@ export function ChatModal({ open, onClose }: Props) {
     setInput("");
     setTyping(true);
     void logChatMessage(text, "me", sessionIdRef.current);
+    // 회사의 손해배상·위약금 협박 감지 → 변호사 우선 대응 플래그
+    const damageThreat =
+      /손해\s*배상|손배|위약금|배상\s*청구|배상하|물어내|변상|구상권/.test(text);
     void saveConsultation({
       source: "chat",
       message: text,
       sessionId: sessionIdRef.current,
+      ...(damageThreat ? { damageThreat: true } : {}),
     });
 
     // AI 챗봇 호출 (변협 컴플라이언스 system prompt 적용)

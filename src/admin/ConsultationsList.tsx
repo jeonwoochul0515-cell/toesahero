@@ -171,6 +171,15 @@ export function ConsultationsList() {
                   )}
                 </td>
                 <td className="admin-msg-cell">
+                  {r.damageThreat && (
+                    <span
+                      className="admin-status st-new"
+                      style={{ marginRight: 6, fontSize: 10 }}
+                      title="손해배상·위약금 협박 감지"
+                    >
+                      ⚠️ 손배
+                    </span>
+                  )}
                   <Link to={`/admin/consultations/${r.id}`}>
                     {r.message ?? "(메시지 없음)"}
                   </Link>
