@@ -1,0 +1,65 @@
+{
+  "_comment": "하루 1편 자동 발행용 주제 큐. 위에서부터 순서대로, 아직 발행되지 않은 slug를 골라 발행한다. 큐가 비면 스크립트가 AI로 새 주제를 제안한다. 새 주제를 추가하려면 이 배열에 항목을 더하면 된다.",
+  "topics": [
+    {
+      "slug": "resignation-agency-legality",
+      "titleHint": "퇴사대행, 불법 아닌가요? — 변호사가 하는 퇴사대행의 적법성",
+      "keywords": ["퇴사대행 불법", "변호사 퇴사대행", "퇴사대행 적법성"],
+      "coverEmoji": "⚖️"
+    },
+    {
+      "slug": "unpaid-severance-recovery-steps",
+      "titleHint": "퇴직금을 못 받고 퇴사했습니다 — 받아내는 절차 3단계",
+      "keywords": ["퇴직금 못받았을때", "퇴직금 청구", "근로자퇴직급여 보장법 제9조"],
+      "coverEmoji": "📄"
+    },
+    {
+      "slug": "small-business-resignation",
+      "titleHint": "5인 미만 사업장 퇴사, 무엇이 다른가",
+      "keywords": ["5인 미만 사업장 퇴사", "5인 미만 퇴직금", "소규모 사업장"],
+      "coverEmoji": "🏢"
+    },
+    {
+      "slug": "recommended-vs-voluntary-resignation",
+      "titleHint": "권고사직 vs 자발적 사직, 실업급여 차이",
+      "keywords": ["권고사직 실업급여", "자발적 사직", "실업급여 조건"],
+      "coverEmoji": "🔀"
+    },
+    {
+      "slug": "foreign-worker-resignation",
+      "titleHint": "외국인 근로자·5인 미만 사업장도 퇴사대행 가능한가요",
+      "keywords": ["외국인 퇴사대행", "외국인 근로자 퇴사", "외국인 노동자 권리"],
+      "coverEmoji": "🌏"
+    },
+    {
+      "slug": "annual-leave-allowance-settlement",
+      "titleHint": "연차수당 정산, 퇴사할 때 꼭 챙겨야 할 것",
+      "keywords": ["연차수당 정산", "퇴사 연차수당", "미사용 연차"],
+      "coverEmoji": "🗓️"
+    },
+    {
+      "slug": "workplace-harassment-evidence",
+      "titleHint": "직장 내 괴롭힘, 퇴사 전에 남겨야 할 증거",
+      "keywords": ["직장 내 괴롭힘 증거", "괴롭힘 신고", "근로기준법 제76조의2"],
+      "coverEmoji": "🛡️"
+    },
+    {
+      "slug": "severance-without-contract",
+      "titleHint": "근로계약서 없이 일했어도 퇴직금 받을 수 있나요",
+      "keywords": ["근로계약서 없이 퇴직금", "구두 근로계약", "퇴직금 요건"],
+      "coverEmoji": "✍️"
+    },
+    {
+      "slug": "how-to-give-resignation-notice",
+      "titleHint": "퇴사 통보는 언제, 어떻게 해야 하나요 — 민법 제660조",
+      "keywords": ["퇴사 통보 기간", "민법 제660조", "사직 효력"],
+      "coverEmoji": "📨"
+    },
+    {
+      "slug": "forced-resignation-pressure",
+      "titleHint": "사직 강요·권고사직 압박을 받고 있다면",
+      "keywords": ["사직 강요", "권고사직 압박", "부당해고"],
+      "coverEmoji": "🚫"
+    }
+  ]
+}

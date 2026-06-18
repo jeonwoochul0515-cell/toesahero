@@ -9,7 +9,9 @@
     "test": "vitest run",
     "build": "tsc -b && npm run typecheck:functions && vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy --only hosting"
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "blog:seed": "node scripts/seed-posts.mjs",
+    "blog:publish-daily": "node scripts/auto-publish-daily.mjs"
   },
   "dependencies": {
     "@fontsource-variable/space-grotesk": "^5.2.10",

@@ -1,0 +1,34 @@
+name: Daily Blog Auto-Publish
+
+on:
+  schedule:
+    # 매일 00:10 UTC = 09:10 KST 에 1편 자동 발행
+    - cron: "10 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate & publish one post
+        env:
+          ADMIN_EMAIL: ${{ secrets.BLOG_ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.BLOG_ADMIN_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BLOG_MODEL: ${{ vars.BLOG_MODEL }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        run: node scripts/auto-publish-daily.mjs
