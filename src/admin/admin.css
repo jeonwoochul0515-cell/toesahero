@@ -1143,3 +1143,47 @@
 .admin-export-btn:hover {
   background: var(--yellow);
 }
+
+/* 상담 상세 — 같은 대화(sessionId) 메시지 묶음 */
+.admin-chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.admin-chat-bubble {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 10px 12px;
+  max-width: 88%;
+}
+.admin-chat-bubble.from-client {
+  background: var(--yellow-soft, var(--yellow));
+  align-self: flex-end;
+}
+.admin-chat-bubble.from-bot {
+  background: var(--paper);
+  align-self: flex-start;
+}
+.admin-chat-bubble-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.admin-chat-bubble-head time {
+  color: var(--muted);
+  font-size: 10px;
+}
+.admin-chat-bubble-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-kr);
+  font-size: 13px;
+  line-height: 1.55;
+}

@@ -11,6 +11,14 @@ import {
 
 type Msg = { who: "me" | "them"; text: string };
 
+// 한 번의 채팅 대화를 묶는 세션 ID 생성 (구형 브라우저 폴백 포함)
+function makeSessionId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+}
+
 const replies = [
   "사장과 연락이 안 됩니다",
   "퇴직금 관련 문의",
@@ -80,6 +88,9 @@ export function ChatModal({ open, onClose }: Props) {
   const [draftLoading, setDraftLoading] = useState(false);
   const [draftSubmitted, setDraftSubmitted] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  // 이 모달 인스턴스(=한 대화) 동안 유지되는 세션 ID. 메시지와 상담 건을 묶는다.
+  const sessionIdRef = useRef<string | null>(null);
+  if (!sessionIdRef.current) sessionIdRef.current = makeSessionId();
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -158,6 +169,7 @@ export function ChatModal({ open, onClose }: Props) {
       conversationLog,
       draftLetter,
       userName: user?.displayName ?? null,
+      sessionId: sessionIdRef.current,
     });
     setDraftSubmitted(true);
     setMessages((m) => [
@@ -280,10 +292,11 @@ export function ChatModal({ open, onClose }: Props) {
     setMessages(nextMsgs);
     setInput("");
     setTyping(true);
-    void logChatMessage(text, "me");
+    void logChatMessage(text, "me", sessionIdRef.current);
     void saveConsultation({
       source: "chat",
       message: text,
+      sessionId: sessionIdRef.current,
     });
 
     // AI 챗봇 호출 (변협 컴플라이언스 system prompt 적용)
@@ -308,7 +321,7 @@ export function ChatModal({ open, onClose }: Props) {
     }
 
     setMessages((m) => [...m, { who: "them", text: reply }]);
-    void logChatMessage(reply, "them");
+    void logChatMessage(reply, "them", sessionIdRef.current);
   };
 
   if (!open) return null;

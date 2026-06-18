@@ -150,6 +150,7 @@ export type ConsultationDoc = {
   notes?: string;
   userAgent?: string;
   path?: string;
+  sessionId?: string | null; // 같은 채팅 대화를 묶는 키
   // AI 통보문 초안 (베이직)
   draftLetter?: string | null;
   draftStatus?: "pending_review" | "edited" | "approved" | "sent" | null;
@@ -172,6 +173,7 @@ export type ChatMessageDoc = {
   text: string;
   role: "me" | "them";
   uid?: string | null;
+  sessionId?: string | null; // 같은 채팅 대화를 묶는 키
   createdAt?: { seconds: number; nanoseconds: number } | null;
 };
 
@@ -222,6 +224,30 @@ export function watchChatMessages(
 }
 
 // 의뢰인 본인 사건 조회 (마이페이지용)
+// 특정 대화(sessionId)에 속한 채팅 메시지를 시간순으로 조회 (어드민 상담 상세용).
+// where 단일 등가 조건이라 복합 인덱스가 필요 없도록 정렬은 클라이언트에서 수행한다.
+export async function fetchChatMessagesBySession(
+  sessionId: string
+): Promise<ChatMessageDoc[]> {
+  const database = getDb();
+  if (!database) return [];
+  try {
+    const { getDocs } = await import("firebase/firestore");
+    const q = query(
+      collection(database, "chat_messages"),
+      where("sessionId", "==", sessionId),
+      limit(300)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map(snapToChatMessage)
+      .sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
+  } catch (e) {
+    console.warn("[firebase] fetchChatMessagesBySession failed", e);
+    return [];
+  }
+}
+
 export function watchMyCases(
   uid: string,
   cb: (rows: ConsultationDoc[]) => void,
@@ -531,6 +557,7 @@ export type DraftSubmission = {
   conversationLog: string;
   draftLetter: string;
   userName?: string | null;
+  sessionId?: string | null;
 };
 
 export async function saveDraftConsultation(
@@ -551,6 +578,7 @@ export async function saveDraftConsultation(
       userName: user?.displayName ?? payload.userName ?? null,
       userEmail: user?.email ?? null,
       conversationLog: payload.conversationLog,
+      sessionId: payload.sessionId ?? null,
       draftLetter: payload.draftLetter,
       draftStatus: "pending_review",
       status: "new",
@@ -574,6 +602,7 @@ export type ConsultationPayload = {
   estimatedAmount?: number;
   contact?: string;
   meta?: Record<string, unknown>;
+  sessionId?: string | null;
 };
 
 export async function saveConsultation(payload: ConsultationPayload) {
@@ -603,7 +632,11 @@ export async function saveConsultation(payload: ConsultationPayload) {
   }
 }
 
-export async function logChatMessage(text: string, role: "me" | "them") {
+export async function logChatMessage(
+  text: string,
+  role: "me" | "them",
+  sessionId: string | null = null
+) {
   const database = getDb();
   if (!database) return;
   const a = getAuthOrNull();
@@ -613,6 +646,7 @@ export async function logChatMessage(text: string, role: "me" | "them") {
       text,
       role,
       uid,
+      sessionId,
       createdAt: serverTimestamp(),
     });
   } catch (e) {

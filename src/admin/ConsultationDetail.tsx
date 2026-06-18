@@ -3,7 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import {
   watchConsultations,
   updateConsultation,
+  fetchChatMessagesBySession,
   type ConsultationDoc,
+  type ChatMessageDoc,
 } from "../firebase";
 
 const STATUS_OPTIONS: Array<{ value: NonNullable<ConsultationDoc["status"]>; label: string }> = [
@@ -27,6 +29,12 @@ export function ConsultationDetail() {
   const [draftEdit, setDraftEdit] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult] = useState<string | null>(null);
+  const [chatThread, setChatThread] = useState<ChatMessageDoc[]>([]);
+
+  const sessionId = row?.sessionId ?? null;
 
   useEffect(() => {
     return watchConsultations((rows) => {
@@ -41,6 +49,21 @@ export function ConsultationDetail() {
     }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // 같은 대화(sessionId)에 속한 채팅 메시지 전체를 불러와 시간순으로 표시.
+  useEffect(() => {
+    if (!sessionId) {
+      setChatThread([]);
+      return;
+    }
+    let cancel = false;
+    void fetchChatMessagesBySession(sessionId).then((msgs) => {
+      if (!cancel) setChatThread(msgs);
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [sessionId]);
 
   if (!row) {
     return (
@@ -136,10 +159,6 @@ export function ConsultationDetail() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  const [emailTo, setEmailTo] = useState("");
-  const [emailSending, setEmailSending] = useState(false);
-  const [emailResult, setEmailResult] = useState<string | null>(null);
 
   const sendEmail = async () => {
     if (!emailTo.trim()) {
@@ -245,6 +264,28 @@ export function ConsultationDetail() {
             </>
           )}
         </div>
+
+        {sessionId && chatThread.length > 0 && (
+          <div className="admin-detail-card">
+            <h3>💬 대화 전체 ({chatThread.length}개 메시지)</h3>
+            <div className="admin-chat-thread">
+              {chatThread.map((m) => (
+                <div
+                  key={m.id}
+                  className={`admin-chat-bubble ${
+                    m.role === "me" ? "from-client" : "from-bot"
+                  }`}
+                >
+                  <div className="admin-chat-bubble-head">
+                    <strong>{m.role === "me" ? "의뢰인" : "변호사/봇"}</strong>
+                    <time>{fmtDate(m.createdAt)}</time>
+                  </div>
+                  <pre className="admin-chat-bubble-text">{m.text}</pre>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {row.draftLetter && (
           <div className="admin-detail-card admin-detail-actions">
