@@ -28,6 +28,13 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+  type FirebaseStorage,
+} from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -43,6 +50,7 @@ const KAKAO_PROVIDER_ID = "oidc.kakao";
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let auth: Auth | null = null;
+let storage: FirebaseStorage | null = null;
 
 function getApp(): FirebaseApp | null {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) return null;
@@ -62,6 +70,13 @@ export function getAuthOrNull(): Auth | null {
   if (!a) return null;
   if (!auth) auth = getAuth(a);
   return auth;
+}
+
+function getStorageOrNull(): FirebaseStorage | null {
+  const a = getApp();
+  if (!a) return null;
+  if (!storage) storage = getStorage(a);
+  return storage;
 }
 
 export type AppUser = {
@@ -585,6 +600,78 @@ export async function deletePost(id: string): Promise<void> {
   if (!database) throw new Error("Firestore 미초기화");
   const { deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(database, "posts", id));
+}
+
+// ===== 사건 증거 파일 (Storage + case_files 메타) =====
+export type CaseFileDoc = {
+  id: string;
+  caseId: string;
+  uid: string;
+  name: string;
+  url: string;
+  size?: number;
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+};
+
+function snapToCaseFile(s: QueryDocumentSnapshot<DocumentData>): CaseFileDoc {
+  return { id: s.id, ...(s.data() as Omit<CaseFileDoc, "id">) };
+}
+
+// 의뢰인이 사건 증거 파일을 Storage에 올리고 메타를 case_files에 기록한다.
+export async function uploadCaseFile(caseId: string, file: File): Promise<void> {
+  const st = getStorageOrNull();
+  const database = getDb();
+  const user = getAuthOrNull()?.currentUser ?? null;
+  if (!st || !database || !user) throw new Error("로그인 후 이용해 주세요.");
+  const safeName = file.name.replace(/[^\w.\-가-힣]/g, "_");
+  const path = `case-files/${user.uid}/${caseId}/${Date.now()}_${safeName}`;
+  await uploadBytes(storageRef(st, path), file);
+  const url = await getDownloadURL(storageRef(st, path));
+  await addDoc(collection(database, "case_files"), {
+    caseId,
+    uid: user.uid,
+    name: file.name,
+    url,
+    size: file.size,
+    storagePath: path,
+    createdAt: serverTimestamp(),
+  });
+}
+
+// 의뢰인 본인 파일 전체 구독 (마이페이지 — uid 단일 조건, 컴포넌트에서 caseId로 그룹).
+export function watchMyCaseFiles(
+  uid: string,
+  cb: (rows: CaseFileDoc[]) => void
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(collection(database, "case_files"), where("uid", "==", uid), limit(200));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToCaseFile)),
+    () => cb([])
+  );
+}
+
+// 특정 사건 파일 구독 (어드민 — caseId 단일 조건).
+export function watchCaseFiles(
+  caseId: string,
+  cb: (rows: CaseFileDoc[]) => void
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb([]);
+    return () => {};
+  }
+  const q = query(collection(database, "case_files"), where("caseId", "==", caseId), limit(200));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToCaseFile)),
+    () => cb([])
+  );
 }
 
 export type DraftSubmission = {

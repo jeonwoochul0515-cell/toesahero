@@ -4,8 +4,10 @@ import {
   watchConsultations,
   updateConsultation,
   fetchChatMessagesBySession,
+  watchCaseFiles,
   type ConsultationDoc,
   type ChatMessageDoc,
+  type CaseFileDoc,
 } from "../firebase";
 
 const STATUS_OPTIONS: Array<{ value: NonNullable<ConsultationDoc["status"]>; label: string }> = [
@@ -33,6 +35,7 @@ export function ConsultationDetail() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailResult, setEmailResult] = useState<string | null>(null);
   const [chatThread, setChatThread] = useState<ChatMessageDoc[]>([]);
+  const [caseFiles, setCaseFiles] = useState<CaseFileDoc[]>([]);
 
   const sessionId = row?.sessionId ?? null;
 
@@ -64,6 +67,12 @@ export function ConsultationDetail() {
       cancel = true;
     };
   }, [sessionId]);
+
+  // 이 사건에 의뢰인이 올린 증거 파일.
+  useEffect(() => {
+    if (!id) return;
+    return watchCaseFiles(id, setCaseFiles);
+  }, [id]);
 
   if (!row) {
     return (
@@ -293,6 +302,26 @@ export function ConsultationDetail() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {caseFiles.length > 0 && (
+          <div className="admin-detail-card">
+            <h3>📎 의뢰인 증거 자료 ({caseFiles.length})</h3>
+            <ul className="admin-file-list">
+              {caseFiles.map((f) => (
+                <li key={f.id}>
+                  <a href={f.url} target="_blank" rel="noopener noreferrer">
+                    📄 {f.name}
+                  </a>
+                  {typeof f.size === "number" && (
+                    <span className="admin-file-size">
+                      {(f.size / 1024).toFixed(0)} KB
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

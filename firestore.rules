@@ -73,6 +73,15 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // 사건 증거 파일 메타. 의뢰인 본인이 생성, 본인·어드민만 읽기. 수정/삭제는 어드민.
+    match /case_files/{docId} {
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(['caseId', 'uid', 'name', 'url', 'createdAt']);
+      allow read: if isAdmin() || isOwner();
+      allow update, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

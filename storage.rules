@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 사건 증거 파일 — 본인(uid 일치)만 업로드/조회. 어드민은 case_files에 저장된 다운로드 URL로 열람.
+    match /case-files/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 20 * 1024 * 1024;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

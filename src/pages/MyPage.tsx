@@ -5,8 +5,11 @@ import {
   signOut,
   watchAuth,
   watchMyCases,
+  watchMyCaseFiles,
+  uploadCaseFile,
   type AppUser,
   type ConsultationDoc,
+  type CaseFileDoc,
 } from "../firebase";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -52,6 +55,8 @@ export function MyPage() {
   const [user, setUser] = useState<AppUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [cases, setCases] = useState<ConsultationDoc[]>([]);
+  const [files, setFiles] = useState<CaseFileDoc[]>([]);
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
 
   usePageMeta({
@@ -73,6 +78,25 @@ export function MyPage() {
     if (!user) return;
     return watchMyCases(user.uid, setCases, 50);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    return watchMyCaseFiles(user.uid, setFiles);
+  }, [user]);
+
+  const handleUpload = async (caseId: string, fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file) return;
+    setUploadingFor(caseId);
+    try {
+      await uploadCaseFile(caseId, file);
+    } catch (e) {
+      alert("업로드에 실패했습니다. 다시 시도해 주세요.");
+      console.warn(e);
+    } finally {
+      setUploadingFor(null);
+    }
+  };
 
   if (authLoading) {
     return (
@@ -186,6 +210,37 @@ export function MyPage() {
                       );
                     })}
                   </ol>
+
+                  <div className="my-case-files">
+                    <h4>📎 증거 자료</h4>
+                    {files.filter((f) => f.caseId === c.id).length === 0 ? (
+                      <p className="my-file-empty">아직 첨부한 자료가 없습니다.</p>
+                    ) : (
+                      <ul className="my-file-list">
+                        {files
+                          .filter((f) => f.caseId === c.id)
+                          .map((f) => (
+                            <li key={f.id}>
+                              <a href={f.url} target="_blank" rel="noopener noreferrer">
+                                📄 {f.name}
+                              </a>
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                    <label className={`btn my-file-btn ${uploadingFor === c.id ? "disabled" : ""}`}>
+                      {uploadingFor === c.id ? "업로드 중..." : "＋ 파일 첨부"}
+                      <input
+                        type="file"
+                        hidden
+                        disabled={uploadingFor === c.id}
+                        onChange={(e) => void handleUpload(c.id, e.target.files)}
+                      />
+                    </label>
+                    <p className="my-file-note">
+                      녹취·캡처·근로계약서 등 (최대 20MB). 변호사 비밀유지 의무가 적용됩니다.
+                    </p>
+                  </div>
 
                   {c.message && (
                     <div className="my-case-msg">
