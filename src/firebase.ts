@@ -657,7 +657,16 @@ export async function saveConsultation(payload: ConsultationPayload) {
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
-    notifyNewConsultation("consultation", ref.id, payload.message?.slice(0, 80));
+    // 연락처를 남겼을 때만 변호사에게 문자 알림. 단순 채팅·탐색 이벤트로는 알림하지 않는다.
+    if (payload.contact) {
+      notifyNewConsultation(
+        "consultation",
+        ref.id,
+        `연락처 ${payload.contact}${
+          payload.message ? `\n${payload.message.slice(0, 60)}` : ""
+        }`
+      );
+    }
     return ref.id;
   } catch (e) {
     console.warn("[firebase] saveConsultation failed", e);

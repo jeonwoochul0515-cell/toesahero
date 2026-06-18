@@ -87,6 +87,8 @@ export function ChatModal({ open, onClose }: Props) {
   const [draftLetter, setDraftLetter] = useState<string | null>(null);
   const [draftLoading, setDraftLoading] = useState(false);
   const [draftSubmitted, setDraftSubmitted] = useState(false);
+  const [contact, setContact] = useState("");
+  const [contactSaved, setContactSaved] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
   // 이 모달 인스턴스(=한 대화) 동안 유지되는 세션 ID. 메시지와 상담 건을 묶는다.
   const sessionIdRef = useRef<string | null>(null);
@@ -324,6 +326,26 @@ export function ChatModal({ open, onClose }: Props) {
     void logChatMessage(reply, "them", sessionIdRef.current);
   };
 
+  // 회신받을 연락처 제출 — 이때만 변호사에게 문자 알림이 발송된다.
+  const submitContact = async () => {
+    const v = contact.trim();
+    if (!v || contactSaved) return;
+    await saveConsultation({
+      source: "chat",
+      message: "[연락처 제출] 의뢰인이 회신 연락처를 남겼습니다.",
+      contact: v,
+      sessionId: sessionIdRef.current,
+    });
+    setContactSaved(true);
+    setMessages((m) => [
+      ...m,
+      {
+        who: "them",
+        text: `연락처를 전달했습니다. 변호사 김창희가 영업일 기준으로 ${v} 로 연락드리겠습니다.`,
+      },
+    ]);
+  };
+
   if (!open) return null;
   return (
     <div
@@ -403,6 +425,27 @@ export function ChatModal({ open, onClose }: Props) {
             </button>
           ))}
         </div>
+        {contactSaved ? (
+          <div className="chat-contact done">
+            ✓ 연락처가 전달되었습니다 — 변호사가 직접 연락드립니다.
+          </div>
+        ) : (
+          <div className="chat-contact">
+            <input
+              type="tel"
+              className="chat-input"
+              placeholder="회신받을 연락처 (전화·카톡 ID)"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void submitContact();
+              }}
+            />
+            <button className="btn" onClick={() => void submitContact()}>
+              연락처 남기기
+            </button>
+          </div>
+        )}
         <div className="modal-foot">
           <input
             type="text"
