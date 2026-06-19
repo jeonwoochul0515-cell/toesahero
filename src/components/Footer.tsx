@@ -131,9 +131,11 @@ export function Footer({ openChat }: Props) {
             </div>
             <div>
               <strong className="foot-h">서비스</strong>
-              <a href="#audience">이런 분들에게</a>
-              <a href="#process">절차 안내</a>
+              <a href="/diagnose">셀프 진단</a>
               <a href="#pricing">서비스 안내 (보수)</a>
+              <a href="/harassment">직장 내 괴롭힘</a>
+              <a href="/small-business">5인 미만 사업장</a>
+              <a href="/foreign-workers">For foreign workers</a>
               <a href="#lawyer">변호사 소개</a>
             </div>
             <div>
