@@ -3,6 +3,7 @@ import { Nav } from "./components/Nav";
 import { usePageMeta } from "./hooks/usePageMeta";
 import { Hero } from "./components/Hero";
 import { Marquee } from "./components/Marquee";
+import { StatsBand } from "./components/StatsBand";
 import { Audience } from "./components/Audience";
 import { Calculator } from "./components/Calculator";
 import { Process } from "./components/Process";
@@ -66,6 +67,7 @@ export function Home() {
       <Nav openChat={openChat} />
       <Hero openChat={openChat} />
       <Marquee />
+      <StatsBand />
       <Audience />
       <Calculator />
       <Process />

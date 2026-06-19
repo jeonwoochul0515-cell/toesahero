@@ -82,6 +82,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // 사이트 실적/신뢰 지표. 공개 읽기, 어드민만 수정.
+    match /site_stats/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

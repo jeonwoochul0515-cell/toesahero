@@ -1896,6 +1896,33 @@ body[data-mascot="false"] .mascot {
 .my-tl-step.pending .my-tl-desc {
   color: var(--muted);
 }
+.stats-band {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 32px 0;
+}
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px 48px;
+}
+.stats-item {
+  text-align: center;
+  min-width: 120px;
+}
+.stats-value {
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--yellow);
+}
+.stats-label {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+  color: var(--gray-2);
+}
 .my-case-files {
   margin: 14px 0;
   padding: 14px;

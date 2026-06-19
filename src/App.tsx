@@ -19,6 +19,7 @@ import { AdminDashboard } from "./admin/AdminDashboard";
 import { ConsultationsList } from "./admin/ConsultationsList";
 import { ConsultationDetail } from "./admin/ConsultationDetail";
 import { OrdersAdmin } from "./admin/OrdersAdmin";
+import { StatsAdmin } from "./admin/StatsAdmin";
 import { ChatLogs } from "./admin/ChatLogs";
 import { PrintLetter } from "./admin/PrintLetter";
 import { Kanban } from "./admin/Kanban";
@@ -73,6 +74,7 @@ export default function App() {
               element={<ConsultationDetail />}
             />
             <Route path="orders" element={<OrdersAdmin />} />
+            <Route path="stats" element={<StatsAdmin />} />
             <Route path="kanban" element={<Kanban />} />
             <Route path="reviews" element={<ReviewsAdmin />} />
             <Route path="blog" element={<BlogAdmin />} />

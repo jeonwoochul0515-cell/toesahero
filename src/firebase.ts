@@ -19,6 +19,7 @@ import {
 import {
   doc,
   getDoc,
+  setDoc,
   query,
   where,
   orderBy,
@@ -600,6 +601,35 @@ export async function deletePost(id: string): Promise<void> {
   if (!database) throw new Error("Firestore 미초기화");
   const { deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(database, "posts", id));
+}
+
+// ===== 사이트 실적/신뢰 지표 (어드민 입력, 공개 노출) =====
+export type SiteStat = { label: string; value: string };
+
+export async function fetchSiteStats(): Promise<SiteStat[]> {
+  const database = getDb();
+  if (!database) return [];
+  try {
+    const snap = await getDoc(doc(database, "site_stats", "main"));
+    if (!snap.exists()) return [];
+    const items = (snap.data() as { items?: SiteStat[] }).items;
+    return Array.isArray(items)
+      ? items.filter((s) => s && s.label && s.value)
+      : [];
+  } catch (e) {
+    console.warn("[firebase] fetchSiteStats failed", e);
+    return [];
+  }
+}
+
+export async function saveSiteStats(items: SiteStat[]): Promise<void> {
+  const database = getDb();
+  if (!database) throw new Error("Firestore 미초기화");
+  await setDoc(
+    doc(database, "site_stats", "main"),
+    { items, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
 }
 
 // ===== 사건 증거 파일 (Storage + case_files 메타) =====
