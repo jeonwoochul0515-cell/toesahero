@@ -9,9 +9,11 @@ type Inputs = {
   monthlySalary: number; // 월급 (세전)
   yearsWorked: number; // 근속 연수
   monthsWorked: number; // 추가 개월 (0~11)
+  severanceUnpaid: boolean; // 퇴직금 미지급 여부 (근속연수 기반 일시금)
   unusedAnnualLeave: number; // 미사용 연차일수
   monthlyOvertimeHours: number; // 월 평균 야근시간
-  unpaidMonths: number; // 미지급 임금 개월수
+  overtimeMonths: number; // 야근수당 미지급 기간(개월)
+  unpaidSalaryMonths: number; // 체불(미지급) 월급 개월수
   reason: "voluntary" | "boss_pressure" | "bullying" | "layoff" | "no_pay";
   companySize: "under5" | "under30" | "under300" | "over300";
 };
@@ -31,7 +33,10 @@ function calc(inputs: Inputs) {
 
   // 퇴직금 — 근로자퇴직급여 보장법 §8: 1년 이상 근속 시 전 사업장 적용.
   // 30일분 평균임금 × 근속연수 (월급을 1개월 평균임금으로 근사한 추정치)
-  const severance = totalYears >= 1 ? Math.round(monthlySalary * totalYears) : 0;
+  const severance =
+    inputs.severanceUnpaid && totalYears >= 1
+      ? Math.round(monthlySalary * totalYears)
+      : 0;
 
   // 미사용 연차수당 — 근기법 §60: 상시 5인 이상만. 통상일급 × 미사용일수
   const annualLeave = is5plus ? dailyWage * (inputs.unusedAnnualLeave || 0) : 0;
@@ -40,10 +45,10 @@ function calc(inputs: Inputs) {
   const overtimePerMonth = is5plus
     ? Math.round(hourlyWage * 1.5 * (inputs.monthlyOvertimeHours || 0))
     : 0;
-  const overtimeTotal = overtimePerMonth * (inputs.unpaidMonths || 0);
+  const overtimeTotal = overtimePerMonth * (inputs.overtimeMonths || 0);
 
-  // 미지급 임금(체불) — 전 사업장. 월급 × 미지급 개월 (임금채권 시효 3년)
-  const unpaidSalary = monthlySalary * (inputs.unpaidMonths || 0);
+  // 미지급 임금(체불) — 전 사업장. 월급 × 체불 개월 (임금채권 시효 3년)
+  const unpaidSalary = monthlySalary * (inputs.unpaidSalaryMonths || 0);
 
   // 실업급여 — 비자발적 사유(권고사직·괴롭힘·정리해고·2개월+ 체불)
   const eligibleUI =
@@ -98,9 +103,11 @@ export function CalcPage() {
     monthlySalary: 3000000,
     yearsWorked: 2,
     monthsWorked: 0,
+    severanceUnpaid: true,
     unusedAnnualLeave: 5,
     monthlyOvertimeHours: 20,
-    unpaidMonths: 0,
+    overtimeMonths: 0,
+    unpaidSalaryMonths: 0,
     reason: "voluntary",
     companySize: "under30",
   });
@@ -132,7 +139,7 @@ export function CalcPage() {
       id: "unpaid",
       label: "미지급 임금 (체불)",
       amount: result.unpaidSalary,
-      show: inputs.unpaidMonths > 0,
+      show: inputs.unpaidSalaryMonths > 0,
     },
   ];
   const visibleItems = items.filter((i) => i.show);
@@ -152,10 +159,12 @@ export function CalcPage() {
       // AI 내용증명 생성 호출
       const factSummary = `월급 ${fmt(inputs.monthlySalary)}원, 근속 ${
         inputs.yearsWorked
-      }년 ${inputs.monthsWorked}개월, 미사용 연차 ${
-        inputs.unusedAnnualLeave
-      }일, 월 평균 야근 ${inputs.monthlyOvertimeHours}시간, 미지급 의심 개월 ${
-        inputs.unpaidMonths
+      }년 ${inputs.monthsWorked}개월, 퇴직금 미지급: ${
+        inputs.severanceUnpaid ? "예" : "아니오"
+      }, 미사용 연차 ${inputs.unusedAnnualLeave}일, 월 평균 야근 ${
+        inputs.monthlyOvertimeHours
+      }시간 × 미지급 ${inputs.overtimeMonths}개월, 체불 월급 ${
+        inputs.unpaidSalaryMonths
       }개월, 퇴사 사유: ${inputs.reason}, 회사 규모: ${inputs.companySize}`;
       const computedItems = visibleItems.map((i) => ({
         label: i.label,
@@ -284,6 +293,18 @@ export function CalcPage() {
                   }
                 />
               </label>
+              <label
+                className="full"
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <input
+                  type="checkbox"
+                  checked={inputs.severanceUnpaid}
+                  onChange={(e) => onChange("severanceUnpaid", e.target.checked)}
+                  style={{ width: "auto" }}
+                />
+                퇴직금 미지급 (1년 이상 근속 시 · 근속연수 기반 일시금)
+              </label>
             </div>
 
             <h2>2. 청구 가능 항목</h2>
@@ -316,14 +337,26 @@ export function CalcPage() {
                 />
               </label>
               <label>
-                미지급 의심 개월수
+                야근수당 미지급 기간 (개월)
                 <input
                   type="number"
                   min={0}
                   max={36}
-                  value={inputs.unpaidMonths}
+                  value={inputs.overtimeMonths}
                   onChange={(e) =>
-                    onChange("unpaidMonths", Number(e.target.value))
+                    onChange("overtimeMonths", Number(e.target.value))
+                  }
+                />
+              </label>
+              <label>
+                체불(미지급) 월급 개월수
+                <input
+                  type="number"
+                  min={0}
+                  max={36}
+                  value={inputs.unpaidSalaryMonths}
+                  onChange={(e) =>
+                    onChange("unpaidSalaryMonths", Number(e.target.value))
                   }
                 />
               </label>
