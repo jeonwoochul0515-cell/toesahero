@@ -17,39 +17,45 @@ type Inputs = {
 };
 
 function calc(inputs: Inputs) {
-  const { monthlySalary, yearsWorked, monthsWorked } = inputs;
+  const { monthlySalary, yearsWorked, monthsWorked, companySize } = inputs;
+  // 상시 5인 미만 사업장은 연차수당(근기법 §60)·연장근로 가산수당(§56) 법정 적용 제외
+  const is5plus = companySize !== "under5";
 
-  // 일급 (월급 ÷ 209 × 8 = 통상임금 일급 추정)
-  const dailyWage = monthlySalary > 0 ? Math.round((monthlySalary / 209) * 8) : 0;
+  // 통상임금 기준 시급/일급 (월 소정근로 209시간, 1일 8시간)
   const hourlyWage = monthlySalary > 0 ? Math.round(monthlySalary / 209) : 0;
+  const dailyWage = monthlySalary > 0 ? Math.round((monthlySalary / 209) * 8) : 0;
 
-  // 근속 총 개월
+  // 근속 총 개월/연수
   const totalMonths = yearsWorked * 12 + monthsWorked;
   const totalYears = totalMonths / 12;
 
-  // 퇴직금 — 1년 이상 근속 시. 30일분 평균임금 × 근속연수 (단순 추정)
-  const severance =
-    totalYears >= 1 ? Math.round(monthlySalary * totalYears) : 0;
+  // 퇴직금 — 근로자퇴직급여 보장법 §8: 1년 이상 근속 시 전 사업장 적용.
+  // 30일분 평균임금 × 근속연수 (월급을 1개월 평균임금으로 근사한 추정치)
+  const severance = totalYears >= 1 ? Math.round(monthlySalary * totalYears) : 0;
 
-  // 미사용 연차수당 = 일급 × 연차일수
-  const annualLeave = dailyWage * (inputs.unusedAnnualLeave || 0);
+  // 미사용 연차수당 — 근기법 §60: 상시 5인 이상만. 통상일급 × 미사용일수
+  const annualLeave = is5plus ? dailyWage * (inputs.unusedAnnualLeave || 0) : 0;
 
-  // 야근수당 (월) = 통상시급 × 1.5 × 야근시간 × 미지급 의심 개월
-  const overtimePerMonth = Math.round(
-    hourlyWage * 1.5 * (inputs.monthlyOvertimeHours || 0)
-  );
-  // 노동법상 미지급 임금 청구는 3년 시효, 여기선 입력한 unpaidMonths 만큼만 단순 합산
+  // 연장근로 가산수당 — 근기법 §56: 상시 5인 이상만 1.5배 가산. 통상시급 × 1.5 × 시간 × 개월
+  const overtimePerMonth = is5plus
+    ? Math.round(hourlyWage * 1.5 * (inputs.monthlyOvertimeHours || 0))
+    : 0;
   const overtimeTotal = overtimePerMonth * (inputs.unpaidMonths || 0);
 
-  // 미지급 임금 (체불) = 월급 × 입력 개월
+  // 미지급 임금(체불) — 전 사업장. 월급 × 미지급 개월 (임금채권 시효 3년)
   const unpaidSalary = monthlySalary * (inputs.unpaidMonths || 0);
 
-  // 실업급여 가능 여부 — 권고사직/괴롭힘/임금체불 등 비자발적
+  // 실업급여 — 비자발적 사유(권고사직·괴롭힘·정리해고·2개월+ 체불)
   const eligibleUI =
     inputs.reason === "boss_pressure" ||
     inputs.reason === "bullying" ||
     inputs.reason === "layoff" ||
     inputs.reason === "no_pay";
+
+  // 5인 미만이라 제외된 항목이 입력돼 있는지 (안내용)
+  const excludedBySize =
+    !is5plus &&
+    ((inputs.unusedAnnualLeave || 0) > 0 || (inputs.monthlyOvertimeHours || 0) > 0);
 
   return {
     dailyWage,
@@ -60,6 +66,8 @@ function calc(inputs: Inputs) {
     overtimeTotal,
     unpaidSalary,
     eligibleUI,
+    is5plus,
+    excludedBySize,
   };
 }
 
@@ -112,7 +120,7 @@ export function CalcPage() {
       id: "annual",
       label: "미사용 연차수당",
       amount: result.annualLeave,
-      show: inputs.unusedAnnualLeave > 0,
+      show: result.annualLeave > 0,
     },
     {
       id: "overtime",
@@ -385,6 +393,14 @@ export function CalcPage() {
                 )}
               </ul>
 
+              {result.excludedBySize && (
+                <div className="calc-extra" style={{ borderColor: "var(--orange)" }}>
+                  ⚠️ <strong>상시 5인 미만 사업장</strong>은 연차수당(근기법 §60)·
+                  연장근로 가산수당(§56)이 법정 적용되지 않아 합산에서 제외했습니다.
+                  <strong> 퇴직금·체불임금은 5인 미만도 청구 가능</strong>합니다.
+                </div>
+              )}
+
               {result.eligibleUI && (
                 <div className="calc-extra">
                   💡 입력하신 사유로 <strong>실업급여 신청 가능성</strong>이
@@ -420,22 +436,26 @@ export function CalcPage() {
             </div>
 
             <div className="calc-aside-info">
-              <h4>참고 산정 기준</h4>
+              <h4>참고 산정 기준 (근로기준법·근퇴법)</h4>
               <ul>
                 <li>
                   <strong>퇴직금</strong>: 1년 이상 근속 시 30일분 평균임금 ×
-                  근속연수 (단순 추정)
+                  근속연수. 근퇴법 §8 — 전 사업장 적용
                 </li>
                 <li>
-                  <strong>연차수당</strong>: 일급 × 미사용 연차일수 (일급 = 월급
-                  ÷ 209 × 8)
+                  <strong>연차수당</strong>: 통상일급 × 미사용일수 (일급 = 월급 ÷
+                  209 × 8). 근기법 §60 — <strong>5인 이상만</strong>
                 </li>
                 <li>
-                  <strong>야근수당</strong>: 통상시급 × 1.5 × 야근시간 (
-                  근로기준법 §56)
+                  <strong>야근수당</strong>: 통상시급 × 1.5 × 야근시간. 근기법 §56
+                  — <strong>5인 이상만</strong> 가산
                 </li>
                 <li>
-                  <strong>임금체불</strong>: 월급 × 미지급 의심 개월
+                  <strong>임금체불</strong>: 월급 × 미지급 개월. 임금채권 시효 3년
+                </li>
+                <li>
+                  <strong>5인 미만 사업장</strong>: 연차수당·가산수당 미적용 /
+                  퇴직금·체불임금은 적용
                 </li>
               </ul>
             </div>
