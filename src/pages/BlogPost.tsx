@@ -130,7 +130,7 @@ export function BlogPost() {
           <div className="blog-post-cta">
             <Link to="/" className="btn primary">홈으로</Link>
             <a
-              href="https://pf.kakao.com/_zkzIX/chat"
+              href="https://pf.kakao.com/_zkzIX"
               target="_blank"
               rel="noopener noreferrer"
               className="btn yellow"

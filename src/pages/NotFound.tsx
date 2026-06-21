@@ -56,7 +56,7 @@ export function NotFound() {
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <a
-                href="https://pf.kakao.com/_zkzIX/chat"
+                href="https://pf.kakao.com/_zkzIX"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn yellow"

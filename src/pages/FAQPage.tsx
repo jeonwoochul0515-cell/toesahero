@@ -115,7 +115,7 @@ export function FAQPage() {
           <p>다른 질문이 있으시면 카카오톡 채널 또는 ☎ 1660-4452 로 문의해 주세요.</p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <a
-              href="https://pf.kakao.com/_zkzIX/chat"
+              href="https://pf.kakao.com/_zkzIX"
               target="_blank"
               rel="noopener noreferrer"
               className="btn yellow"

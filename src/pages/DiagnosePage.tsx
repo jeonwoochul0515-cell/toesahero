@@ -229,7 +229,7 @@ export function DiagnosePage() {
                 이 절차로 위임 진행 / 결제 안내 →
               </button>
               <a
-                href="https://pf.kakao.com/_zkzIX/chat"
+                href="https://pf.kakao.com/_zkzIX"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn yellow"

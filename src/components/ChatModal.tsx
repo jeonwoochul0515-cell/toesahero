@@ -520,7 +520,7 @@ export function ChatModal({ open, onClose }: Props) {
 
         <div className="modal-kakao-link">
           <a
-            href="https://pf.kakao.com/_zkzIX/chat"
+            href="https://pf.kakao.com/_zkzIX"
             target="_blank"
             rel="noopener noreferrer"
             className="btn yellow"

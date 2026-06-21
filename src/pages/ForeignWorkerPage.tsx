@@ -86,7 +86,7 @@ export function ForeignWorkerPage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20 }}>
           <a
-            href="https://pf.kakao.com/_zkzIX/chat"
+            href="https://pf.kakao.com/_zkzIX"
             target="_blank"
             rel="noopener noreferrer"
             className="btn primary"

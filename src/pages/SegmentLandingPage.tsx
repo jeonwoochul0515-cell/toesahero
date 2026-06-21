@@ -116,7 +116,7 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
             🧭 내 사안 1분 진단하기
           </Link>
           <a
-            href="https://pf.kakao.com/_zkzIX/chat"
+            href="https://pf.kakao.com/_zkzIX"
             target="_blank"
             rel="noopener noreferrer"
             className="btn yellow"

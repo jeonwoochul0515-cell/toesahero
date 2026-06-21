@@ -149,7 +149,7 @@ export function Footer({ openChat }: Props) {
                 공식 홈페이지 (chang-hee.kim) ↗
               </a>
               <a
-                href="https://pf.kakao.com/_zkzIX/chat"
+                href="https://pf.kakao.com/_zkzIX"
                 target="_blank"
                 rel="noopener noreferrer"
                 title="카카오톡 채널 상담"
