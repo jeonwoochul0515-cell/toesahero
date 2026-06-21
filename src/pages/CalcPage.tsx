@@ -10,10 +10,12 @@ type Inputs = {
   yearsWorked: number; // 근속 연수
   monthsWorked: number; // 추가 개월 (0~11)
   severanceUnpaid: boolean; // 퇴직금 미지급 여부 (근속연수 기반 일시금)
+  annualBonus: number; // 연간 상여금 총액 (평균임금 산입 — 퇴직금 정확화)
   unusedAnnualLeave: number; // 미사용 연차일수
   monthlyOvertimeHours: number; // 월 평균 야근시간
   overtimeMonths: number; // 야근수당 미지급 기간(개월)
   unpaidSalaryMonths: number; // 체불(미지급) 월급 개월수
+  delayMonths: number; // 미지급 후 경과 개월 (지연이자 §37, 연 20%)
   reason: "voluntary" | "boss_pressure" | "bullying" | "layoff" | "no_pay";
   companySize: "under5" | "under30" | "under300" | "over300";
 };
@@ -32,10 +34,11 @@ function calc(inputs: Inputs) {
   const totalYears = totalMonths / 12;
 
   // 퇴직금 — 근로자퇴직급여 보장법 §8: 1년 이상 근속 시 전 사업장 적용.
-  // 30일분 평균임금 × 근속연수 (월급을 1개월 평균임금으로 근사한 추정치)
+  // 평균임금 기준(통상임금 아님). 월급 + 연간상여금 월할(/12)로 평균임금 근사.
+  const avgMonthlyWage = monthlySalary + Math.round((inputs.annualBonus || 0) / 12);
   const severance =
     inputs.severanceUnpaid && totalYears >= 1
-      ? Math.round(monthlySalary * totalYears)
+      ? Math.round(avgMonthlyWage * totalYears)
       : 0;
 
   // 미사용 연차수당 — 근기법 §60: 상시 5인 이상만. 통상일급 × 미사용일수
@@ -49,6 +52,11 @@ function calc(inputs: Inputs) {
 
   // 미지급 임금(체불) — 전 사업장. 월급 × 체불 개월 (임금채권 시효 3년)
   const unpaidSalary = monthlySalary * (inputs.unpaidSalaryMonths || 0);
+
+  // 지연이자(지연손해금) — 근기법 §37: 미지급 14일 경과분에 연 20%. (퇴직금·체불임금 등)
+  const owedBase = unpaidSalary + overtimeTotal + severance + annualLeave;
+  const delayDays = Math.max(0, (inputs.delayMonths || 0) * 30 - 14);
+  const delayInterest = Math.round(owedBase * 0.2 * (delayDays / 365));
 
   // 실업급여 — 비자발적 사유(권고사직·괴롭힘·정리해고·2개월+ 체불)
   const eligibleUI =
@@ -70,6 +78,7 @@ function calc(inputs: Inputs) {
     annualLeave,
     overtimeTotal,
     unpaidSalary,
+    delayInterest,
     eligibleUI,
     is5plus,
     excludedBySize,
@@ -104,10 +113,12 @@ export function CalcPage() {
     yearsWorked: 2,
     monthsWorked: 0,
     severanceUnpaid: true,
+    annualBonus: 0,
     unusedAnnualLeave: 5,
     monthlyOvertimeHours: 20,
     overtimeMonths: 0,
     unpaidSalaryMonths: 0,
+    delayMonths: 0,
     reason: "voluntary",
     companySize: "under30",
   });
@@ -141,6 +152,12 @@ export function CalcPage() {
       amount: result.unpaidSalary,
       show: inputs.unpaidSalaryMonths > 0,
     },
+    {
+      id: "delay",
+      label: "지연이자 (연 20% · 근기법 §37)",
+      amount: result.delayInterest,
+      show: result.delayInterest > 0,
+    },
   ];
   const visibleItems = items.filter((i) => i.show);
   const total = visibleItems.reduce((a, b) => a + b.amount, 0);
@@ -165,7 +182,9 @@ export function CalcPage() {
         inputs.monthlyOvertimeHours
       }시간 × 미지급 ${inputs.overtimeMonths}개월, 체불 월급 ${
         inputs.unpaidSalaryMonths
-      }개월, 퇴사 사유: ${inputs.reason}, 회사 규모: ${inputs.companySize}`;
+      }개월, 연간 상여금 ${fmt(inputs.annualBonus)}원, 미지급 경과 ${
+        inputs.delayMonths
+      }개월(지연이자), 퇴사 사유: ${inputs.reason}, 회사 규모: ${inputs.companySize}`;
       const computedItems = visibleItems.map((i) => ({
         label: i.label,
         amount: i.amount,
@@ -305,6 +324,19 @@ export function CalcPage() {
                 />
                 퇴직금 미지급 (1년 이상 근속 시 · 근속연수 기반 일시금)
               </label>
+              <label className="full">
+                연간 상여금 총액 (퇴직금 평균임금 산입 · 선택)
+                <div className="calc-input-with-unit">
+                  <input
+                    type="number"
+                    min={0}
+                    step={100000}
+                    value={inputs.annualBonus}
+                    onChange={(e) => onChange("annualBonus", Number(e.target.value))}
+                  />
+                  <span>원</span>
+                </div>
+              </label>
             </div>
 
             <h2>2. 청구 가능 항목</h2>
@@ -357,6 +389,18 @@ export function CalcPage() {
                   value={inputs.unpaidSalaryMonths}
                   onChange={(e) =>
                     onChange("unpaidSalaryMonths", Number(e.target.value))
+                  }
+                />
+              </label>
+              <label>
+                미지급 후 경과 (개월 · 지연이자)
+                <input
+                  type="number"
+                  min={0}
+                  max={36}
+                  value={inputs.delayMonths}
+                  onChange={(e) =>
+                    onChange("delayMonths", Number(e.target.value))
                   }
                 />
               </label>
@@ -449,15 +493,15 @@ export function CalcPage() {
                 disabled={submitting || visibleItems.length === 0}
               >
                 {submitting
-                  ? "AI 내용증명 초안 생성 중..."
-                  : "📜 변호사 검토 + 내용증명 초안 신청 (무료)"}
+                  ? "AI 1차 초안 생성 중..."
+                  : "📜 변호사 검토 신청 (AI 1차 초안 자동 생성)"}
               </button>
               <p className="calc-cta-note">
                 "표준 절차" 패키지(390,000원) 위임은 변호사 검토 후 안내됩니다.
               </p>
               <div className="calc-fallback-cta">
                 <a
-                  href="https://pf.kakao.com/_zkzIX/chat"
+                  href="https://pf.kakao.com/_zkzIX"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn yellow"
@@ -472,8 +516,12 @@ export function CalcPage() {
               <h4>참고 산정 기준 (근로기준법·근퇴법)</h4>
               <ul>
                 <li>
-                  <strong>퇴직금</strong>: 1년 이상 근속 시 30일분 평균임금 ×
-                  근속연수. 근퇴법 §8 — 전 사업장 적용
+                  <strong>퇴직금</strong>: 30일분 <strong>평균임금</strong>(월급+상여
+                  월할) × 근속연수. 근퇴법 §8 — 1년 이상·전 사업장
+                </li>
+                <li>
+                  <strong>지연이자</strong>: 미지급 14일 경과분에 <strong>연 20%</strong>.
+                  근기법 §37 (2025.10 재직 중 정기임금까지 확대)
                 </li>
                 <li>
                   <strong>연차수당</strong>: 통상일급 × 미사용일수 (일급 = 월급 ÷
