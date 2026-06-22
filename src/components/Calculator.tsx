@@ -108,9 +108,13 @@ export function Calculator() {
               체크리스트
             </h2>
             <p className="lead" style={{ color: "var(--gray-2)" }}>
-              해당 항목을 선택하시면 변호사가 검토할 수 있는 청구 가능성 항목을 정리해드립니다.
+              간단 체크리스트로 놓친 청구 항목을 빠르게 확인하세요.{" "}
+              <strong style={{ color: "var(--yellow)" }}>
+                정확한 금액은 아래 '자동 계산기'에서
+              </strong>{" "}
+              월급·근속·지연이자까지 반영해 산정됩니다.
               <strong style={{ display: "block", marginTop: 8, color: "var(--yellow)", fontWeight: 800 }}>
-                ※ 본 계산은 단순 참고용 합산이며 실제 청구 가능 금액·결과를 보장하지 않습니다.
+                ※ 본 합산은 일반 예시값 기반 참고용이며 실제 청구액·결과를 보장하지 않습니다.
               </strong>
             </p>
             <div className="calc-total">
@@ -123,9 +127,31 @@ export function Calculator() {
                 <span className="dot-warn" />
                 위 금액은 항목별 일반 예시값을 단순 합산한 참고 수치이며, 실제 청구 가능액은 사안별로 변호사 검토가 필요합니다.
               </div>
+              <a
+                href="/calc"
+                className="btn"
+                style={{
+                  marginTop: 20,
+                  width: "100%",
+                  fontSize: 16,
+                  display: "block",
+                  textAlign: "center",
+                  boxSizing: "border-box",
+                  background: "var(--yellow)",
+                  color: "var(--ink)",
+                }}
+              >
+                📊 정확한 금액 자동 계산하기 →
+              </a>
               <button
-                className="btn yellow"
-                style={{ marginTop: 20, width: "100%", fontSize: 16 }}
+                className="btn"
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  fontSize: 15,
+                  background: "var(--paper)",
+                  color: "var(--ink)",
+                }}
                 onClick={handleAsk}
               >
                 💬 변호사에게 상담 요청
