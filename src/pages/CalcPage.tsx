@@ -85,6 +85,52 @@ function calc(inputs: Inputs) {
   };
 }
 
+// 숫자 입력 — 0이면 빈칸으로 보여 삭제 시 0이 남지 않게 한다.
+function NumField({
+  label,
+  value,
+  onValue,
+  min,
+  max,
+  step,
+  unit,
+  full,
+}: {
+  label: string;
+  value: number;
+  onValue: (n: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  full?: boolean;
+}) {
+  const input = (
+    <input
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      step={step}
+      value={value === 0 ? "" : value}
+      onChange={(e) => onValue(e.target.value === "" ? 0 : Number(e.target.value))}
+    />
+  );
+  return (
+    <label className={full ? "full" : undefined}>
+      {label}
+      {unit ? (
+        <div className="calc-input-with-unit">
+          {input}
+          <span>{unit}</span>
+        </div>
+      ) : (
+        input
+      )}
+    </label>
+  );
+}
+
 export function CalcPage() {
   const nav = useNavigate();
 
@@ -273,45 +319,28 @@ export function CalcPage() {
           <section className="calc-form">
             <h2>1. 기본 정보</h2>
             <div className="calc-fields">
-              <label>
-                월급 (세전 · 통상임금 기준)
-                <div className="calc-input-with-unit">
-                  <input
-                    type="number"
-                    min={0}
-                    step={100000}
-                    value={inputs.monthlySalary}
-                    onChange={(e) =>
-                      onChange("monthlySalary", Number(e.target.value))
-                    }
-                  />
-                  <span>원</span>
-                </div>
-              </label>
-              <label>
-                근속 (년)
-                <input
-                  type="number"
-                  min={0}
-                  max={50}
-                  value={inputs.yearsWorked}
-                  onChange={(e) =>
-                    onChange("yearsWorked", Number(e.target.value))
-                  }
-                />
-              </label>
-              <label>
-                근속 (개월 추가, 0~11)
-                <input
-                  type="number"
-                  min={0}
-                  max={11}
-                  value={inputs.monthsWorked}
-                  onChange={(e) =>
-                    onChange("monthsWorked", Number(e.target.value))
-                  }
-                />
-              </label>
+              <NumField
+                label="월급 (세전 · 통상임금 기준)"
+                value={inputs.monthlySalary}
+                onValue={(n) => onChange("monthlySalary", n)}
+                min={0}
+                step={100000}
+                unit="원"
+              />
+              <NumField
+                label="근속 (년)"
+                value={inputs.yearsWorked}
+                onValue={(n) => onChange("yearsWorked", n)}
+                min={0}
+                max={50}
+              />
+              <NumField
+                label="근속 (개월 추가, 0~11)"
+                value={inputs.monthsWorked}
+                onValue={(n) => onChange("monthsWorked", n)}
+                min={0}
+                max={11}
+              />
               <label
                 className="full"
                 style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
@@ -324,86 +353,54 @@ export function CalcPage() {
                 />
                 퇴직금 미지급 (1년 이상 근속 시 · 근속연수 기반 일시금)
               </label>
-              <label className="full">
-                연간 상여금 총액 (퇴직금 평균임금 산입 · 선택)
-                <div className="calc-input-with-unit">
-                  <input
-                    type="number"
-                    min={0}
-                    step={100000}
-                    value={inputs.annualBonus}
-                    onChange={(e) => onChange("annualBonus", Number(e.target.value))}
-                  />
-                  <span>원</span>
-                </div>
-              </label>
+              <NumField
+                label="연간 상여금 총액 (퇴직금 평균임금 산입 · 선택)"
+                value={inputs.annualBonus}
+                onValue={(n) => onChange("annualBonus", n)}
+                min={0}
+                step={100000}
+                unit="원"
+                full
+              />
             </div>
 
             <h2>2. 청구 가능 항목</h2>
             <div className="calc-fields">
-              <label>
-                미사용 연차일수
-                <input
-                  type="number"
-                  min={0}
-                  max={25}
-                  value={inputs.unusedAnnualLeave}
-                  onChange={(e) =>
-                    onChange("unusedAnnualLeave", Number(e.target.value))
-                  }
-                />
-              </label>
-              <label>
-                월 평균 야근시간
-                <input
-                  type="number"
-                  min={0}
-                  max={200}
-                  value={inputs.monthlyOvertimeHours}
-                  onChange={(e) =>
-                    onChange(
-                      "monthlyOvertimeHours",
-                      Number(e.target.value)
-                    )
-                  }
-                />
-              </label>
-              <label>
-                야근수당 미지급 기간 (개월)
-                <input
-                  type="number"
-                  min={0}
-                  max={36}
-                  value={inputs.overtimeMonths}
-                  onChange={(e) =>
-                    onChange("overtimeMonths", Number(e.target.value))
-                  }
-                />
-              </label>
-              <label>
-                체불(미지급) 월급 개월수
-                <input
-                  type="number"
-                  min={0}
-                  max={36}
-                  value={inputs.unpaidSalaryMonths}
-                  onChange={(e) =>
-                    onChange("unpaidSalaryMonths", Number(e.target.value))
-                  }
-                />
-              </label>
-              <label>
-                미지급 후 경과 (개월 · 지연이자)
-                <input
-                  type="number"
-                  min={0}
-                  max={36}
-                  value={inputs.delayMonths}
-                  onChange={(e) =>
-                    onChange("delayMonths", Number(e.target.value))
-                  }
-                />
-              </label>
+              <NumField
+                label="미사용 연차일수"
+                value={inputs.unusedAnnualLeave}
+                onValue={(n) => onChange("unusedAnnualLeave", n)}
+                min={0}
+                max={25}
+              />
+              <NumField
+                label="월 평균 야근시간"
+                value={inputs.monthlyOvertimeHours}
+                onValue={(n) => onChange("monthlyOvertimeHours", n)}
+                min={0}
+                max={200}
+              />
+              <NumField
+                label="야근수당 미지급 기간 (개월)"
+                value={inputs.overtimeMonths}
+                onValue={(n) => onChange("overtimeMonths", n)}
+                min={0}
+                max={36}
+              />
+              <NumField
+                label="체불(미지급) 월급 개월수"
+                value={inputs.unpaidSalaryMonths}
+                onValue={(n) => onChange("unpaidSalaryMonths", n)}
+                min={0}
+                max={36}
+              />
+              <NumField
+                label="미지급 후 경과 (개월 · 지연이자)"
+                value={inputs.delayMonths}
+                onValue={(n) => onChange("delayMonths", n)}
+                min={0}
+                max={36}
+              />
             </div>
 
             <h2>3. 사안 정보</h2>
