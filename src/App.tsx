@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+// 앱 라우트 정의 — vite-react-ssg 프리렌더용 RouteRecord 배열
+import { Navigate, Outlet } from "react-router-dom";
+import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
 import { MyPage } from "./pages/MyPage";
 import { CalcPage } from "./pages/CalcPage";
@@ -25,64 +27,66 @@ import { PrintLetter } from "./admin/PrintLetter";
 import { Kanban } from "./admin/Kanban";
 import { ReviewsAdmin } from "./admin/ReviewsAdmin";
 
-export default function App() {
+// 모든 라우트를 감싸는 루트 레이아웃 — 인증 컨텍스트 제공
+function RootLayout() {
   return (
-    <BrowserRouter>
-      <AdminAuthProvider>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/my" element={<MyPage />} />
-          <Route path="/calc" element={<CalcPage />} />
-          <Route path="/diagnose" element={<DiagnosePage />} />
-          <Route path="/harassment" element={<SegmentLandingPage seg="harassment" />} />
-          <Route path="/small-business" element={<SegmentLandingPage seg="small-business" />} />
-          <Route path="/foreign-workers" element={<ForeignWorkerPage />} />
-          <Route path="/checkout/:id" element={<CheckoutPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route
-            path="/terms"
-            element={<Navigate to="/terms.html" replace />}
-          />
-          <Route
-            path="/privacy"
-            element={<Navigate to="/privacy.html" replace />}
-          />
-          <Route path="/blog" element={<BlogList />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin/consultations/:id/print"
-            element={
-              <RequireAdmin>
-                <PrintLetter />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <RequireAdmin>
-                <AdminLayout />
-              </RequireAdmin>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="consultations" element={<ConsultationsList />} />
-            <Route
-              path="consultations/:id"
-              element={<ConsultationDetail />}
-            />
-            <Route path="orders" element={<OrdersAdmin />} />
-            <Route path="stats" element={<StatsAdmin />} />
-            <Route path="kanban" element={<Kanban />} />
-            <Route path="reviews" element={<ReviewsAdmin />} />
-            <Route path="blog" element={<BlogAdmin />} />
-            <Route path="chats" element={<ChatLogs />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AdminAuthProvider>
-    </BrowserRouter>
+    <AdminAuthProvider>
+      <Outlet />
+    </AdminAuthProvider>
   );
 }
+
+export const routes: RouteRecord[] = [
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: "my", element: <MyPage /> },
+      { path: "calc", element: <CalcPage /> },
+      { path: "diagnose", element: <DiagnosePage /> },
+      { path: "harassment", element: <SegmentLandingPage seg="harassment" /> },
+      {
+        path: "small-business",
+        element: <SegmentLandingPage seg="small-business" />,
+      },
+      { path: "foreign-workers", element: <ForeignWorkerPage /> },
+      { path: "checkout/:id", element: <CheckoutPage /> },
+      { path: "checkout", element: <CheckoutPage /> },
+      { path: "terms", element: <Navigate to="/terms.html" replace /> },
+      { path: "privacy", element: <Navigate to="/privacy.html" replace /> },
+      { path: "blog", element: <BlogList /> },
+      { path: "blog/:slug", element: <BlogPost /> },
+      { path: "faq", element: <FAQPage /> },
+      { path: "admin/login", element: <AdminLogin /> },
+      {
+        path: "admin/consultations/:id/print",
+        element: (
+          <RequireAdmin>
+            <PrintLetter />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: "admin",
+        element: (
+          <RequireAdmin>
+            <AdminLayout />
+          </RequireAdmin>
+        ),
+        children: [
+          { index: true, element: <AdminDashboard /> },
+          { path: "consultations", element: <ConsultationsList /> },
+          { path: "consultations/:id", element: <ConsultationDetail /> },
+          { path: "orders", element: <OrdersAdmin /> },
+          { path: "stats", element: <StatsAdmin /> },
+          { path: "kanban", element: <Kanban /> },
+          { path: "reviews", element: <ReviewsAdmin /> },
+          { path: "blog", element: <BlogAdmin /> },
+          { path: "chats", element: <ChatLogs /> },
+        ],
+      },
+      { path: "*", element: <NotFound /> },
+    ],
+  },
+];

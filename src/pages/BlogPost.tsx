@@ -30,7 +30,7 @@ export function BlogPost() {
     ? new Date(post.updatedAt.seconds * 1000).toISOString()
     : isoDate;
 
-  usePageMeta({
+  const seo = usePageMeta({
     title: post?.title ?? "법률 칼럼",
     description: post?.excerpt ?? "법률사무소 청송 김창희 변호사 법률 칼럼",
     canonical: `/blog/${slug ?? ""}`,
@@ -96,6 +96,7 @@ export function BlogPost() {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/blog" className="my-back">← 칼럼 목록</Link>
       </header>

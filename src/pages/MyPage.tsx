@@ -59,7 +59,7 @@ export function MyPage() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
 
-  usePageMeta({
+  const seo = usePageMeta({
     title: "마이페이지 — 의뢰인 본인 사건 진행 상황",
     description:
       "카카오 본인 확인 후 본인이 신청한 사건 진행 상황을 실시간 조회. 변호사 비밀유지 의무 적용.",
@@ -101,6 +101,7 @@ export function MyPage() {
   if (authLoading) {
     return (
       <div className="my-page">
+        {seo}
         <div className="my-loading">로그인 확인 중...</div>
       </div>
     );
@@ -109,6 +110,7 @@ export function MyPage() {
   if (!user) {
     return (
       <div className="my-page my-login-required">
+        {seo}
         <div className="my-login-card">
           <Link to="/" className="my-back">← 홈으로</Link>
           <h1 className="my-h1">마이페이지</h1>
@@ -145,6 +147,7 @@ export function MyPage() {
 
   return (
     <div className="my-page">
+      {seo}
       <header className="my-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <div className="my-greeting">

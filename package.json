@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite-react-ssg dev",
     "typecheck:functions": "tsc -p functions/tsconfig.json --noEmit",
     "test": "vitest run",
-    "build": "tsc -b && npm run typecheck:functions && vite build",
+    "build": "tsc -b && npm run typecheck:functions && vite-react-ssg build",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
     "blog:seed": "node scripts/seed-posts.mjs",
@@ -20,8 +20,9 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.14.2",
-    "remark-gfm": "^4.0.1"
+    "react-router-dom": "^6.30.4",
+    "remark-gfm": "^4.0.1",
+    "vite-react-ssg": "^0.9.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260613.1",

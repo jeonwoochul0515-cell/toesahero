@@ -100,7 +100,7 @@ export function DiagnosePage() {
   const [caseId, setCaseId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  usePageMeta({
+  const seo = usePageMeta({
     title: "셀프 진단 — 내 사안에 맞는 퇴사대행 패키지 찾기",
     description:
       "몇 가지 질문에 답하면 통보·임금청구·분쟁대응 중 내 상황에 맞는 절차를 변호사 기준으로 안내해 드립니다.",
@@ -144,6 +144,7 @@ export function DiagnosePage() {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <h1 className="page-static-title">셀프 진단</h1>

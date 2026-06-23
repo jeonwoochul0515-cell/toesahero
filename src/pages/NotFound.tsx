@@ -3,7 +3,7 @@ import { usePageMeta } from "../hooks/usePageMeta";
 
 export function NotFound() {
   // 네이버 가이드: 잘못된 URL 페이지는 noindex 처리하여 소프트 404 회피
-  usePageMeta({
+  const seo = usePageMeta({
     title: "페이지를 찾을 수 없습니다",
     description:
       "요청하신 페이지를 찾을 수 없습니다. 주소가 정확한지 확인해 주세요.",
@@ -13,6 +13,7 @@ export function NotFound() {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <h1 className="page-static-title">404 — 페이지를 찾을 수 없습니다</h1>

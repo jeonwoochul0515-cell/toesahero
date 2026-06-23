@@ -59,7 +59,7 @@ const FAQ: Q[] = [
 ];
 
 export function FAQPage() {
-  usePageMeta({
+  const seo = usePageMeta({
     title: "자주 묻는 질문 — 변호사 운영 퇴사대행 12문항",
     description:
       "변호사 vs 노무사 차이, 변호사법 109조, 사장 사직서 거부, 퇴직금 미지급, 직장 내 괴롭힘, 5인 미만 사업장 등 퇴사대행 자주 묻는 12문항. 변호사 김창희 직접 답변.",
@@ -86,6 +86,7 @@ export function FAQPage() {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <h1 className="page-static-title">자주 묻는 질문</h1>

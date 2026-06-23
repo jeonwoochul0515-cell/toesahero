@@ -134,7 +134,7 @@ function NumField({
 export function CalcPage() {
   const nav = useNavigate();
 
-  usePageMeta({
+  const seo = usePageMeta({
     title: "임금·연차수당·퇴직금 자동 계산기",
     description:
       "월급·근속·미사용 연차·야근시간 입력만으로 청구 가능 항목을 자동 산정합니다. 변호사가 검토하는 1차 자료. 결과는 보장하지 않습니다 (변협 규정).",
@@ -302,6 +302,7 @@ export function CalcPage() {
 
   return (
     <div className="calc-page">
+      {seo}
       <header className="calc-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <h1 className="calc-title">미지급 항목 자동 계산기</h1>

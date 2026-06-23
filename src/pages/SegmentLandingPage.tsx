@@ -74,7 +74,7 @@ const CONFIG: Record<Seg, Config> = {
 export function SegmentLandingPage({ seg }: { seg: Seg }) {
   const c = CONFIG[seg];
 
-  usePageMeta({
+  const seo = usePageMeta({
     title: c.metaTitle,
     description: c.metaDesc,
     canonical: c.canonical,
@@ -83,6 +83,7 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <div style={{ fontSize: 44, marginTop: 8 }}>{c.emoji}</div>

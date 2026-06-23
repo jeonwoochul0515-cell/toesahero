@@ -16,7 +16,7 @@ export function BlogList() {
   const [posts, setPosts] = useState<PostDoc[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  usePageMeta({
+  const seo = usePageMeta({
     title: "법률 칼럼 — 변호사가 직접 쓰는 노동법 이야기",
     description:
       "법률사무소 청송 김창희 변호사가 직접 작성하는 노동법·퇴사 절차·변호사법 §109 관련 정보성 칼럼. 변협 광고규정에 따른 일반 정보 제공 콘텐츠입니다.",
@@ -52,6 +52,7 @@ export function BlogList() {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <h1 className="page-static-title">법률 칼럼</h1>

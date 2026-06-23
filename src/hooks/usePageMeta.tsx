@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+// 라우트별 메타/OG/JSON-LD를 react-helmet-async(Head)로 렌더 — SSG 프리렌더 시 head에 직렬화됨
+import { Head } from "vite-react-ssg";
 
 const SITE_NAME = "퇴사히어로";
 const SITE_HOST = "https://toesahero.com";
-const DEFAULT_OG_IMAGE = `${SITE_HOST}/og-image.svg`;
+const DEFAULT_OG_IMAGE = `${SITE_HOST}/og-image.png`;
 
 type PageMeta = {
   title: string; // 페이지 고유 (사이트명은 자동 추가)
@@ -16,44 +17,7 @@ type PageMeta = {
   jsonLd?: object | object[];
 };
 
-function setMeta(name: string, content: string, attr: "name" | "property" = "name") {
-  let el = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
-  if (!el) {
-    el = document.createElement("meta");
-    el.setAttribute(attr, name);
-    document.head.appendChild(el);
-  }
-  el.setAttribute("content", content);
-}
-
-function setLink(rel: string, href: string) {
-  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
-  if (!el) {
-    el = document.createElement("link");
-    el.rel = rel;
-    document.head.appendChild(el);
-  }
-  el.href = href;
-}
-
-const PAGE_LD_ID = "page-jsonld";
-
-function setPageJsonLd(jsonLd: object | object[] | undefined) {
-  // 이전 페이지 JSON-LD 제거
-  document
-    .querySelectorAll(`script[data-page-ld="${PAGE_LD_ID}"]`)
-    .forEach((s) => s.remove());
-  if (!jsonLd) return;
-  const list = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
-  for (const data of list) {
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.setAttribute("data-page-ld", PAGE_LD_ID);
-    script.textContent = JSON.stringify(data);
-    document.head.appendChild(script);
-  }
-}
-
+// 페이지 메타를 head에 렌더하는 요소를 반환. 각 페이지는 반환값을 JSX에 그대로 넣는다.
 export function usePageMeta(meta: PageMeta) {
   const fullTitle = meta.title.includes(SITE_NAME)
     ? meta.title
@@ -64,51 +28,44 @@ export function usePageMeta(meta: PageMeta) {
   const ogImage = meta.ogImage ?? DEFAULT_OG_IMAGE;
   const ogType = meta.ogType ?? "website";
   const keywords = meta.keywords?.join(", ");
+  const jsonLdList = meta.jsonLd
+    ? Array.isArray(meta.jsonLd)
+      ? meta.jsonLd
+      : [meta.jsonLd]
+    : [];
 
-  useEffect(() => {
-    document.title = fullTitle;
-    setMeta("description", meta.description);
-    if (keywords) setMeta("keywords", keywords);
-    setMeta(
-      "robots",
-      meta.noIndex ? "noindex, nofollow" : "index, follow"
-    );
+  return (
+    <Head>
+      <title>{fullTitle}</title>
+      <meta name="description" content={meta.description} />
+      {keywords && <meta name="keywords" content={keywords} />}
+      <meta
+        name="robots"
+        content={meta.noIndex ? "noindex, nofollow" : "index, follow"}
+      />
 
-    // OpenGraph
-    setMeta("og:title", fullTitle, "property");
-    setMeta("og:description", meta.description, "property");
-    setMeta("og:url", canonicalUrl, "property");
-    setMeta("og:image", ogImage, "property");
-    setMeta("og:type", ogType, "property");
-    setMeta("og:site_name", SITE_NAME, "property");
-    setMeta("og:locale", "ko_KR", "property");
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={meta.description} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:type" content={ogType} />
+      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:locale" content="ko_KR" />
 
-    // Twitter
-    setMeta("twitter:card", "summary_large_image");
-    setMeta("twitter:title", fullTitle);
-    setMeta("twitter:description", meta.description);
-    setMeta("twitter:image", ogImage);
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={meta.description} />
+      <meta name="twitter:image" content={ogImage} />
 
-    // Canonical
-    setLink("canonical", canonicalUrl);
+      <link rel="canonical" href={canonicalUrl} />
 
-    // JSON-LD
-    setPageJsonLd(meta.jsonLd);
-
-    // 페이지 떠날 때 noIndex 해제 + JSON-LD 정리
-    return () => {
-      setPageJsonLd(undefined);
-    };
-  }, [
-    fullTitle,
-    meta.description,
-    canonicalUrl,
-    ogImage,
-    ogType,
-    keywords,
-    meta.noIndex,
-    meta.jsonLd,
-  ]);
+      {jsonLdList.map((data, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(data)}
+        </script>
+      ))}
+    </Head>
+  );
 }
 
 // JSON-LD 헬퍼들

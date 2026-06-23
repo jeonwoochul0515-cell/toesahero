@@ -22,7 +22,7 @@ const POINTS = [
 ];
 
 export function ForeignWorkerPage() {
-  usePageMeta({
+  const seo = usePageMeta({
     title: "Quit your job in Korea — lawyer-run resignation service | Toesahero",
     description:
       "Foreign worker in Korea wanting to resign? A licensed Korean attorney handles official notice, unpaid wage/severance claims, harassment and disputes. English guidance, consultation in Korean.",
@@ -38,6 +38,7 @@ export function ForeignWorkerPage() {
 
   return (
     <div className="page-static">
+      {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← Home</Link>
         <div style={{ fontSize: 44, marginTop: 8 }}>🌏</div>
