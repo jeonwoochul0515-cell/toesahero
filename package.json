@@ -4,10 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite-react-ssg dev",
+    "prerender:posts": "node scripts/prerender-posts.mjs",
+    "dev": "npm run prerender:posts && vite-react-ssg dev",
     "typecheck:functions": "tsc -p functions/tsconfig.json --noEmit",
     "test": "vitest run",
-    "build": "tsc -b && npm run typecheck:functions && vite-react-ssg build",
+    "build": "npm run prerender:posts && tsc -b && npm run typecheck:functions && vite-react-ssg build",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
     "blog:seed": "node scripts/seed-posts.mjs",

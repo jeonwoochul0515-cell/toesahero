@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { fetchPostBySlug, type PostDoc } from "../firebase";
+import { PRERENDERED_POSTS } from "../generated/posts";
 import {
   usePageMeta,
   articleJsonLd,
@@ -20,8 +21,10 @@ function fmtDate(ts: PostDoc["publishedAt"]): string {
 
 export function BlogPost() {
   const { slug } = useParams();
-  const [post, setPost] = useState<PostDoc | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  // 빌드타임 정적 글로 초기화 → 프리렌더 시 본문·메타·JSON-LD 가 HTML 에 직렬화된다.
+  const prerendered = PRERENDERED_POSTS.find((p) => p.slug === slug) ?? null;
+  const [post, setPost] = useState<PostDoc | null>(prerendered);
+  const [loaded, setLoaded] = useState(prerendered != null);
 
   const isoDate = post?.publishedAt
     ? new Date(post.publishedAt.seconds * 1000).toISOString()

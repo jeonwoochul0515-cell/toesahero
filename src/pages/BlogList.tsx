@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchPublishedPosts, type PostDoc } from "../firebase";
+import { PRERENDERED_POSTS } from "../generated/posts";
 import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
@@ -13,8 +14,9 @@ function fmtDate(ts: PostDoc["publishedAt"]): string {
 }
 
 export function BlogList() {
-  const [posts, setPosts] = useState<PostDoc[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  // 빌드타임 정적 글로 초기화 → 프리렌더에 카드·내부링크가 포함된다(클라에서 최신값으로 갱신).
+  const [posts, setPosts] = useState<PostDoc[]>(PRERENDERED_POSTS);
+  const [loaded, setLoaded] = useState(PRERENDERED_POSTS.length > 0);
 
   const seo = usePageMeta({
     title: "법률 칼럼 — 변호사가 직접 쓰는 노동법 이야기",

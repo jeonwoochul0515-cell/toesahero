@@ -8,6 +8,9 @@ firebase-debug.log
 .DS_Store
 .claude/
 
+# 빌드타임 생성물 (prerender-posts.mjs 가 Firestore 글을 박아 넣음)
+src/generated/
+
 # tsc -b composite project artifacts
 vite.config.d.ts
 vite.config.js
