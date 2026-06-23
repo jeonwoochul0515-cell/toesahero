@@ -1,3 +1,13 @@
 /terms /terms.html 200
 /privacy /privacy.html 200
-/* /index.html 200
+
+# 클라이언트 전용 라우트(프리렌더 없음) — SPA 폴백으로 index.html 서빙.
+# 공개 라우트(/ /faq /blog/<slug> 등)는 dist 정적 .html 이 우선이라 여기에 안 둔다.
+/my /index.html 200
+/checkout /index.html 200
+/checkout/* /index.html 200
+/admin /index.html 200
+/admin/* /index.html 200
+
+# 그 외 미존재 경로 — 소프트404 회피, 진짜 404 코드로 404.html 서빙.
+/* /404.html 404
