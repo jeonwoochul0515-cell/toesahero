@@ -1,36 +1,58 @@
-// Cloudflare Pages Functions 미들웨어 — SPA 폴백 처리
-// _routes.json 의 include 외 경로는 정적 자산 처리되며,
-// 매칭되지 않은 SPA 라우트(/admin/login 등)에 대해 index.html을 반환.
+// Cloudflare Pages Functions 미들웨어 — SPA 폴백 / 404 분기 처리
+// _routes.json 의 include 외 경로는 정적 자산으로 처리된다.
+// 정적 매칭이 없어 404 가 난 경우:
+//   - 클라이언트 전용 라우트(my/checkout/admin, 프리렌더 없음) → index.html 200 (React Router 처리)
+//   - 그 외 미존재 경로 → 404.html 을 진짜 404 코드로 반환(소프트404 회피)
+
+// 프리렌더되지 않는 클라이언트 전용 라우트만 SPA 폴백 대상이다.
+function isClientRoute(pathname: string): boolean {
+  return (
+    pathname === "/my" ||
+    pathname.startsWith("/my/") ||
+    pathname === "/checkout" ||
+    pathname.startsWith("/checkout/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/")
+  );
+}
 
 export const onRequest: PagesFunction = async ({ request, next }) => {
   const response = await next();
 
-  // 정적 자산이 매칭되지 않은 경우(404) SPA 라우트로 간주하고 index.html 반환
+  // 정적 자산이 매칭된 경우(공개 프리렌더 페이지 등)는 그대로 반환
   if (response.status !== 404) {
     return response;
   }
 
-  const url = new URL(request.url);
-  const pathname = url.pathname;
+  const pathname = new URL(request.url).pathname;
 
-  // 진짜 404 처리 대상 — 알려진 정적 파일 패턴은 그대로 404
+  // 클라이언트 전용 라우트 — index.html 반환(React Router가 클라이언트에서 처리)
+  if (isClientRoute(pathname)) {
+    const indexResponse = await fetch(new URL("/index.html", request.url));
+    return new Response(indexResponse.body, {
+      status: 200,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  }
+
+  // 정적 에셋(.png/.css/.js 등) 미존재 — 원본 404 그대로(HTML 404 페이지로 감싸지 않음)
   const isAsset =
     pathname.startsWith("/assets/") ||
     pathname.startsWith("/__/") ||
     /\.(png|jpg|jpeg|gif|webp|svg|ico|css|js|woff2?|ttf|otf|map|json|xml|txt|html)$/i.test(
       pathname
     );
-
   if (isAsset) {
-    return response; // 진짜 404 (정적 파일이 없는 경우)
+    return response;
   }
 
-  // SPA 라우트 — index.html 반환 (React Router가 처리)
-  const indexUrl = new URL("/index.html", request.url);
-  const indexResponse = await fetch(indexUrl);
-
-  return new Response(indexResponse.body, {
-    status: 200,
+  // 그 외 미존재 경로 — 404.html 을 진짜 404 코드로 반환
+  const notFoundResponse = await fetch(new URL("/404.html", request.url));
+  return new Response(notFoundResponse.body, {
+    status: 404,
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "no-cache, no-store, must-revalidate",
