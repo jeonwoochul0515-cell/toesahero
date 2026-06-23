@@ -54,6 +54,14 @@ Disallow: /my
 Disallow: /checkout
 Disallow: /api/
 
+# ChatGPT 응답 중 실시간 fetch(RAG) — 인용 위해 허용
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
 # Claude (Anthropic)
 User-agent: ClaudeBot
 Allow: /
@@ -69,8 +77,31 @@ Disallow: /my
 Disallow: /checkout
 Disallow: /api/
 
+# Claude 검색/응답(RAG) 봇 — 인용 위해 허용
+User-agent: Claude-User
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
 # Perplexity
 User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /my
+Disallow: /checkout
+Disallow: /api/
+
+# Perplexity 실시간 fetch(RAG)
+User-agent: Perplexity-User
 Allow: /
 Disallow: /admin/
 Disallow: /my
