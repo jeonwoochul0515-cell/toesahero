@@ -503,7 +503,14 @@ export type PostDoc = {
 };
 
 function snapToPost(s: QueryDocumentSnapshot<DocumentData>): PostDoc {
-  return { id: s.id, ...(s.data() as Omit<PostDoc, "id">) };
+  const data = s.data() as Omit<PostDoc, "id">;
+  // title/excerpt 는 SERP·OG·AI 인용에 그대로 노출되므로 앞뒤 공백을 정리한다.
+  return {
+    id: s.id,
+    ...data,
+    title: data.title?.trim() ?? data.title,
+    excerpt: data.excerpt?.trim() ?? data.excerpt,
+  };
 }
 
 export function watchPostsAdmin(

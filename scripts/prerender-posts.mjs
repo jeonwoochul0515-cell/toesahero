@@ -53,8 +53,9 @@ function decodePost(docu) {
   return {
     id: docu.name.split("/").pop(),
     slug: s(f.slug),
-    title: s(f.title),
-    excerpt: s(f.excerpt),
+    // title/excerpt 는 SERP·OG·AI 인용에 그대로 노출되므로 앞뒤 공백 정리(본문은 보존).
+    title: s(f.title).trim(),
+    excerpt: s(f.excerpt).trim(),
     body: s(f.body),
     tags: arr(f.tags),
     coverEmoji: f.coverEmoji?.stringValue || undefined,
