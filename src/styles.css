@@ -2692,6 +2692,10 @@ body[data-mascot="false"] .mascot {
 .faq-q-text {
   flex: 1;
   line-height: 1.5;
+  /* h3 헤딩으로 마크업하되 시각은 summary 텍스트와 동일하게 reset */
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 .faq-answer {
   padding: 0 22px 22px;

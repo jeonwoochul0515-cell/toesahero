@@ -101,7 +101,8 @@ export function FAQPage() {
             <details key={i} className="faq-item">
               <summary>
                 <span className="faq-q-num">Q{i + 1}.</span>
-                <span className="faq-q-text">{item.q}</span>
+                {/* 질문을 H3 헤딩으로 — 피처드 스니펫·지식스니펫·AI 추출에 유리(AEO). 스타일은 reset 으로 기존과 동일 유지 */}
+                <h3 className="faq-q-text">{item.q}</h3>
               </summary>
               <div className="faq-answer">
                 {item.a.split("\n").map((line, idx) => (
