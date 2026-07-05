@@ -12,6 +12,9 @@ import { Icon } from "./Icon";
 
 type Msg = { who: "me" | "them"; text: string };
 
+// AI 결과물을 검토하는 변호사 — 광고 규정(변호사 광고에 관한 규정 제6조)상 광고 및 AI 결과물에 표시 필수
+const REVIEWING_LAWYER = "김창희";
+
 // 한 번의 채팅 대화를 묶는 세션 ID 생성 (구형 브라우저 폴백 포함)
 function makeSessionId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -75,7 +78,7 @@ type Props = {
 
 export function ChatModal({ open, onClose }: Props) {
   const [messages, setMessages] = useState<Msg[]>([
-    { who: "them", text: "안녕하세요. 법률사무소 청송 김창희 변호사입니다." },
+    { who: "them", text: `안녕하세요. 법률사무소 청송 ${REVIEWING_LAWYER} 변호사입니다.` },
     {
       who: "them",
       text: "퇴사 관련하여 가장 우선적으로 검토가 필요한 사항을 선택해 주시거나, 직접 작성해 주세요. 변호사 비밀유지 의무가 적용됩니다.",
@@ -183,7 +186,7 @@ export function ChatModal({ open, onClose }: Props) {
           ? `위임 검토 신청이 접수되었습니다. (접수번호: ${id.slice(
               0,
               8
-            )})\n변호사 김창희가 통보문을 검토 후 ${
+            )})\n변호사 ${REVIEWING_LAWYER}가 통보문을 검토 후 ${
               user?.email ?? "카카오톡"
             }으로 안내드립니다.`
           : "검토 신청 저장에 실패했습니다. 카카오톡 채널로 직접 문의해 주세요.",
@@ -346,7 +349,7 @@ export function ChatModal({ open, onClose }: Props) {
       ...m,
       {
         who: "them",
-        text: `연락처를 전달했습니다. 변호사 김창희가 영업일 기준으로 ${v} 로 연락드리겠습니다.`,
+        text: `연락처를 전달했습니다. 변호사 ${REVIEWING_LAWYER}가 영업일 기준으로 ${v} 로 연락드리겠습니다.`,
       },
     ]);
   };
@@ -358,7 +361,7 @@ export function ChatModal({ open, onClose }: Props) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="김창희 변호사 상담 창"
+      aria-label={`${REVIEWING_LAWYER} 변호사 상담 창`}
     >
       <div
         className="modal"
@@ -369,7 +372,7 @@ export function ChatModal({ open, onClose }: Props) {
           <div className="who">
             <div className="ava">변</div>
             <div>
-              <div className="name">김창희 변호사</div>
+              <div className="name">{REVIEWING_LAWYER} 변호사</div>
               <div className="status">
                 <span className="dot" />
                 지금 답변 가능
@@ -496,13 +499,14 @@ export function ChatModal({ open, onClose }: Props) {
         {draftLetter && !draftSubmitted && (
           <div className="draft-preview">
             <div className="draft-preview-head">
-              <strong>변호사 명의 통보문 — AI 1차 초안</strong>
+              <strong>{REVIEWING_LAWYER} 변호사 명의 통보문 — AI 1차 초안</strong>
               <span className="draft-tag">검토 대기</span>
             </div>
             <pre className="draft-preview-body">{draftLetter}</pre>
             <p className="draft-preview-note">
               [대괄호] 부분은 의뢰인이 알려주지 않은 정보로, 변호사 검토 시
-              채워집니다. 위 내용을 변호사에게 검토 요청하시겠습니까?
+              채워집니다. 위 내용을 {REVIEWING_LAWYER} 변호사가 직접 검토
+              후 발송합니다. 검토 요청하시겠습니까?
             </p>
             <div className="draft-preview-actions">
               <button
@@ -535,7 +539,7 @@ export function ChatModal({ open, onClose }: Props) {
           </a>
         </div>
         <div className="chat-foot-note">
-          <Icon name="lock" size={13} /> 변호사 비밀유지 의무 적용 · AI 응답은 변호사 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
+          <Icon name="lock" size={13} /> 변호사 비밀유지 의무 적용 · AI 응답은 {REVIEWING_LAWYER} 변호사가 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
         </div>
       </div>
     </div>
