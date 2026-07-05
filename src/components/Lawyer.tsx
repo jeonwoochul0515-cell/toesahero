@@ -1,4 +1,5 @@
 import { Mascot } from "./Mascot";
+import { Icon } from "./Icon";
 
 const credentials = [
   "법률사무소 청송 대표 변호사",
@@ -36,24 +37,11 @@ export function Lawyer() {
           </div>
 
           <div className="lawyer-info">
-            <span className="eyebrow">Founder's Note</span>
+            <span className="eyebrow">변호사 인사말</span>
             <h2 className="h2">
               "퇴사도 협상이고,
               <br />
-              <span
-                style={{
-                  background: "var(--yellow)",
-                  padding: "0 10px",
-                  borderRadius: 6,
-                  border: "2.5px solid var(--ink)",
-                  boxShadow: "3px 3px 0 0 var(--ink)",
-                  display: "inline-block",
-                  transform: "rotate(-1deg)",
-                }}
-              >
-                협상은 변호사 영역입니다.
-              </span>
-              "
+              <span className="mark-hl">협상은 변호사 영역입니다.</span>"
             </h2>
             <p
               style={{
@@ -83,7 +71,7 @@ export function Lawyer() {
             <div className="lawyer-creds">
               {credentials.map((c, i) => (
                 <span key={i} className="cred">
-                  ✓ {c}
+                  <Icon name="check" size={13} /> {c}
                 </span>
               ))}
             </div>
@@ -101,10 +89,10 @@ export function Lawyer() {
                 rel="me noopener noreferrer"
                 className="btn"
               >
-                변호사 프로필 보기 ↗
+                변호사 프로필 보기 <Icon name="external" size={16} />
               </a>
               <a href="tel:1660-4452" className="btn primary">
-                ☎ 1660-4452 직통
+                <Icon name="phone" size={16} /> 1660-4452 직통
               </a>
             </div>
           </div>

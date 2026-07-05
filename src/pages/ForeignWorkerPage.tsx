@@ -1,6 +1,7 @@
 // 외국인 근로자용 영문 랜딩 — 한국 노동법·퇴사 절차를 영어로 안내하고 상담으로 연결
 import { Link } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 const POINTS = [
   {
@@ -41,7 +42,7 @@ export function ForeignWorkerPage() {
       {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← Home</Link>
-        <div style={{ fontSize: 44, marginTop: 8 }}>🌏</div>
+        <div style={{ fontSize: 44, marginTop: 8 }}><Icon name="globe" size={40} /></div>
         <h1 className="page-static-title">Quitting your job in Korea</h1>
         <p className="page-static-sub">
           A licensed Korean attorney handles your resignation — official notice, unpaid wages,
@@ -81,7 +82,7 @@ export function ForeignWorkerPage() {
             lineHeight: 1.6,
           }}
         >
-          ℹ️ Consultation and documents are handled in Korean. English questions are welcome via
+          <Icon name="info" size={15} /> Consultation and documents are handled in Korean. English questions are welcome via
           the KakaoTalk channel — we will guide you.
         </div>
 
@@ -93,13 +94,13 @@ export function ForeignWorkerPage() {
             className="btn primary"
             style={{ padding: 15, textAlign: "center" }}
           >
-            💬 Contact us on KakaoTalk
+            <Icon name="chat" size={16} /> Contact us on KakaoTalk
           </a>
           <a href="tel:1660-4452" className="btn" style={{ padding: 15, textAlign: "center" }}>
-            ☎ Call 1660-4452
+            <Icon name="phone" size={16} /> Call 1660-4452
           </a>
           <Link to="/diagnose" className="btn yellow" style={{ padding: 15, textAlign: "center" }}>
-            🧭 1-minute self-diagnosis (Korean)
+            <Icon name="compass" size={16} /> 1-minute self-diagnosis (Korean)
           </Link>
         </div>
 

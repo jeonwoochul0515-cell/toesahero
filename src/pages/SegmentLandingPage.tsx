@@ -1,12 +1,13 @@
 // 세그먼트별 랜딩(직장 내 괴롭힘 / 5인 미만 사업장) — SEO·전환용. 설정 기반 단일 컴포넌트
 import { Link } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { Icon, type IconName } from "../components/Icon";
 
 type Seg = "harassment" | "small-business";
 
 type Point = { h: string; body: string };
 type Config = {
-  emoji: string;
+  icon: IconName;
   title: string;
   sub: string;
   metaTitle: string;
@@ -18,13 +19,20 @@ type Config = {
 
 const CONFIG: Record<Seg, Config> = {
   harassment: {
-    emoji: "🛡️",
+    icon: "shield",
     title: "직장 내 괴롭힘, 혼자 버티지 마세요",
     sub: "근로기준법이 금지하는 직장 내 괴롭힘 — 신고부터 민사·형사까지 변호사가 직접 검토·대응합니다.",
     metaTitle: "직장 내 괴롭힘 퇴사대행 — 변호사 직접 대응 | 퇴사히어로",
     metaDesc:
       "직장 내 괴롭힘(근로기준법 제76조의2)으로 퇴사를 고민 중이라면, 증거 보존부터 신고·민사·형사 대응까지 변호사가 직접 검토합니다.",
-    keywords: ["직장 내 괴롭힘 퇴사", "직장 내 괴롭힘 신고", "괴롭힘 변호사", "괴롭힘 퇴사대행"],
+    keywords: [
+      "직장 내 괴롭힘 퇴사",
+      "직장 내 괴롭힘 신고",
+      "괴롭힘 변호사",
+      "괴롭힘 퇴사대행",
+      "직장 내 괴롭힘",
+      "퇴사대행",
+    ],
     canonical: "/harassment",
     points: [
       {
@@ -46,13 +54,20 @@ const CONFIG: Record<Seg, Config> = {
     ],
   },
   "small-business": {
-    emoji: "🏢",
+    icon: "building",
     title: "5인 미만 사업장 퇴사, 무엇이 다른가",
     sub: "근로기준법 일부가 적용되지 않아 권리 판단이 까다롭습니다. 무엇이 적용되는지부터 변호사가 정확히 확인합니다.",
     metaTitle: "5인 미만 사업장 퇴사대행 — 변호사 검토 | 퇴사히어로",
     metaDesc:
-      "5인 미만 사업장은 부당해고 구제·가산수당 등 일부 규정이 적용되지 않지만, 퇴직금·임금·최저임금 등은 적용됩니다. 사안별 권리를 변호사가 확인합니다.",
-    keywords: ["5인 미만 사업장 퇴사", "5인 미만 퇴직금", "소규모 사업장 퇴사대행"],
+      "5인 미만 사업장은 부당해고 구제·가산수당이 제외되지만 퇴직금·임금·최저임금은 적용됩니다. 변호사가 확인합니다.",
+    keywords: [
+      "5인 미만 사업장 퇴사",
+      "5인 미만 퇴직금",
+      "소규모 사업장 퇴사대행",
+      "5인 미만 사업장",
+      "부당해고",
+      "퇴사대행",
+    ],
     canonical: "/small-business",
     points: [
       {
@@ -86,7 +101,7 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
       {seo}
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
-        <div style={{ fontSize: 44, marginTop: 8 }}>{c.emoji}</div>
+        <div style={{ fontSize: 44, marginTop: 8 }}><Icon name={c.icon} size={40} /></div>
         <h1 className="page-static-title">{c.title}</h1>
         <p className="page-static-sub">{c.sub}</p>
       </header>
@@ -114,7 +129,7 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
           <Link to="/diagnose" className="btn primary" style={{ padding: 15, textAlign: "center" }}>
-            🧭 내 사안 1분 진단하기
+            <Icon name="compass" size={16} /> 내 사안 1분 진단하기
           </Link>
           <a
             href="https://pf.kakao.com/_zkzIX"
@@ -123,7 +138,7 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
             className="btn yellow"
             style={{ padding: 15, textAlign: "center" }}
           >
-            🟡 카톡으로 상담하기
+            <Icon name="chat" size={16} /> 카톡으로 상담하기
           </a>
         </div>
 

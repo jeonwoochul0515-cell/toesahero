@@ -6,6 +6,7 @@ import {
   type ConsultationDoc,
 } from "../firebase";
 import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
+import { Icon } from "../components/Icon";
 
 type PackageInfo = {
   id: "basic" | "pro" | "max";
@@ -312,15 +313,19 @@ export function CheckoutPage() {
               onClick={() => void startPayment()}
               disabled={!agreed || confirming}
             >
-              {confirming
-                ? "결제 처리 중..."
-                : `💳 ${pkg.price.toLocaleString("ko-KR")}원 결제 (토스페이먼츠)`}
+              {confirming ? (
+                "결제 처리 중..."
+              ) : (
+                <>
+                  <Icon name="card" size={16} /> {pkg.price.toLocaleString("ko-KR")}원 결제 (토스페이먼츠)
+                </>
+              )}
             </button>
 
             {!TOSS_CLIENT_KEY && (
               <div className="checkout-not-ready">
-                ⚠️ 결제 인프라가 아직 설정되지 않은 상태입니다 (토스페이먼츠 가맹
-                심사 진행 중). 위임 의사가 확정되시면 카카오톡 채널 또는 ☎
+                <Icon name="warning" size={16} /> 결제 인프라가 아직 설정되지 않은 상태입니다 (토스페이먼츠 가맹
+                심사 진행 중). 위임 의사가 확정되시면 카카오톡 채널 또는 <Icon name="phone" size={14} />
                 1660-4452 로 직접 문의해 주세요. 변호사가 안내드립니다.
               </div>
             )}

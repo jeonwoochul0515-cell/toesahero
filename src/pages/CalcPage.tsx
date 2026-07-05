@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveNoticeConsultation } from "../firebase";
 import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 const fmt = new Intl.NumberFormat("ko-KR").format;
 
@@ -135,17 +136,20 @@ export function CalcPage() {
   const nav = useNavigate();
 
   const seo = usePageMeta({
-    title: "임금·연차수당·퇴직금 자동 계산기",
+    title: "퇴직금·연차수당 계산기 — 임금 자동 계산",
     description:
-      "월급·근속·미사용 연차·야근시간 입력만으로 청구 가능 항목을 자동 산정합니다. 변호사가 검토하는 1차 자료. 결과는 보장하지 않습니다 (변협 규정).",
+      "월급·근속·미사용 연차·야근시간만 입력하면 퇴직금·연차수당·미지급 임금을 자동 산정합니다. 변호사가 검토하는 1차 자료입니다.",
     canonical: "/calc",
     keywords: [
       "퇴직금 계산기",
       "연차수당 계산기",
       "야근수당 계산기",
       "미지급 임금",
+      "미지급 임금 계산",
       "통상임금",
+      "임금체불",
       "권고사직 실업급여",
+      "퇴사대행",
       "변호사 검토",
       "법률사무소 청송",
     ],
@@ -470,7 +474,7 @@ export function CalcPage() {
 
               {result.excludedBySize && (
                 <div className="calc-extra" style={{ borderColor: "var(--orange)" }}>
-                  ⚠️ <strong>상시 5인 미만 사업장</strong>은 연차수당(근기법 §60)·
+                  <Icon name="warning" size={16} /> <strong>상시 5인 미만 사업장</strong>은 연차수당(근기법 §60)·
                   연장근로 가산수당(§56)이 법정 적용되지 않아 합산에서 제외했습니다.
                   <strong> 퇴직금·체불임금은 5인 미만도 청구 가능</strong>합니다.
                 </div>
@@ -478,7 +482,7 @@ export function CalcPage() {
 
               {result.eligibleUI && (
                 <div className="calc-extra">
-                  💡 입력하신 사유로 <strong>실업급여 신청 가능성</strong>이
+                  <Icon name="bulb" size={16} /> 입력하신 사유로 <strong>실업급여 신청 가능성</strong>이
                   있습니다. 권고사직 처리·이직확인서 사유 정정 등 변호사
                   자문이 필요합니다.
                 </div>
@@ -490,9 +494,13 @@ export function CalcPage() {
                 onClick={() => void requestNotice()}
                 disabled={submitting || visibleItems.length === 0}
               >
-                {submitting
-                  ? "AI 1차 초안 생성 중..."
-                  : "📜 변호사 검토 신청 (AI 1차 초안 자동 생성)"}
+                {submitting ? (
+                  "AI 1차 초안 생성 중..."
+                ) : (
+                  <>
+                    <Icon name="doc" size={16} /> 변호사 검토 신청 (AI 1차 초안 자동 생성)
+                  </>
+                )}
               </button>
               <p className="calc-cta-note">
                 "표준 절차" 패키지(390,000원) 위임은 변호사 검토 후 안내됩니다.
@@ -505,7 +513,7 @@ export function CalcPage() {
                   className="btn yellow"
                   style={{ width: "100%" }}
                 >
-                  🟡 카카오톡 채널에서 바로 상담
+                  <Icon name="chat" size={16} /> 카카오톡 채널에서 바로 상담
                 </a>
               </div>
             </div>
@@ -542,7 +550,7 @@ export function CalcPage() {
         </div>
 
         <p className="calc-foot">
-          🔒 입력하신 정보는 Firebase에 안전하게 저장되며, 변호사 비밀유지 의무
+          <Icon name="lock" size={14} /> 입력하신 정보는 Firebase에 안전하게 저장되며, 변호사 비밀유지 의무
           하에 처리됩니다. 본 사이트는 변호사법 제23조에 따른 광고물이며, 본
           계산기는 일반적 정보 제공이지 법률 자문이 아닙니다.
         </p>

@@ -1,4 +1,5 @@
 import { saveConsultation } from "../firebase";
+import { Icon } from "./Icon";
 
 type Tier = {
   id: string;
@@ -88,21 +89,9 @@ export function Pricing({ openChat }: Props) {
           className="reveal"
           style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}
         >
-          <span className="eyebrow">Service</span>
+          <span className="eyebrow">보수 안내</span>
           <h2 className="h2">
-            <span
-              style={{
-                background: "var(--yellow)",
-                padding: "0 12px",
-                borderRadius: 8,
-                display: "inline-block",
-                transform: "rotate(-1deg)",
-                border: "2.5px solid var(--ink)",
-                boxShadow: "3px 3px 0 0 var(--ink)",
-              }}
-            >
-              서비스 안내
-            </span>
+            <span className="mark-hl">서비스 안내</span>
             <br />
             (보수 기준)
           </h2>
@@ -123,7 +112,7 @@ export function Pricing({ openChat }: Props) {
             className="btn"
             style={{ background: "var(--yellow)", fontWeight: 800 }}
           >
-            🧭 어떤 절차가 맞는지 모르겠다면 — 1분 셀프 진단
+            <Icon name="compass" size={18} /> 어떤 절차가 맞는지 모르겠다면 — 1분 셀프 진단
           </a>
         </div>
 
@@ -139,8 +128,8 @@ export function Pricing({ openChat }: Props) {
             boxShadow: "4px 4px 0 0 var(--ink)",
           }}
         >
-          <strong style={{ fontSize: 16 }}>
-            ⚖️ "퇴사하면 손해배상 청구하겠다"는 협박을 받고 계신가요?
+          <strong style={{ fontSize: 16, display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <Icon name="scale" size={20} /> "퇴사하면 손해배상 청구하겠다"는 협박을 받고 계신가요?
           </strong>
           <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)" }}>
             회사의 <strong>손해배상·위약금 협박 대응</strong>은 노무사·일반 업체가
@@ -201,7 +190,7 @@ export function Pricing({ openChat }: Props) {
                     background: "var(--yellow)",
                   }}
                 >
-                  📊 자동 계산기로 견적
+                  <Icon name="calc" size={15} /> 자동 계산기로 견적
                 </a>
               )}
             </div>

@@ -1,4 +1,5 @@
 import { Mascot } from "./Mascot";
+import { Icon } from "./Icon";
 
 type Props = {
   openChat: () => void;
@@ -38,18 +39,7 @@ export function Footer({ openChat }: Props) {
           >
             퇴사 절차,
             <br />
-            <span
-              style={{
-                background: "var(--yellow)",
-                color: "var(--ink)",
-                padding: "2px 14px",
-                borderRadius: 8,
-                display: "inline-block",
-                transform: "rotate(-1deg)",
-              }}
-            >
-              변호사와 함께.
-            </span>
+            <span className="mark-hl">변호사와 함께.</span>
           </h2>
           <p
             style={{
@@ -77,7 +67,7 @@ export function Footer({ openChat }: Props) {
               style={{ fontSize: 17, padding: "16px 28px" }}
               onClick={openChat}
             >
-              💬 카톡으로 문의
+              <Icon name="chat" size={18} /> 카톡으로 문의
             </button>
             <a
               href="tel:1660-4452"
@@ -88,7 +78,7 @@ export function Footer({ openChat }: Props) {
                 background: "var(--paper)",
               }}
             >
-              ☎ 1660-4452
+              <Icon name="phone" size={18} /> 1660-4452
             </a>
           </div>
         </div>
@@ -156,7 +146,9 @@ export function Footer({ openChat }: Props) {
               >
                 카카오톡 채널 ↗
               </a>
-              <a href="tel:1660-4452">☎ 1660-4452</a>
+              <a href="tel:1660-4452">
+                <Icon name="phone" size={13} /> 1660-4452
+              </a>
               <a href="mailto:lawchungsong@daum.net">lawchungsong@daum.net</a>
               <span style={{ fontSize: 12, color: "var(--muted)" }}>
                 부산 연제구 법원남로15번길 10, 202호

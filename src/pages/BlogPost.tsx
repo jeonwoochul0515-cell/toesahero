@@ -9,6 +9,7 @@ import {
   articleJsonLd,
   breadcrumbJsonLd,
 } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
   if (!ts) return "";
@@ -66,7 +67,8 @@ export function BlogPost() {
     }
     void fetchPostBySlug(slug).then((p) => {
       if (cancel) return;
-      setPost(p);
+      // 라이브 글을 못 가져오면(미설정·오류) 프리렌더 정적 글을 유지
+      if (p) setPost(p);
       setLoaded(true);
     });
     return () => {
@@ -125,10 +127,10 @@ export function BlogPost() {
 
         <footer className="blog-post-foot">
           <p>
-            <strong>📌 법률 자문 안내</strong>
+            <strong><Icon name="pin" size={18} /> 법률 자문 안내</strong>
             <br />
             본 칼럼은 일반적 정보 제공을 목적으로 합니다. 구체적 사안에
-            대한 정확한 법률 자문이 필요하신 경우 카카오톡 채널 또는 ☎
+            대한 정확한 법률 자문이 필요하신 경우 카카오톡 채널 또는 <Icon name="phone" size={14} />
             1660-4452 로 변호사와 직접 상담하세요.
           </p>
           <div className="blog-post-cta">
@@ -139,10 +141,10 @@ export function BlogPost() {
               rel="noopener noreferrer"
               className="btn yellow"
             >
-              🟡 카카오톡 채널 상담
+              <Icon name="chat" size={16} /> 카카오톡 채널 상담
             </a>
             <Link to="/calc" className="btn">
-              📊 임금 계산기
+              <Icon name="calc" size={16} /> 임금 계산기
             </Link>
           </div>
         </footer>

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { saveConsultation } from "../firebase";
+import { Icon, type IconName } from "./Icon";
 
 type CalcItem = {
   id: string;
   label: string;
-  emoji: string;
+  icon: IconName;
   value: number;
   desc: string;
   example: string;
@@ -14,7 +15,7 @@ const items: CalcItem[] = [
   {
     id: "salary",
     label: "월급 못 받음",
-    emoji: "💰",
+    icon: "coins",
     value: 2_400_000,
     desc: "체불임금 청구",
     example: "한 달치 평균",
@@ -22,7 +23,7 @@ const items: CalcItem[] = [
   {
     id: "severance",
     label: "퇴직금 못 받음",
-    emoji: "🏦",
+    icon: "bank",
     value: 3_500_000,
     desc: "근로기준법 §34 미지급분",
     example: "1년 이상 근무",
@@ -30,7 +31,7 @@ const items: CalcItem[] = [
   {
     id: "annual",
     label: "연차수당 미지급",
-    emoji: "🌴",
+    icon: "palm",
     value: 850_000,
     desc: "사용 못한 연차 환산",
     example: "10일 기준",
@@ -38,7 +39,7 @@ const items: CalcItem[] = [
   {
     id: "overtime",
     label: "야근수당 떼임",
-    emoji: "🌙",
+    icon: "moon",
     value: 1_200_000,
     desc: "통상임금 1.5배 청구",
     example: "월 평균 30시간",
@@ -46,7 +47,7 @@ const items: CalcItem[] = [
   {
     id: "harass",
     label: "직장 내 괴롭힘",
-    emoji: "🚨",
+    icon: "siren",
     value: 5_000_000,
     desc: "위자료 + 산재 신청",
     example: "사례별 차이",
@@ -54,7 +55,7 @@ const items: CalcItem[] = [
   {
     id: "ui",
     label: "실업급여 받기",
-    emoji: "📨",
+    icon: "mail",
     value: 3_200_000,
     desc: "권고사직 처리 협상",
     example: "120일 기준",
@@ -98,7 +99,7 @@ export function Calculator() {
         <div className="calc-grid">
           <div>
             <span className="eyebrow" style={{ color: "var(--yellow)" }}>
-              Self-check
+              놓친 돈 체크
             </span>
             <h2 className="h2" style={{ color: "var(--cream)" }}>
               놓치고 있을 수 있는
@@ -141,7 +142,8 @@ export function Calculator() {
                   color: "var(--ink)",
                 }}
               >
-                📊 정확한 금액 자동 계산하기 →
+                <Icon name="calc" size={16} /> 정확한 금액 자동 계산하기{" "}
+                <Icon name="arrow" size={16} />
               </a>
               <button
                 className="btn"
@@ -154,7 +156,7 @@ export function Calculator() {
                 }}
                 onClick={handleAsk}
               >
-                💬 변호사에게 상담 요청
+                <Icon name="chat" size={16} /> 변호사에게 상담 요청
               </button>
             </div>
           </div>
@@ -168,8 +170,12 @@ export function Calculator() {
                   className={`calc-item ${on ? "on" : ""}`}
                   onClick={() => toggle(it.id)}
                 >
-                  <div className="calc-check">{on ? "✓" : ""}</div>
-                  <div className="calc-emoji">{it.emoji}</div>
+                  <div className="calc-check">
+                    {on ? <Icon name="check" size={16} /> : ""}
+                  </div>
+                  <div className="calc-emoji">
+                    <Icon name={it.icon} size={24} strokeWidth={2.25} />
+                  </div>
                   <div className="calc-info">
                     <div className="calc-label">{it.label}</div>
                     <div className="calc-desc">

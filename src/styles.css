@@ -63,6 +63,17 @@ body[data-dark="true"] {
 * {
   box-sizing: border-box;
 }
+
+/* 인라인 SVG 아이콘 — 텍스트 베이스라인에 정렬 */
+.icon {
+  display: inline-block;
+  vertical-align: -0.18em;
+  flex-shrink: 0;
+}
+.btn .icon,
+.floater-btn .icon {
+  vertical-align: middle;
+}
 html,
 body {
   margin: 0;
@@ -233,14 +244,22 @@ section {
 }
 
 .eyebrow {
-  display: inline-block;
-  font-family: var(--font-en);
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-kr);
+  font-weight: 800;
   font-size: 13px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--orange);
   margin-bottom: 14px;
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 3px;
+  background: var(--orange);
+  display: inline-block;
 }
 .h2 {
   font-size: clamp(32px, 5vw, 52px);
@@ -248,6 +267,21 @@ section {
   line-height: 1.1;
   letter-spacing: -0.02em;
   margin: 0 0 20px;
+}
+
+/* 제목 형광펜 — 사이트 전역 단일 스타일(틸트 없이 차분하게). 시그니처 틸트는 Hero h1-mark 한 곳만 */
+.mark-hl {
+  background: var(--yellow);
+  padding: 0 10px;
+  border: 2.5px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 0 var(--ink);
+  display: inline-block;
+  line-height: 1.15;
+}
+.mark-hl.orange {
+  background: var(--orange);
+  color: var(--cream);
 }
 .lead {
   font-size: clamp(15px, 1.4vw, 17px);
@@ -642,7 +676,7 @@ body[data-mascot="false"] .mascot {
 }
 .hero-trust {
   display: flex;
-  gap: 28px;
+  gap: 0;
   margin-top: 36px;
   padding-top: 28px;
   border-top: 2px dashed var(--ink-2);
@@ -651,18 +685,45 @@ body[data-mascot="false"] .mascot {
 .trust-item {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  padding: 0 26px;
+}
+.trust-item:first-child {
+  padding-left: 0;
+}
+.trust-item + .trust-item {
+  border-left: 2px solid var(--ink);
 }
 .trust-item strong {
-  font-family: var(--font-en);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: var(--font-kr);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 .trust-item span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
+  font-weight: 600;
   color: var(--muted);
-  margin-top: 2px;
+}
+.trust-item span::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--orange);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+@media (max-width: 460px) {
+  .trust-item {
+    padding: 0 18px;
+  }
 }
 .hero-art {
   position: relative;
@@ -844,11 +905,8 @@ body[data-mascot="false"] .mascot {
   overflow: hidden;
 }
 .aud-card:hover {
-  transform: translate(-3px, -3px) rotate(-0.5deg);
+  transform: translate(-3px, -3px);
   box-shadow: 7px 7px 0 0 var(--ink);
-}
-.aud-card:nth-child(2n):hover {
-  transform: translate(-3px, -3px) rotate(0.5deg);
 }
 .aud-tag {
   display: inline-block;
@@ -863,9 +921,35 @@ body[data-mascot="false"] .mascot {
   margin-bottom: 16px;
 }
 .aud-emoji {
-  font-size: 44px;
-  line-height: 1;
-  margin-bottom: 14px;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid var(--ink);
+  border-radius: 13px;
+  box-shadow: 3px 3px 0 0 var(--ink);
+  margin-bottom: 18px;
+  color: var(--ink);
+  background: var(--yellow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+/* 9칸에 브랜드 팔레트를 순환시켜 색 포인트 — 아이콘 stroke는 ink로 대비 유지 */
+.aud-card:nth-child(5n + 2) .aud-emoji {
+  background: var(--pink);
+}
+.aud-card:nth-child(5n + 3) .aud-emoji {
+  background: var(--green);
+}
+.aud-card:nth-child(5n + 4) .aud-emoji {
+  background: var(--blue);
+}
+.aud-card:nth-child(5n + 5) .aud-emoji {
+  background: var(--orange);
+  color: var(--cream);
+}
+.aud-card:hover .aud-emoji {
+  transform: translate(-2px, -2px) rotate(-3deg);
+  box-shadow: 5px 5px 0 0 var(--ink);
 }
 .aud-title {
   font-size: 22px;
@@ -918,11 +1002,13 @@ body[data-mascot="false"] .mascot {
   margin: 8px 0 14px;
 }
 .amount-num {
-  font-family: var(--font-en);
-  font-weight: 700;
+  font-family: var(--font-kr);
+  font-weight: 800;
   font-size: clamp(40px, 6vw, 60px);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   color: var(--orange);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 .amount-unit {
   font-size: 22px;
@@ -1005,10 +1091,12 @@ body[data-mascot="false"] .mascot {
   color: var(--ink-2);
 }
 .calc-value {
-  font-family: var(--font-en);
-  font-weight: 700;
+  font-family: var(--font-kr);
+  font-weight: 800;
   font-size: 14px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* Process */
@@ -1049,12 +1137,14 @@ body[data-mascot="false"] .mascot {
   margin-bottom: 18px;
 }
 .proc-num {
-  font-family: var(--font-en);
+  font-family: var(--font-kr);
   font-size: 42px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 .proc-card:hover .proc-num {
   color: var(--orange);
@@ -1204,12 +1294,18 @@ body[data-mascot="false"] .mascot {
   margin-top: 24px;
 }
 .cred {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: var(--gray-1);
   border: 2px solid var(--ink);
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
+}
+.cred .icon {
+  color: var(--orange);
 }
 
 /* Pricing */
@@ -1240,11 +1336,11 @@ body[data-mascot="false"] .mascot {
 }
 .price-card.pop {
   background: var(--yellow);
-  transform: translateY(-12px) rotate(-0.5deg);
+  transform: translateY(-12px);
   box-shadow: var(--shadow-lg);
 }
 .price-card.pop:hover {
-  transform: translateY(-16px) rotate(-0.5deg);
+  transform: translateY(-16px);
 }
 .price-pop {
   position: absolute;
@@ -1289,10 +1385,12 @@ body[data-mascot="false"] .mascot {
   border-bottom: 2px dashed var(--ink-2);
 }
 .price-num {
-  font-family: var(--font-en);
+  font-family: var(--font-kr);
   font-size: 44px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 .price-unit {
   font-weight: 900;
@@ -1413,12 +1511,6 @@ body[data-mascot="false"] .mascot {
 }
 .rev-card.bg-paper {
   background: var(--paper);
-}
-.rev-card:nth-child(odd) {
-  transform: rotate(-1deg);
-}
-.rev-card:nth-child(even) {
-  transform: rotate(1deg);
 }
 .rev-stars {
   font-family: var(--font-en);

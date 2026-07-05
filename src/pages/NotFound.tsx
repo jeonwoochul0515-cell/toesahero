@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 export function NotFound() {
   // 네이버 가이드: 잘못된 URL 페이지는 noindex 처리하여 소프트 404 회피
@@ -25,31 +26,31 @@ export function NotFound() {
       <main className="page-static-main">
         <div className="not-found-grid">
           <div className="not-found-card">
-            <div className="not-found-icon">⚖️</div>
+            <div className="not-found-icon"><Icon name="scale" size={32} /></div>
             <h2>찾으시는 정보가 있다면</h2>
             <ul>
               <li>
-                <Link to="/">🏠 홈 — 서비스 안내·변호사 소개·가격</Link>
+                <Link to="/"><Icon name="home" size={18} /> 홈 — 서비스 안내·변호사 소개·가격</Link>
               </li>
               <li>
-                <Link to="/blog">📝 법률 칼럼 — 변호사 본인 작성 정보</Link>
+                <Link to="/blog"><Icon name="doc" size={18} /> 법률 칼럼 — 변호사 본인 작성 정보</Link>
               </li>
               <li>
-                <Link to="/faq">❓ 자주 묻는 질문 — 12문항</Link>
+                <Link to="/faq"><Icon name="help" size={18} /> 자주 묻는 질문 — 12문항</Link>
               </li>
               <li>
-                <Link to="/calc">📊 임금·연차 자동 계산기</Link>
+                <Link to="/calc"><Icon name="calc" size={18} /> 임금·연차 자동 계산기</Link>
               </li>
               <li>
-                <Link to="/terms">📋 이용약관</Link>
+                <Link to="/terms"><Icon name="clipboard" size={18} /> 이용약관</Link>
               </li>
               <li>
-                <Link to="/privacy">🔒 개인정보처리방침</Link>
+                <Link to="/privacy"><Icon name="lock" size={18} /> 개인정보처리방침</Link>
               </li>
             </ul>
           </div>
           <div className="not-found-card">
-            <div className="not-found-icon">💬</div>
+            <div className="not-found-icon"><Icon name="chat" size={32} /></div>
             <h2>변호사와 직접 상담</h2>
             <p>
               사안이 시급하시면 카카오톡 채널 또는 전화로 직접 문의해 주세요.
@@ -62,10 +63,10 @@ export function NotFound() {
                 rel="noopener noreferrer"
                 className="btn yellow"
               >
-                🟡 카카오톡 채널
+                <Icon name="chat" size={16} /> 카카오톡 채널
               </a>
               <a href="tel:1660-4452" className="btn primary">
-                ☎ 1660-4452
+                <Icon name="phone" size={16} /> 1660-4452
               </a>
             </div>
           </div>

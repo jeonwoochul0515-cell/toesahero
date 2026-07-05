@@ -1,6 +1,8 @@
+import { Icon, type IconName } from "./Icon";
+
 type Step = {
   n: string;
-  emoji: string;
+  icon: IconName;
   title: string;
   body: string;
   time: string;
@@ -10,7 +12,7 @@ type Step = {
 const steps: Step[] = [
   {
     n: "01",
-    emoji: "💬",
+    icon: "chat",
     title: "카톡으로 문의",
     body: "카톡 채널로 상황을 간단히 보내주세요. 영업일 기준 변호사가 직접 답변드립니다. 변호사 비밀유지 의무 적용.",
     time: "5분",
@@ -18,7 +20,7 @@ const steps: Step[] = [
   },
   {
     n: "02",
-    emoji: "🤝",
+    icon: "handshake",
     title: "상담·위임 절차",
     body: "퇴사 시점·교섭 방향·법적 쟁점을 변호사가 직접 검토합니다. 위임 절차는 비대면으로 진행 가능합니다.",
     time: "30분~",
@@ -26,7 +28,7 @@ const steps: Step[] = [
   },
   {
     n: "03",
-    emoji: "📣",
+    icon: "megaphone",
     title: "법률사무소 명의 통보",
     body: "법률사무소 명의로 사용자에게 공식 통보합니다. 이후 회사 연락은 사무소가 응대합니다.",
     time: "당일~",
@@ -34,7 +36,7 @@ const steps: Step[] = [
   },
   {
     n: "04",
-    emoji: "💰",
+    icon: "coins",
     title: "사후 절차 자문",
     body: "퇴직금·연차수당·실업급여 등 사후 절차에 관한 자문 및 노동청 진정·민사 절차 검토를 진행합니다.",
     time: "사안별",
@@ -47,24 +49,11 @@ export function Process() {
     <section id="process" style={{ background: "var(--cream)" }}>
       <div className="wrap">
         <div className="reveal">
-          <span className="eyebrow">How it works</span>
+          <span className="eyebrow">진행 방식</span>
           <h2 className="h2">
             카톡 문의 한 번으로
             <br />
-            <span
-              style={{
-                background: "var(--orange)",
-                color: "var(--cream)",
-                padding: "0 12px",
-                borderRadius: 8,
-                display: "inline-block",
-                transform: "rotate(-1deg)",
-                border: "2.5px solid var(--ink)",
-                boxShadow: "4px 4px 0 0 var(--ink)",
-              }}
-            >
-              4단계 절차
-            </span>
+            <span className="mark-hl orange">4단계 절차</span>
           </h2>
           <p className="lead">상담 → 위임 → 통보 → 사후 자문. 사안에 따라 기간은 달라집니다.</p>
         </div>
@@ -73,9 +62,13 @@ export function Process() {
             <div key={i} className="proc-card">
               <div className="proc-top">
                 <span className="proc-num">{s.n}</span>
-                <span className="proc-time">⏱ {s.time}</span>
+                <span className="proc-time">
+                  <Icon name="clock" size={13} /> {s.time}
+                </span>
               </div>
-              <div className="proc-emoji">{s.emoji}</div>
+              <div className="proc-emoji">
+                <Icon name={s.icon} size={34} strokeWidth={2.25} />
+              </div>
               <h3 className="proc-title">{s.title}</h3>
               <p className="proc-body">{s.body}</p>
               <div className="proc-side">{s.side}</div>

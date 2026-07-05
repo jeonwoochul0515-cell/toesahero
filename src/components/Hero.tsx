@@ -1,4 +1,5 @@
 import { Mascot } from "./Mascot";
+import { Icon } from "./Icon";
 
 export type HeroCopy = "boss" | "soft" | "legal";
 
@@ -68,7 +69,7 @@ export function Hero({ heroCopy = "boss", openChat }: Props) {
                 onClick={openChat}
                 style={{ fontSize: 17, padding: "16px 26px" }}
               >
-                💬 카톡으로 문의
+                <Icon name="chat" size={18} /> 카톡으로 문의
               </button>
               <a
                 href="#pricing"

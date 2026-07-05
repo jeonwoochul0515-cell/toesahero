@@ -4,6 +4,7 @@ import {
   faqJsonLd,
   breadcrumbJsonLd,
 } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 type Q = { q: string; a: string };
 
@@ -60,9 +61,9 @@ const FAQ: Q[] = [
 
 export function FAQPage() {
   const seo = usePageMeta({
-    title: "자주 묻는 질문 — 변호사 운영 퇴사대행 12문항",
+    title: "퇴사대행 자주 묻는 질문 12가지 — 변호사 답변",
     description:
-      "변호사 vs 노무사 차이, 변호사법 109조, 사장 사직서 거부, 퇴직금 미지급, 직장 내 괴롭힘, 5인 미만 사업장 등 퇴사대행 자주 묻는 12문항. 변호사 김창희 직접 답변.",
+      "변호사 vs 노무사 차이, 변호사법 109조, 사직서 거부, 퇴직금 미지급, 5인 미만 사업장 등 퇴사대행 자주 묻는 12문항.",
     canonical: "/faq",
     keywords: [
       "퇴사대행 FAQ",
@@ -70,9 +71,12 @@ export function FAQPage() {
       "변호사법 109조",
       "사직서 거부",
       "퇴직금 미지급",
+      "권고사직",
+      "부당해고",
       "5인 미만 사업장",
       "외국인 노동자",
       "직장 내 괴롭힘",
+      "퇴사대행 비용",
       "법률사무소 청송",
     ],
     jsonLd: [
@@ -114,7 +118,7 @@ export function FAQPage() {
         </div>
 
         <div className="faq-cta">
-          <p>다른 질문이 있으시면 카카오톡 채널 또는 ☎ 1660-4452 로 문의해 주세요.</p>
+          <p>다른 질문이 있으시면 카카오톡 채널 또는 <Icon name="phone" size={16} /> 1660-4452 로 문의해 주세요.</p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <a
               href="https://pf.kakao.com/_zkzIX"
@@ -122,13 +126,13 @@ export function FAQPage() {
               rel="noopener noreferrer"
               className="btn yellow"
             >
-              🟡 카카오톡 채널 상담
+              <Icon name="chat" size={16} /> 카카오톡 채널 상담
             </a>
             <Link to="/calc" className="btn">
-              📊 임금 계산기
+              <Icon name="calc" size={16} /> 임금 계산기
             </Link>
             <Link to="/" className="btn primary">
-              💬 카톡으로 문의
+              <Icon name="chat" size={16} /> 카톡으로 문의
             </Link>
           </div>
         </div>

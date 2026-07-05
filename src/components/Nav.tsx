@@ -1,4 +1,5 @@
 import { Mascot } from "./Mascot";
+import { Icon } from "./Icon";
 
 type Props = {
   openChat: () => void;
@@ -29,7 +30,7 @@ export function Nav({ openChat }: Props) {
           style={{ padding: "10px 18px", fontSize: 14 }}
           onClick={openChat}
         >
-          💬 카톡 문의
+          <Icon name="chat" size={16} /> 카톡 문의
         </button>
       </div>
     </nav>

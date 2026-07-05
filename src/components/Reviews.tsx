@@ -41,7 +41,7 @@ export function Reviews() {
           className="reveal"
           style={{ textAlign: "center", maxWidth: 640, margin: "0 auto 40px" }}
         >
-          <span className="eyebrow">Reviews</span>
+          <span className="eyebrow">의뢰인 후기</span>
           <h2 className="h2">
             의뢰인 동의를 받고 게재한 후기
           </h2>

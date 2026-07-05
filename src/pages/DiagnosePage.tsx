@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveConsultation } from "../firebase";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 type Tier = "basic" | "pro" | "max";
 
@@ -105,7 +106,16 @@ export function DiagnosePage() {
     description:
       "몇 가지 질문에 답하면 통보·임금청구·분쟁대응 중 내 상황에 맞는 절차를 변호사 기준으로 안내해 드립니다.",
     canonical: "/diagnose",
-    keywords: ["퇴사대행 진단", "퇴사대행 비용", "퇴사 절차 진단", "변호사 퇴사대행"],
+    keywords: [
+      "퇴사대행 진단",
+      "퇴사대행 비용",
+      "퇴사 절차 진단",
+      "변호사 퇴사대행",
+      "퇴사대행",
+      "권고사직",
+      "부당해고",
+      "임금체불",
+    ],
   });
 
   const allAnswered = QUESTIONS.every((q) => answers[q.key]);
@@ -220,7 +230,7 @@ export function DiagnosePage() {
               <p style={{ fontSize: 14, lineHeight: 1.65, marginBottom: 8 }}>{result.reason}</p>
               {result.damageThreat && (
                 <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>
-                  ⚖️ 손해배상·위약금 협박 대응은 변호사 전속 영역입니다. 위축되지 마세요.
+                  <Icon name="scale" size={14} /> 손해배상·위약금 협박 대응은 변호사 전속 영역입니다. 위축되지 마세요.
                 </p>
               )}
             </div>
@@ -236,7 +246,7 @@ export function DiagnosePage() {
                 className="btn yellow"
                 style={{ padding: 15, textAlign: "center" }}
               >
-                🟡 카톡으로 먼저 상담하기
+                <Icon name="chat" size={16} /> 카톡으로 먼저 상담하기
               </a>
               <button
                 className="btn"

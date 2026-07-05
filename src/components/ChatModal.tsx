@@ -8,6 +8,7 @@ import {
   watchAuth,
   type AppUser,
 } from "../firebase";
+import { Icon } from "./Icon";
 
 type Msg = { who: "me" | "them"; text: string };
 
@@ -481,9 +482,13 @@ export function ChatModal({ open, onClose }: Props) {
               disabled={draftLoading}
               style={{ width: "100%" }}
             >
-              {draftLoading
-                ? "AI가 초안 작성 중..."
-                : "📝 통보문 초안 생성하기"}
+              {draftLoading ? (
+                "AI가 초안 작성 중..."
+              ) : (
+                <>
+                  <Icon name="doc" size={16} /> 통보문 초안 생성하기
+                </>
+              )}
             </button>
           </div>
         )}
@@ -526,11 +531,11 @@ export function ChatModal({ open, onClose }: Props) {
             className="btn yellow"
             style={{ width: "100%", fontSize: 14, padding: "12px 16px" }}
           >
-            🟡 카카오톡 채널에서 직접 상담
+            <Icon name="chat" size={16} /> 카카오톡 채널에서 직접 상담
           </a>
         </div>
         <div className="chat-foot-note">
-          🔒 변호사 비밀유지 의무 적용 · AI 응답은 변호사 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
+          <Icon name="lock" size={13} /> 변호사 비밀유지 의무 적용 · AI 응답은 변호사 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
         </div>
       </div>
     </div>

@@ -19,18 +19,22 @@ export function BlogList() {
   const [loaded, setLoaded] = useState(PRERENDERED_POSTS.length > 0);
 
   const seo = usePageMeta({
-    title: "법률 칼럼 — 변호사가 직접 쓰는 노동법 이야기",
+    title: "퇴사대행 법률 칼럼 — 노동법·퇴직금 정보",
     description:
-      "법률사무소 청송 김창희 변호사가 직접 작성하는 노동법·퇴사 절차·변호사법 §109 관련 정보성 칼럼. 변협 광고규정에 따른 일반 정보 제공 콘텐츠입니다.",
+      "법률사무소 청송 김창희 변호사가 직접 쓰는 노동법·퇴사 절차·퇴직금 칼럼. 변협 광고규정을 따르는 일반 정보 제공 콘텐츠입니다.",
     canonical: "/blog",
     keywords: [
       "법률 칼럼",
       "노동법",
       "변호사 칼럼",
       "퇴사 절차",
+      "퇴사대행",
       "퇴직금",
+      "퇴직금 계산",
       "직장 내 괴롭힘",
       "변호사법 109조",
+      "권고사직",
+      "부당해고",
       "김창희 변호사",
       "법률사무소 청송",
     ],
@@ -44,7 +48,8 @@ export function BlogList() {
     let cancel = false;
     void fetchPublishedPosts().then((list) => {
       if (cancel) return;
-      setPosts(list);
+      // 빈 결과(Firebase 미설정·권한오류·빈 컬렉션)면 프리렌더 정적 글을 유지 — 라이브 글이 있을 때만 갱신
+      if (list.length > 0) setPosts(list);
       setLoaded(true);
     });
     return () => {

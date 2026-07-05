@@ -12,6 +12,7 @@ import {
   type CaseFileDoc,
 } from "../firebase";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { Icon } from "../components/Icon";
 
 const STATUS_LABEL: Record<NonNullable<ConsultationDoc["status"]>, string> = {
   new: "신규 접수",
@@ -138,7 +139,13 @@ export function MyPage() {
             }}
             disabled={signingIn}
           >
-            {signingIn ? "연결 중..." : "🟡 카카오로 로그인"}
+            {signingIn ? (
+              "연결 중..."
+            ) : (
+              <>
+                <Icon name="chat" size={16} /> 카카오로 로그인
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -165,7 +172,7 @@ export function MyPage() {
           <div className="my-empty">
             <p>아직 신청한 사건이 없습니다.</p>
             <Link to="/" className="btn primary">
-              💬 상담 신청하러 가기
+              <Icon name="chat" size={16} /> 상담 신청하러 가기
             </Link>
           </div>
         ) : (
@@ -215,7 +222,7 @@ export function MyPage() {
                   </ol>
 
                   <div className="my-case-files">
-                    <h4>📎 증거 자료</h4>
+                    <h4><Icon name="paperclip" size={18} /> 증거 자료</h4>
                     {files.filter((f) => f.caseId === c.id).length === 0 ? (
                       <p className="my-file-empty">아직 첨부한 자료가 없습니다.</p>
                     ) : (
@@ -225,7 +232,7 @@ export function MyPage() {
                           .map((f) => (
                             <li key={f.id}>
                               <a href={f.url} target="_blank" rel="noopener noreferrer">
-                                📄 {f.name}
+                                <Icon name="doc" size={16} /> {f.name}
                               </a>
                             </li>
                           ))}
@@ -264,7 +271,7 @@ export function MyPage() {
 
                   {c.draftLetter && (
                     <div className="my-case-draft">
-                      <h4>📝 변호사 명의 통보문</h4>
+                      <h4><Icon name="doc" size={18} /> 변호사 명의 통보문</h4>
                       <div className="my-draft-status">
                         상태:{" "}
                         <strong>
@@ -282,7 +289,7 @@ export function MyPage() {
 
                   {c.noticeLetter && (
                     <div className="my-case-draft">
-                      <h4>📜 내용증명</h4>
+                      <h4><Icon name="doc" size={18} /> 내용증명</h4>
                       <div className="my-draft-status">
                         상태:{" "}
                         <strong>
@@ -318,9 +325,9 @@ export function MyPage() {
         )}
 
         <div className="my-foot-note">
-          🔒 변호사 비밀유지 의무 적용 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
+          <Icon name="lock" size={14} /> 변호사 비밀유지 의무 적용 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
           <br />
-          진행 상황 문의는 카카오톡 채널 또는 ☎ 1660-4452 로 연락 주세요.
+          진행 상황 문의는 카카오톡 채널 또는 <Icon name="phone" size={14} /> 1660-4452 로 연락 주세요.
         </div>
       </main>
     </div>
