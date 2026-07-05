@@ -10,7 +10,7 @@
     "test": "vitest run",
     "build": "npm run prerender:posts && tsc -b && npm run typecheck:functions && vite-react-ssg build",
     "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy": "npm run build && echo '빌드 완료. 배포는 Cloudflare Pages가 git push 시 자동으로 처리합니다 (git push 후 대시보드에서 확인).'",
     "blog:seed": "node scripts/seed-posts.mjs",
     "blog:publish-daily": "node scripts/auto-publish-daily.mjs"
   },
