@@ -385,6 +385,12 @@ body[data-mascot="false"] .mascot {
 .floater-btn:hover {
   transform: scale(1.05) rotate(-2deg);
 }
+.floater-btn-call {
+  background: var(--paper);
+  font-size: 14px;
+  padding: 11px 16px;
+  text-decoration: none;
+}
 .floater-btn .pulse {
   width: 10px;
   height: 10px;

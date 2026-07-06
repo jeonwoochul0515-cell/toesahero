@@ -128,6 +128,10 @@ export function Calculator() {
                 <span className="dot-warn" />
                 위 금액은 항목별 일반 예시값을 단순 합산한 참고 수치이며, 실제 청구 가능액은 사안별로 변호사 검토가 필요합니다.
               </div>
+              <div className="calc-total-note">
+                <Icon name="clock" size={13} />
+                임금·퇴직금 청구권은 <strong style={{ color: "var(--ink)" }}>3년이 지나면 시효로 소멸</strong>합니다 (근로기준법 §49, 근로자퇴직급여보장법 §10).
+              </div>
               <a
                 href="/calc"
                 className="btn"

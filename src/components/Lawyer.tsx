@@ -94,7 +94,19 @@ export function Lawyer() {
               <a href="tel:1660-4452" className="btn primary">
                 <Icon name="phone" size={16} /> 1660-4452 직통
               </a>
+              <a
+                href="https://www.klaw.or.kr/search"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn"
+                style={{ background: "var(--gray-1)", color: "var(--ink-2)" }}
+              >
+                <Icon name="shield" size={16} /> 대한변협 등록 변호사 직접 조회 <Icon name="external" size={14} />
+              </a>
             </div>
+            <p style={{ marginTop: 10, fontSize: 12, color: "var(--muted)" }}>
+              대한변호사협회가 운영하는 '나의 변호사'에서 "김창희"로 검색하면 등록 여부를 직접 확인하실 수 있습니다.
+            </p>
           </div>
         </div>
       </div>
