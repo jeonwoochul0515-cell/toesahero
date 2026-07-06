@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Nav } from "./components/Nav";
 import { usePageMeta } from "./hooks/usePageMeta";
+import { useReveal } from "./hooks/useReveal";
 import { Hero } from "./components/Hero";
 import { Marquee } from "./components/Marquee";
 import { StatsBand } from "./components/StatsBand";
@@ -45,22 +46,7 @@ export function Home() {
     ],
   });
 
-  useEffect(() => {
-    const els = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
+  useReveal();
 
   useEffect(() => {
     const handler = () => setChatOpen(true);

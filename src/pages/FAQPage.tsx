@@ -5,6 +5,8 @@ import {
   breadcrumbJsonLd,
 } from "../hooks/usePageMeta";
 import { Icon } from "../components/Icon";
+import { Compare } from "../components/Compare";
+import { useReveal } from "../hooks/useReveal";
 
 type Q = { q: string; a: string };
 
@@ -60,6 +62,7 @@ const FAQ: Q[] = [
 ];
 
 export function FAQPage() {
+  useReveal();
   const seo = usePageMeta({
     title: "퇴사대행 자주 묻는 질문 12가지 — 변호사 답변",
     description:
@@ -98,6 +101,8 @@ export function FAQPage() {
           변호사 운영 퇴사대행에 대한 12가지 질문에 변호사가 직접 답합니다.
         </p>
       </header>
+
+      <Compare />
 
       <main className="page-static-main">
         <div className="faq-list">
