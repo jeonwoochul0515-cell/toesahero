@@ -79,6 +79,9 @@ export function Hero({ heroCopy = "boss", openChat }: Props) {
                 서비스 안내 →
               </a>
             </div>
+            <p className="hero-free-note">
+              <Icon name="check" size={14} /> 부담 갖지 마세요 — 카톡 문의 후 변호사가 직접 방향을 안내드립니다
+            </p>
             <div className="hero-trust">
               <div className="trust-item">
                 <strong>10년+</strong>

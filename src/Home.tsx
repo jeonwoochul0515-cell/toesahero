@@ -7,7 +7,9 @@ import { StatsBand } from "./components/StatsBand";
 import { Audience } from "./components/Audience";
 import { Calculator } from "./components/Calculator";
 import { Process } from "./components/Process";
+import { Compare } from "./components/Compare";
 import { Lawyer } from "./components/Lawyer";
+import { Assurance } from "./components/Assurance";
 import { Pricing } from "./components/Pricing";
 import { Reviews } from "./components/Reviews";
 import { Footer } from "./components/Footer";
@@ -78,7 +80,9 @@ export function Home() {
       <Audience />
       <Calculator />
       <Process />
+      <Compare />
       <Lawyer />
+      <Assurance />
       <Pricing openChat={openChat} />
       <Reviews />
       <Footer openChat={openChat} />

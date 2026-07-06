@@ -98,7 +98,7 @@ export function Pricing({ openChat }: Props) {
           <p className="lead" style={{ margin: "0 auto" }}>
             <strong>노무사·일반 업체가 다룰 수 없는 영역까지 변호사가 직접 처리합니다.</strong>
             <br />
-            상담 후 사안에 적합한 절차를 안내드립니다. 표시 금액은 위임계약 기준 보수이며, 사안에 따라 변동될 수 있습니다.
+            상담 후 사안에 적합한 절차를 안내드립니다. 아래 금액은 위임계약을 맺을 때 기준이 되는 보수이며, 사안에 따라 변동될 수 있습니다.
             <br />
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
               ※ 위 보수에는 부가세가 별도로 부과될 수 있습니다.
