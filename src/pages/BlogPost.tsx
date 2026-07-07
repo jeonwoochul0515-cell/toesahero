@@ -117,6 +117,13 @@ export function BlogPost() {
         <div className="blog-post-meta">
           <strong>{post.author}</strong>
           <time>{fmtDate(post.publishedAt)}</time>
+          {post.updatedAt &&
+            post.publishedAt &&
+            post.updatedAt.seconds - post.publishedAt.seconds > 86400 && (
+              <span className="blog-post-updated">
+                (수정: {fmtDate(post.updatedAt)})
+              </span>
+            )}
         </div>
 
         <div className="blog-post-body">

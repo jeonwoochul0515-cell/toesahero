@@ -1,4 +1,5 @@
 // 앱 라우트 정의 — vite-react-ssg 프리렌더용 RouteRecord 배열
+import { lazy, Suspense } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
@@ -12,26 +13,61 @@ import { BlogList } from "./pages/BlogList";
 import { BlogPost } from "./pages/BlogPost";
 import { FAQPage } from "./pages/FAQPage";
 import { NotFound } from "./pages/NotFound";
-import { BlogAdmin } from "./admin/BlogAdmin";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
-import { AdminLogin } from "./admin/AdminLogin";
-import { RequireAdmin } from "./admin/RequireAdmin";
-import { AdminLayout } from "./admin/AdminLayout";
-import { AdminDashboard } from "./admin/AdminDashboard";
-import { ConsultationsList } from "./admin/ConsultationsList";
-import { ConsultationDetail } from "./admin/ConsultationDetail";
-import { OrdersAdmin } from "./admin/OrdersAdmin";
-import { StatsAdmin } from "./admin/StatsAdmin";
-import { ChatLogs } from "./admin/ChatLogs";
-import { PrintLetter } from "./admin/PrintLetter";
-import { Kanban } from "./admin/Kanban";
-import { ReviewsAdmin } from "./admin/ReviewsAdmin";
 
-// 모든 라우트를 감싸는 루트 레이아웃 — 인증 컨텍스트 제공
+// admin/* 라우트는 프리렌더 대상이 아니고(main.tsx의 includedRoutes 참고) 방문자 대다수와 무관하므로
+// 메인 번들에서 분리해 지연 로드한다 — 방문자용 홈/블로그/FAQ 초기 로드 용량을 줄이기 위함.
+const AdminLogin = lazy(() =>
+  import("./admin/AdminLogin").then((m) => ({ default: m.AdminLogin }))
+);
+const RequireAdmin = lazy(() =>
+  import("./admin/RequireAdmin").then((m) => ({ default: m.RequireAdmin }))
+);
+const AdminLayout = lazy(() =>
+  import("./admin/AdminLayout").then((m) => ({ default: m.AdminLayout }))
+);
+const AdminDashboard = lazy(() =>
+  import("./admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard }))
+);
+const ConsultationsList = lazy(() =>
+  import("./admin/ConsultationsList").then((m) => ({
+    default: m.ConsultationsList,
+  }))
+);
+const ConsultationDetail = lazy(() =>
+  import("./admin/ConsultationDetail").then((m) => ({
+    default: m.ConsultationDetail,
+  }))
+);
+const OrdersAdmin = lazy(() =>
+  import("./admin/OrdersAdmin").then((m) => ({ default: m.OrdersAdmin }))
+);
+const StatsAdmin = lazy(() =>
+  import("./admin/StatsAdmin").then((m) => ({ default: m.StatsAdmin }))
+);
+const ChatLogs = lazy(() =>
+  import("./admin/ChatLogs").then((m) => ({ default: m.ChatLogs }))
+);
+const PrintLetter = lazy(() =>
+  import("./admin/PrintLetter").then((m) => ({ default: m.PrintLetter }))
+);
+const Kanban = lazy(() =>
+  import("./admin/Kanban").then((m) => ({ default: m.Kanban }))
+);
+const ReviewsAdmin = lazy(() =>
+  import("./admin/ReviewsAdmin").then((m) => ({ default: m.ReviewsAdmin }))
+);
+const BlogAdmin = lazy(() =>
+  import("./admin/BlogAdmin").then((m) => ({ default: m.BlogAdmin }))
+);
+
+// 모든 라우트를 감싸는 루트 레이아웃 — 인증 컨텍스트 제공 + admin lazy chunk 로딩 경계
 function RootLayout() {
   return (
     <AdminAuthProvider>
-      <Outlet />
+      <Suspense fallback={null}>
+        <Outlet />
+      </Suspense>
     </AdminAuthProvider>
   );
 }

@@ -1,3 +1,6 @@
+# www → apex 301 (중복 호스트 정리 — 대표 URL 통일)
+https://www.toesahero.com/* https://toesahero.com/:splat 301
+
 /terms /terms.html 200
 /privacy /privacy.html 200
 # SPA 폴백 / 404 분기는 functions/_middleware.ts 가 전담한다(클라 전용 라우트만 폴백).

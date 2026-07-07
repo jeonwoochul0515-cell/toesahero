@@ -12,6 +12,15 @@ const STATUS_LABEL: Record<PostDoc["status"], string> = {
   published: "게시됨",
 };
 
+// 게시/수정 시 빙·네이버 등에 URL 변경을 즉시 통지(색인 가속용, 실패해도 무시)
+function pingIndexNow(slug: string) {
+  void fetch("/api/indexnow", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ slug }),
+  }).catch(() => {});
+}
+
 function slugify(s: string): string {
   return s
     .toLowerCase()
@@ -86,10 +95,12 @@ export function BlogAdmin() {
       if (editing) {
         await updatePost(editing.id, payload);
         setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+        if (payload.status === "published") pingIndexNow(slug);
       } else {
         const id = await createPost(payload);
         if (id) {
           setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+          if (payload.status === "published") pingIndexNow(slug);
           startNew();
         }
       }
@@ -107,6 +118,7 @@ export function BlogAdmin() {
     try {
       await updatePost(editing.id, { status: "published" });
       setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+      pingIndexNow(editing.slug);
     } finally {
       setBusy(false);
     }
