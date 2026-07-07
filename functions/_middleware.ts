@@ -17,6 +17,13 @@ function isClientRoute(pathname: string): boolean {
 }
 
 export const onRequest: PagesFunction = async ({ request, next }) => {
+  // www -> apex 301 (Pages _redirects는 호스트 기반 리다이렉트를 지원하지 않아 여기서 처리)
+  const url = new URL(request.url);
+  if (url.hostname === "www.toesahero.com") {
+    url.hostname = "toesahero.com";
+    return Response.redirect(url.toString(), 301);
+  }
+
   const response = await next();
 
   // 정적 자산이 매칭된 경우(공개 프리렌더 페이지 등)는 그대로 반환
