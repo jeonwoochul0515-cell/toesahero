@@ -13,6 +13,8 @@ const SITE_HOST = "https://toesahero.com";
 const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }> = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/calc", changefreq: "monthly", priority: "0.8" },
+  { path: "/unemployment-calc", changefreq: "monthly", priority: "0.8" },
+  { path: "/resignation-letter", changefreq: "monthly", priority: "0.7" },
   { path: "/diagnose", changefreq: "monthly", priority: "0.8" },
   { path: "/harassment", changefreq: "monthly", priority: "0.7" },
   { path: "/small-business", changefreq: "monthly", priority: "0.7" },

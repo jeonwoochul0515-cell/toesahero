@@ -549,6 +549,15 @@ export function CalcPage() {
           </aside>
         </div>
 
+        <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap", justifyContent: "center" }}>
+          <Link to="/unemployment-calc" className="btn" style={{ padding: "10px 16px", fontSize: 13 }}>
+            <Icon name="calc" size={14} /> 실업급여 계산기
+          </Link>
+          <Link to="/resignation-letter" className="btn" style={{ padding: "10px 16px", fontSize: 13 }}>
+            <Icon name="doc" size={14} /> 사직서 양식 받기
+          </Link>
+        </div>
+
         <p className="calc-foot">
           <Icon name="lock" size={14} /> 입력하신 정보는 Firebase에 안전하게 저장되며, 변호사 비밀유지 의무
           하에 처리됩니다. 본 사이트는 변호사법 제23조에 따른 광고물이며, 본

@@ -4,6 +4,8 @@ import { Navigate, Outlet } from "react-router-dom";
 import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
 import { CalcPage } from "./pages/CalcPage";
+import { UnemploymentCalcPage } from "./pages/UnemploymentCalcPage";
+import { ResignationLetterPage } from "./pages/ResignationLetterPage";
 import { DiagnosePage } from "./pages/DiagnosePage";
 import { SegmentLandingPage } from "./pages/SegmentLandingPage";
 import { ForeignWorkerPage } from "./pages/ForeignWorkerPage";
@@ -97,6 +99,8 @@ export const routes: RouteRecord[] = [
       { index: true, element: <Home /> },
       { path: "my", element: <MyPage /> },
       { path: "calc", element: <CalcPage /> },
+      { path: "unemployment-calc", element: <UnemploymentCalcPage /> },
+      { path: "resignation-letter", element: <ResignationLetterPage /> },
       { path: "diagnose", element: <DiagnosePage /> },
       { path: "harassment", element: <SegmentLandingPage seg="harassment" /> },
       {
