@@ -102,11 +102,11 @@ export function Calculator() {
               놓친 돈 체크
             </span>
             <h2 className="h2" style={{ color: "var(--cream)" }}>
-              놓치고 있을 수 있는
+              혹시 놓치고 있는
               <br />
               <span style={{ color: "var(--yellow)" }}>청구 항목</span>
               <br />
-              체크리스트
+              있지 않을까요?
             </h2>
             <p className="lead" style={{ color: "var(--gray-2)" }}>
               간단 체크리스트로 놓친 청구 항목을 빠르게 확인하세요.{" "}

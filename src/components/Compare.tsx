@@ -66,8 +66,8 @@ export function Compare() {
         <div className="reveal" style={{ textAlign: "center", maxWidth: 680, margin: "0 auto 40px" }}>
           <span className="eyebrow">비교해보세요</span>
           <h2 className="h2">
-            혼자 vs 노무사 vs{" "}
-            <span className="mark-hl orange">변호사 직접 운영</span>
+            노무사와 변호사,{" "}
+            <span className="mark-hl orange">뭐가 다를까요?</span>
           </h2>
           <p className="lead" style={{ margin: "0 auto" }}>
             분쟁이 격화될수록 대리·교섭·고소는 변호사 전속 사무입니다 (변호사법 §109).

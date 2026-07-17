@@ -51,9 +51,9 @@ export function Process() {
         <div className="reveal">
           <span className="eyebrow">진행 방식</span>
           <h2 className="h2">
-            카톡 문의 한 번으로
+            퇴사대행은
             <br />
-            <span className="mark-hl orange">4단계 절차</span>
+            <span className="mark-hl orange">어떻게 진행되나요?</span>
           </h2>
           <p className="lead">상담 → 위임 → 통보 → 사후 자문. 사안에 따라 기간은 달라집니다.</p>
         </div>
