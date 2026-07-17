@@ -71,13 +71,20 @@ const BlogAdmin = lazy(() =>
   import("./admin/BlogAdmin").then((m) => ({ default: m.BlogAdmin }))
 );
 
-// 모든 라우트를 감싸는 루트 레이아웃 — 인증 컨텍스트 제공 + admin lazy chunk 로딩 경계
+// 모든 라우트를 감싸는 루트 레이아웃 — lazy chunk 로딩 경계
 function RootLayout() {
   return (
+    <Suspense fallback={null}>
+      <Outlet />
+    </Suspense>
+  );
+}
+
+// admin/* 전용 — 인증 컨텍스트를 admin 라우트에만 마운트해 일반 방문자는 Firebase Auth 초기화를 겪지 않게 한다.
+function AdminAuthLayout() {
+  return (
     <AdminAuthProvider>
-      <Suspense fallback={null}>
-        <Outlet />
-      </Suspense>
+      <Outlet />
     </AdminAuthProvider>
   );
 }
@@ -104,32 +111,37 @@ export const routes: RouteRecord[] = [
       { path: "blog", element: <BlogList /> },
       { path: "blog/:slug", element: <BlogPost /> },
       { path: "faq", element: <FAQPage /> },
-      { path: "admin/login", element: <AdminLogin /> },
       {
-        path: "admin/consultations/:id/print",
-        element: (
-          <RequireAdmin>
-            <PrintLetter />
-          </RequireAdmin>
-        ),
-      },
-      {
-        path: "admin",
-        element: (
-          <RequireAdmin>
-            <AdminLayout />
-          </RequireAdmin>
-        ),
+        element: <AdminAuthLayout />,
         children: [
-          { index: true, element: <AdminDashboard /> },
-          { path: "consultations", element: <ConsultationsList /> },
-          { path: "consultations/:id", element: <ConsultationDetail /> },
-          { path: "orders", element: <OrdersAdmin /> },
-          { path: "stats", element: <StatsAdmin /> },
-          { path: "kanban", element: <Kanban /> },
-          { path: "reviews", element: <ReviewsAdmin /> },
-          { path: "blog", element: <BlogAdmin /> },
-          { path: "chats", element: <ChatLogs /> },
+          { path: "admin/login", element: <AdminLogin /> },
+          {
+            path: "admin/consultations/:id/print",
+            element: (
+              <RequireAdmin>
+                <PrintLetter />
+              </RequireAdmin>
+            ),
+          },
+          {
+            path: "admin",
+            element: (
+              <RequireAdmin>
+                <AdminLayout />
+              </RequireAdmin>
+            ),
+            children: [
+              { index: true, element: <AdminDashboard /> },
+              { path: "consultations", element: <ConsultationsList /> },
+              { path: "consultations/:id", element: <ConsultationDetail /> },
+              { path: "orders", element: <OrdersAdmin /> },
+              { path: "stats", element: <StatsAdmin /> },
+              { path: "kanban", element: <Kanban /> },
+              { path: "reviews", element: <ReviewsAdmin /> },
+              { path: "blog", element: <BlogAdmin /> },
+              { path: "chats", element: <ChatLogs /> },
+            ],
+          },
         ],
       },
       { path: "*", element: <NotFound /> },
