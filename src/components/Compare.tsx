@@ -32,7 +32,7 @@ const rows: Row[] = [
   {
     label: "임금·퇴직금 체불 대응",
     self: { level: "warn", text: "노동청 직접 신고" },
-    agent: { level: "warn", text: "진정서 작성만 가능, 소송 대리 불가" },
+    agent: { level: "warn", text: "노동청 진정·노동위원회 대리 가능, 민사소송 대리는 불가" },
     lawyer: { level: "yes", text: "진정 자문 + 민사소송 대리 가능" },
   },
   {
