@@ -3,18 +3,28 @@ import { lazy, Suspense } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
-import { MyPage } from "./pages/MyPage";
 import { CalcPage } from "./pages/CalcPage";
-import { CheckoutPage } from "./pages/CheckoutPage";
 import { DiagnosePage } from "./pages/DiagnosePage";
 import { SegmentLandingPage } from "./pages/SegmentLandingPage";
 import { ForeignWorkerPage } from "./pages/ForeignWorkerPage";
-import { BlogList } from "./pages/BlogList";
-import { BlogPost } from "./pages/BlogPost";
 import { FAQPage } from "./pages/FAQPage";
 import { NotFound } from "./pages/NotFound";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
 
+// my/checkout은 프리렌더 대상이 아니고(main.tsx의 includedRoutes 참고), blog는 react-markdown 의존성이 무거워
+// 홈/FAQ/계산기 방문자 대다수와 무관한 코드를 메인 번들에서 분리해 지연 로드한다.
+const MyPage = lazy(() =>
+  import("./pages/MyPage").then((m) => ({ default: m.MyPage }))
+);
+const CheckoutPage = lazy(() =>
+  import("./pages/CheckoutPage").then((m) => ({ default: m.CheckoutPage }))
+);
+const BlogList = lazy(() =>
+  import("./pages/BlogList").then((m) => ({ default: m.BlogList }))
+);
+const BlogPost = lazy(() =>
+  import("./pages/BlogPost").then((m) => ({ default: m.BlogPost }))
+);
 // admin/* 라우트는 프리렌더 대상이 아니고(main.tsx의 includedRoutes 참고) 방문자 대다수와 무관하므로
 // 메인 번들에서 분리해 지연 로드한다 — 방문자용 홈/블로그/FAQ 초기 로드 용량을 줄이기 위함.
 const AdminLogin = lazy(() =>

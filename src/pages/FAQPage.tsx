@@ -64,12 +64,13 @@ const FAQ: Q[] = [
 export function FAQPage() {
   useReveal();
   const seo = usePageMeta({
-    title: "퇴사대행 자주 묻는 질문 12가지 — 변호사 답변",
+    title: "퇴사대행(퇴직대행) 자주 묻는 질문 12가지 — 변호사 답변",
     description:
-      "변호사 vs 노무사 차이, 변호사법 109조, 사직서 거부, 퇴직금 미지급, 5인 미만 사업장 등 퇴사대행 자주 묻는 12문항.",
+      "변호사 vs 노무사 차이, 변호사법 109조, 사직서 거부, 퇴직금 미지급, 5인 미만 사업장 등 퇴사대행(퇴직대행) 자주 묻는 12문항.",
     canonical: "/faq",
     keywords: [
       "퇴사대행 FAQ",
+      "퇴직대행 FAQ",
       "변호사 vs 노무사",
       "변호사법 109조",
       "사직서 거부",

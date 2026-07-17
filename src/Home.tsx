@@ -22,12 +22,13 @@ export function Home() {
   const [chatOpen, setChatOpen] = useState(false);
 
   const seo = usePageMeta({
-    title: "퇴사대행 변호사 — 퇴사히어로",
+    title: "퇴사대행(퇴직대행) 변호사 — 퇴사히어로",
     description:
-      "법률사무소 청송 김창희 변호사가 직접 운영하는 퇴사대행. 임금체불·퇴직금·직장 내 괴롭힘·부당해고까지 변호사가 직접 처리합니다.",
+      "법률사무소 청송 김창희 변호사가 직접 운영하는 퇴사대행(퇴직대행). 임금체불·퇴직금·직장 내 괴롭힘·부당해고까지 변호사가 직접 처리합니다.",
     canonical: "/",
     keywords: [
       "퇴사대행",
+      "퇴직대행",
       "퇴사대행 변호사",
       "변호사 퇴사대행",
       "법률사무소 청송",

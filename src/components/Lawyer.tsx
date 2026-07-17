@@ -21,7 +21,7 @@ export function Lawyer() {
             <div className="portrait-frame">
               <div className="portrait-photo">
                 <img
-                  src="/lawyer-changhee.png"
+                  src="/lawyer-changhee.webp"
                   alt="법률사무소 청송 김창희 변호사"
                   width={480}
                   height={600}
