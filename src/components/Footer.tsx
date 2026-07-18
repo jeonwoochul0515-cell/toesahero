@@ -146,6 +146,15 @@ export function Footer({ openChat }: Props) {
               >
                 카카오톡 채널 ↗
               </a>
+              <a
+                href="https://analytics.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="GA4 대시보드 바로가기"
+                style={{ fontSize: 11, color: "var(--muted)" }}
+              >
+                GA4 바로가기 ↗
+              </a>
               <a href="tel:1660-4452">
                 <Icon name="phone" size={13} /> 1660-4452
               </a>
