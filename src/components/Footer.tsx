@@ -151,7 +151,6 @@ export function Footer({ openChat }: Props) {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="GA4 대시보드 바로가기"
-                style={{ fontSize: 11, color: "var(--muted)" }}
               >
                 GA4 바로가기 ↗
               </a>
