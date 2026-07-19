@@ -51,3 +51,15 @@
 - [ ] SOLAPI 발신번호 사전 등록(통신사 본인확인, 1~3일 소요)
 - [ ] 운영 SOP에 결제 분쟁·환불 절차 추가(`docs/OPS_GUIDE.md`)
 - [ ] 출시 후 2주 결제 로그 일일 점검
+
+---
+
+## D1 — 따뜻한 브루탈리즘 리톤 (2026-07-09)  ✅ 완료
+- [x] `styles.css :root` 팔레트 온화 (yellow→머스터드 #F2C14E, orange→테라코타 #E07856, ink→웜브라운 #241C15, cream #FBF7EF)
+- [x] 하드 섀도우 6px→5px + 웜잉크 (오프셋 시그니처 유지)
+- [x] Hero boss variant → 승인 카피 ("퇴사, 혼자 / 결정하지 마세요 / 변호사가 옆에서 같이 갑니다")
+- [x] soft/legal variant 톤 미세 온화
+- [x] Audience 카피 온도 상향(공감+안심). Assurance/Footer는 기존이 이미 따뜻해 유지
+- [x] 다크 섹션(Marquee/Calculator/Footer) 웜브라운 확인
+- [x] `npm run build` 통과
+- [x] 브라우저 육안 확인(Hero/Audience/Calculator/Pricing/Footer)

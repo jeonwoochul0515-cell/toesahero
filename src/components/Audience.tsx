@@ -69,13 +69,13 @@ export function Audience() {
     <section id="audience" style={{ background: "var(--cream)" }}>
       <div className="wrap">
         <div className="reveal">
-          <span className="eyebrow">혹시 당신 얘기?</span>
+          <span className="eyebrow">혹시 지금 이런 마음인가요</span>
           <h2 className="h2">
             이런 <span className="mark-hl">상황</span>이라면
             <br />
-            변호사와 상의하세요
+            혼자 삭이지 마세요
           </h2>
-          <p className="lead">하나라도 해당되면 카톡으로 문의 주세요.</p>
+          <p className="lead">하나라도 마음에 걸린다면, 편하게 카톡으로 이야기부터 꺼내보세요. 변호사가 먼저 듣겠습니다.</p>
         </div>
         <div className="aud-grid reveal">
           {cases.map((c, i) => (
