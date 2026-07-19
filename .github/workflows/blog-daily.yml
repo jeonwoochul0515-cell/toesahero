@@ -2,13 +2,16 @@ name: Daily Blog Auto-Publish
 
 on:
   schedule:
-    # 매일 00:10 UTC = 09:10 KST 에 1편 자동 발행
-    - cron: "10 0 * * *"
+    # 매주 월/수/금 00:10 UTC = 09:10 KST 에 1편씩, 주 3회 자동 발행
+    - cron: "10 0 * * 1,3,5"
   workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - uses: actions/checkout@v4
 
@@ -32,3 +35,37 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
         run: node scripts/auto-publish-daily.mjs
+
+      # 새 글은 Firestore에만 쓰여지고 사이트는 SSG 프리렌더라, 재빌드·재배포 전까지는
+      # /blog/:slug 가 404를 반환한다(functions/_middleware.ts는 /my,/checkout,/admin만 SPA 폴백).
+      # 발행 직후 여기서 바로 재빌드·재배포해 새 글을 라이브로 반영한다.
+      - name: Rebuild site (프리렌더에 새 글 반영)
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_TOSS_CLIENT_KEY: ${{ secrets.VITE_TOSS_CLIENT_KEY }}
+        run: npm run build
+
+      - name: Check Cloudflare credentials
+        id: cf
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN secret not set — skipping deploy."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.cf.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=toesahero --branch=main --commit-message="chore: 자동발행 글 반영 재배포 ${{ github.sha }}" --commit-hash=${{ github.sha }}
