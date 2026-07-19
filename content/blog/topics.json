@@ -2,6 +2,12 @@
   "_comment": "하루 1편 자동 발행용 주제 큐. 위에서부터 순서대로, 아직 발행되지 않은 slug를 골라 발행한다. 큐가 비면 스크립트가 AI로 새 주제를 제안한다. 새 주제를 추가하려면 이 배열에 항목을 더하면 된다.",
   "topics": [
     {
+      "slug": "workplace-harassment-labor-office-appeal",
+      "titleHint": "직장 내 괴롭힘, 회사가 '불인정' 통보했다면 — 노동청 진정부터 재심청구까지",
+      "keywords": ["직장내괴롭힘 노동청 신고", "중앙노동위원회 재심", "직장내괴롭힘 불인정", "근로기준법 제76조의2"],
+      "coverEmoji": "🛡️"
+    },
+    {
       "slug": "resignation-agency-legality",
       "titleHint": "퇴사대행, 불법 아닌가요? — 변호사가 하는 퇴사대행의 적법성",
       "keywords": ["퇴사대행 불법", "변호사 퇴사대행", "퇴사대행 적법성"],
