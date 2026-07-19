@@ -68,4 +68,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=toesahero --branch=main --commit-message="chore: 자동발행 글 반영 재배포 ${{ github.sha }}" --commit-hash=${{ github.sha }}
+          command: pages deploy dist --project-name=toesahero --branch=main --commit-message="자동발행 글 반영 재배포 ${{ github.sha }}" --commit-hash=${{ github.sha }}
