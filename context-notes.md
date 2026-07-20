@@ -223,7 +223,8 @@
 
 ## 확인한 사실
 - 블로그 자동 발행 파이프라인 정상 작동 중 — 2026-07-20 01:30 GMT에도 발행됨(rss.xml 실측).
-- 발행 8편 vs 큐 잔여: 기존 큐의 `small-business-resignation`·`recommended-vs-voluntary-resignation`은 유사 slug로 이미 발행돼 있어 재발행 시 유사문서 위험 — **큐에서 뺄지 사용자 확인 필요**(임의 삭제 안 함).
+- 발행 8편 vs 큐 잔여: 기존 큐의 `small-business-resignation`·`recommended-vs-voluntary-resignation`은 유사 slug로 이미 발행돼 있어 재발행 시 유사문서 위험 → **사용자 승인으로 큐에서 제거함**(커밋 `b277671`). 큐 15개 잔여.
+- 큐에 남은 `workplace-harassment-labor-office-appeal`·`resignation-agency-legality`·`unpaid-severance-recovery-steps` 3개는 **slug가 정확히 일치**해 `auto-publish-daily.mjs`가 Firestore 기존 slug 집합과 대조해 자동 skip한다(스크립트 205행 `queue.find(t => !existingSlugs.has(t.slug))`) — 무해하므로 그대로 둠. 유사문서 위험은 "내용은 같은데 slug만 다른" 경우에만 발생.
 
 ## 다음 세션
 - 심사 통과 시: `GET /ncc/channels`로 ELIGIBLE 확인 후 ADS_PLAYBOOK.md 3단계(그룹 분리)는 **예산 확정과 함께** 진행.
