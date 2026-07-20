@@ -56,18 +56,6 @@
       "coverEmoji": "📄"
     },
     {
-      "slug": "small-business-resignation",
-      "titleHint": "5인 미만 사업장 퇴사, 무엇이 다른가",
-      "keywords": ["5인 미만 사업장 퇴사", "5인 미만 퇴직금", "소규모 사업장"],
-      "coverEmoji": "🏢"
-    },
-    {
-      "slug": "recommended-vs-voluntary-resignation",
-      "titleHint": "권고사직 vs 자발적 사직, 실업급여 차이",
-      "keywords": ["권고사직 실업급여", "자발적 사직", "실업급여 조건"],
-      "coverEmoji": "🔀"
-    },
-    {
       "slug": "foreign-worker-resignation",
       "titleHint": "외국인 근로자·5인 미만 사업장도 퇴사대행 가능한가요",
       "keywords": ["외국인 퇴사대행", "외국인 근로자 퇴사", "외국인 노동자 권리"],
