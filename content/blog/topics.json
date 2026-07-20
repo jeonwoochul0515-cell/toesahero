@@ -2,6 +2,42 @@
   "_comment": "하루 1편 자동 발행용 주제 큐. 위에서부터 순서대로, 아직 발행되지 않은 slug를 골라 발행한다. 큐가 비면 스크립트가 AI로 새 주제를 제안한다. 새 주제를 추가하려면 이 배열에 항목을 더하면 된다.",
   "topics": [
     {
+      "slug": "dismissal-notice-requirements",
+      "titleHint": "해고통지서를 받았다면 — 서면 통지 요건과 해고예고수당 확인법",
+      "keywords": ["해고통지서", "해고예고통지서", "해고예고수당", "근로기준법 제26조"],
+      "coverEmoji": "📋"
+    },
+    {
+      "slug": "recommended-resignation-severance-pay",
+      "titleHint": "권고사직 위로금, 얼마를 어떻게 받아야 하나 — 협상 전 알아둘 것",
+      "keywords": ["권고사직위로금", "권고사직 위로금 얼마", "권고사직 합의"],
+      "coverEmoji": "💰"
+    },
+    {
+      "slug": "unpaid-wage-report-and-confirmation",
+      "titleHint": "임금체불 노동청 신고 방법 — 체불임금확인서 발급까지",
+      "keywords": ["체불임금확인서", "노동청신고방법", "임금체불 진정"],
+      "coverEmoji": "🏛️"
+    },
+    {
+      "slug": "recommended-resignation-company-disadvantage",
+      "titleHint": "권고사직, 회사가 받는 불이익을 알면 협상이 달라집니다",
+      "keywords": ["권고사직회사불이익", "권고사직 고용유지지원금", "권고사직 거부"],
+      "coverEmoji": "⚖️"
+    },
+    {
+      "slug": "free-labor-attorney-support",
+      "titleHint": "국선노무사(무료 권리구제 대리인) 제도 — 조건과 신청 방법, 한계까지",
+      "keywords": ["국선노무사", "무료 노무사 상담", "권리구제 대리인"],
+      "coverEmoji": "🤝"
+    },
+    {
+      "slug": "workplace-harassment-punishment-cases",
+      "titleHint": "직장 내 괴롭힘, 처벌 수위와 실제 인정 사례",
+      "keywords": ["직장내괴롭힘처벌", "직장내괴롭힘사례", "근로기준법 제76조의2"],
+      "coverEmoji": "🛡️"
+    },
+    {
       "slug": "workplace-harassment-labor-office-appeal",
       "titleHint": "직장 내 괴롭힘, 회사가 '불인정' 통보했다면 — 노동청 진정부터 재심청구까지",
       "keywords": ["직장내괴롭힘 노동청 신고", "중앙노동위원회 재심", "직장내괴롭힘 불인정", "근로기준법 제76조의2"],
