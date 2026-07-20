@@ -226,6 +226,33 @@
 - 발행 8편 vs 큐 잔여: 기존 큐의 `small-business-resignation`·`recommended-vs-voluntary-resignation`은 유사 slug로 이미 발행돼 있어 재발행 시 유사문서 위험 → **사용자 승인으로 큐에서 제거함**(커밋 `b277671`). 큐 15개 잔여.
 - 큐에 남은 `workplace-harassment-labor-office-appeal`·`resignation-agency-legality`·`unpaid-severance-recovery-steps` 3개는 **slug가 정확히 일치**해 `auto-publish-daily.mjs`가 Firestore 기존 slug 집합과 대조해 자동 skip한다(스크립트 205행 `queue.find(t => !existingSlugs.has(t.slug))`) — 무해하므로 그대로 둠. 유사문서 위험은 "내용은 같은데 slug만 다른" 경우에만 발생.
 
+## 같은 날 후속 — 심사 전부 통과, 라이브 전환 (2026-07-20 저녁)
+
+사용자가 광고주센터 비즈채널 화면을 붙여넣어 확인 요청 → API 재조회 결과 **퇴사히어로 관련 전부 통과**(채널 ELIGIBLE/APPROVED, 캠페인·광고그룹·키워드 20개·소재 1개 모두 ELIGIBLE/APPROVED). 실적은 통과 직후라 0.
+
+### 진단: 입찰가가 검색량과 거꾸로 걸려 있었음
+`/keywordstool`(검색량) × `/estimate/average-position-bid/keyword`(순위별 시세)를 대조한 결과.
+- 월 13,630회 `권고사직`에 70원(5위 시세 1,390원) → 노출 불가. 월 4,900회 `직장내괴롭힘처벌`에 300원(5위 2,790원) → 노출 불가.
+- 반대로 월 30회 `임금체불전문변호사`에 500원, 월 100회 `퇴사대행`에 1,000원.
+- 예산 소진방식이 `ACCELERATED`(빠른소진)라 하루 5,000원이 오전에 소진돼 오후·저녁 노출이 사라지는 구조.
+- `trackingMode: TRACKING_DISABLED` — 키워드별 전환 추적 불가.
+
+### 사용자 결정 (AskUserQuestion)
+- 예산: **현재 유지(하루 5,000원 / 월 약 15만원)** — 70원으로도 노출되는 저경쟁 키워드에 집중하는 보수적 테스트.
+- 랜딩: **당분간 홈 유지** — 방금 통과한 심사를 URL 변경으로 다시 걸지 않고, 반응하는 키워드를 먼저 확인한 뒤 연결.
+
+### 적용한 조치 (예산 증액 없음, 인상 항목 없음)
+1. 예산 소진방식 `ACCELERATED` → `STANDARD`(균등배분).
+2. 과다 입찰 8건 인하 — 노동청신고방법·퇴사대행 1000→300, 직장내괴롭힘노무사 500→70, 체불임금확인서 500→150, 임금체불전문변호사 500→300, 국선노무사·직장내괴롭힘처벌 300→70, 직장괴롭힘 300→100. 상세 표·사유는 `docs/ADS_PLAYBOOK.md`.
+3. 변경 후 전 키워드 `ELIGIBLE` 유지 확인 — **입찰가·예산 변경은 재심사를 유발하지 않는다**(랜딩 URL·소재 문구 변경은 유발).
+
+### API 함정 (전역 CLAUDE.md에도 반영함)
+- `PUT /ncc/keywords?fields=bidAmt` body 배열의 각 객체에 **`nccAdgroupId` 필수** — 빠지면 `3705 Invalid ad group number`.
+- `PUT /ncc/campaigns/{id}`의 유효 `fields`는 **`userLock`/`budget`/`period` 3개뿐**. `deliveryMethod`는 독립 fields가 아니라 `fields=budget` body에 `dailyBudget`+`useDailyBudget`과 함께 넣어야 바뀐다.
+- `POST /estimate/exposure-minimum-bid/keyword`는 body 형식 400이 잦음 → `average-position-bid`로 position 5를 조회해 사실상의 최소가로 쓰는 게 실용적.
+
 ## 다음 세션
-- 심사 통과 시: `GET /ncc/channels`로 ELIGIBLE 확인 후 ADS_PLAYBOOK.md 3단계(그룹 분리)는 **예산 확정과 함께** 진행.
-- 광고그룹 분리 없이 우선 켜기만 해도 무방 — 단 랜딩은 전부 홈이므로 서류·정보성 키워드 CTR/전환 낮을 것 각오.
+- **2주 뒤(2026-08-03경) 성과 점검**: `GET /stats`로 노출·클릭·소진액 확인. 판단 기준 4가지는 `docs/ADS_PLAYBOOK.md` 측정 절 참조.
+- 예산을 올린다면 **1순위는 `권고사직위로금`**(월 3,160회, 5위 440원) — 위로금 협상은 변호사 니즈 직결이고 갈등회피형 타깃과도 부합.
+- **전환 추적 미해결** — 네이버 프리미엄 로그분석(무료) 신청 후 받은 스크립트를 `index.html`에 삽입하면 키워드별 전환을 볼 수 있다. 신청은 사람이 광고주센터에서 해야 함.
+- 별건: 비즈채널 `법률사무소 청송 law`(플레이스, `bsn-...-14583070`)만 `BUSINESS_CHANNEL_DISAPPROVED`로 반려됨 — 퇴사히어로와 무관하나 확인 필요.
