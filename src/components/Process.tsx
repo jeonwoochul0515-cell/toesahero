@@ -55,7 +55,7 @@ export function Process() {
             <br />
             <span className="mark-hl orange">어떻게 진행되나요?</span>
           </h2>
-          <p className="lead">상담 → 위임 → 통보 → 사후 자문. 사안에 따라 기간은 달라집니다.</p>
+          <p className="lead">퇴사대행(퇴직대행)은 상담 → 위임 → 통보 → 사후 자문 순으로 진행됩니다. 사안에 따라 기간은 달라집니다.</p>
         </div>
         <div className="proc-grid reveal">
           {steps.map((s, i) => (

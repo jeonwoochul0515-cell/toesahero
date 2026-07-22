@@ -116,7 +116,7 @@ export function Footer({ openChat }: Props) {
               >
                 변호사가 직접 운영하는
                 <br />
-                합법 퇴사대행 서비스
+                합법 퇴사대행(퇴직대행) 서비스
               </p>
             </div>
             <div>
