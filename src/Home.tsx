@@ -6,6 +6,7 @@ import { Hero } from "./components/Hero";
 import { Marquee } from "./components/Marquee";
 import { StatsBand } from "./components/StatsBand";
 import { Audience } from "./components/Audience";
+import { LaborDisputes } from "./components/LaborDisputes";
 import { DraftHook } from "./components/DraftHook";
 import { Calculator } from "./components/Calculator";
 import { Process } from "./components/Process";
@@ -66,6 +67,7 @@ export function Home() {
       <Marquee />
       <StatsBand />
       <Audience />
+      <LaborDisputes />
       <DraftHook openChat={openChat} />
       <Calculator />
       <Process />

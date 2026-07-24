@@ -107,6 +107,18 @@ export const routes: RouteRecord[] = [
         path: "small-business",
         element: <SegmentLandingPage seg="small-business" />,
       },
+      {
+        path: "unfair-dismissal",
+        element: <SegmentLandingPage seg="unfair-dismissal" />,
+      },
+      {
+        path: "unpaid-wages",
+        element: <SegmentLandingPage seg="unpaid-wages" />,
+      },
+      {
+        path: "severance-pay",
+        element: <SegmentLandingPage seg="severance-pay" />,
+      },
       { path: "foreign-workers", element: <ForeignWorkerPage /> },
       { path: "checkout/:id", element: <CheckoutPage /> },
       { path: "checkout", element: <CheckoutPage /> },
