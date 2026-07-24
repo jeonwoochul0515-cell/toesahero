@@ -19,6 +19,7 @@ export function Nav({ openChat }: Props) {
           <span className="badge-byvar">by 변호사</span>
         </a>
         <div className="links">
+          <a href="#labor">노동분쟁</a>
           <a href="/calc">계산기</a>
           <a href="/blog">칼럼</a>
           <a href="/faq">FAQ</a>

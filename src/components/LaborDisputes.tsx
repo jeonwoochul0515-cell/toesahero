@@ -38,7 +38,7 @@ const CARDS: Card[] = [
 
 export function LaborDisputes() {
   return (
-    <section className="wrap reveal" style={{ padding: "72px 0" }}>
+    <section id="labor" className="wrap reveal" style={{ padding: "72px 0", scrollMarginTop: 80 }}>
       <div style={{ textAlign: "center", marginBottom: 12 }}>
         <span
           style={{

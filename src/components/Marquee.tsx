@@ -9,7 +9,7 @@ export function Marquee() {
           <span className="star">★</span>
           <em>법률사무소 청송</em>
           <span className="star">★</span>
-          <em>근로기준법 자문</em>
+          <em>노동분쟁 대응</em>
           <span className="star">★</span>
           <em>김창희 변호사</em>
           <span className="star">★</span>
@@ -19,7 +19,7 @@ export function Marquee() {
           <span className="star">★</span>
           <em>법률사무소 청송</em>
           <span className="star">★</span>
-          <em>근로기준법 자문</em>
+          <em>노동분쟁 대응</em>
           <span className="star">★</span>
           <em>김창희 변호사</em>
           <span className="star">★</span>
