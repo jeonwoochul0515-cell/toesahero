@@ -68,6 +68,58 @@ const tiers: Tier[] = [
   },
 ];
 
+// 노동분쟁 정액 상품(성공보수 0) — 퇴사 무관, "당해서 다투는" 고객용. 큰 소송은 상담 후 견적으로 분리.
+type LaborProduct = {
+  id: string;
+  name: string;
+  price: string;
+  sub: string;
+  perks: string[];
+  to: string;
+};
+
+const laborTiers: LaborProduct[] = [
+  {
+    id: "wage-recovery",
+    name: "임금·퇴직금 회수",
+    price: "880,000",
+    sub: "밀린 임금·퇴직금 회수 (정액 · 성공보수 0)",
+    perks: [
+      "변호사 명의 내용증명 발송",
+      "고용노동청 진정 대리 자문",
+      "근로감독관 조사 대응",
+      "체불액 산정·증거 정리",
+    ],
+    to: "/unpaid-wages",
+  },
+  {
+    id: "harassment-response",
+    name: "직장 내 괴롭힘 대응",
+    price: "660,000",
+    sub: "신고·전략·조사 대응 (정액)",
+    perks: [
+      "증거 정리·신고 전략 수립",
+      "사내 신고서·진정서 작성 자문",
+      "조사 절차 대응",
+      "회사 역공(명예훼손 등) 방어 자문",
+    ],
+    to: "/harassment",
+  },
+  {
+    id: "dismissal-response",
+    name: "부당해고 대응 (자문)",
+    price: "660,000",
+    sub: "해고 검토·내용증명·전략 (정액)",
+    perks: [
+      "해고 정당성·절차 검토",
+      "서면통지 하자 분석",
+      "이의·내용증명 발송",
+      "구제신청 방향 설계",
+    ],
+    to: "/unfair-dismissal",
+  },
+];
+
 type Props = {
   openChat: () => void;
 };
@@ -78,6 +130,15 @@ export function Pricing({ openChat }: Props) {
       source: "form",
       message: `가격 카드 클릭: ${t.name}`,
       meta: { tier: t.id, price: t.price },
+    });
+    openChat();
+  };
+
+  const handleLaborClick = (t: LaborProduct) => {
+    void saveConsultation({
+      source: "form",
+      message: `노동분쟁 카드 클릭: ${t.name}`,
+      meta: { product: t.id, price: t.price },
     });
     openChat();
   };
@@ -213,6 +274,81 @@ export function Pricing({ openChat }: Props) {
           <div className="foot-row" style={{ marginTop: 8, paddingTop: 12, borderTop: "1px dashed var(--ink-2)" }}>
             <span className="foot-val" style={{ fontSize: 12, color: "var(--muted)" }}>
               본 사이트는 변호사법 제23조에 따른 광고물입니다. 표시된 보수액은 일반적 위임 기준이며, 사안의 난이도·특수성에 따라 협의 후 결정됩니다. 결과를 보장하지 않습니다.
+            </span>
+          </div>
+        </div>
+
+        <div
+          className="reveal"
+          style={{ textAlign: "center", maxWidth: 720, margin: "72px auto 40px" }}
+        >
+          <span className="eyebrow">노동 분쟁 대응</span>
+          <h2 className="h2">
+            퇴사가 아니라 <span className="mark-hl">'다투는'</span> 분들께
+          </h2>
+          <p className="lead" style={{ margin: "0 auto" }}>
+            이미 해고당했거나, 임금·퇴직금을 못 받았거나, 괴롭힘을 겪고 있다면.
+            <br />
+            <strong>정액 · 성공보수 0원</strong>으로 변호사가 대신 다툽니다.
+          </p>
+        </div>
+
+        <div className="price-grid reveal">
+          {laborTiers.map((t) => (
+            <div key={t.id} className="price-card">
+              <div className="price-tag">FLAT</div>
+              <h3 className="price-name">{t.name}</h3>
+              <p className="price-sub">{t.sub}</p>
+              <div className="price-row">
+                <span className="price-num">{t.price}</span>
+                <span className="price-unit">원</span>
+                <span className="price-per">/ 정액</span>
+              </div>
+              <ul className="price-list">
+                {t.perks.map((p, i) => (
+                  <li key={i}>
+                    <span className="check">✓</span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="btn primary"
+                style={{ width: "100%", marginTop: "auto" }}
+                onClick={() => handleLaborClick(t)}
+              >
+                상담 신청
+              </button>
+              <a
+                href={t.to}
+                className="btn"
+                style={{
+                  width: "100%",
+                  marginTop: 6,
+                  fontSize: 12,
+                  padding: "9px 14px",
+                  background: "var(--gray-1)",
+                  color: "var(--ink-2)",
+                }}
+              >
+                자세히 보기 →
+              </a>
+            </div>
+          ))}
+        </div>
+
+        <div className="price-foot reveal">
+          <div className="foot-row">
+            <span className="foot-key">노동위 구제신청 대리</span>
+            <span className="foot-val">착수금 + 위임계약 — 상담 후 견적</span>
+          </div>
+          <div className="foot-row">
+            <span className="foot-key">민사·손해배상 소송</span>
+            <span className="foot-val">착수금 + 성공보수 별도 (사안별 위임계약 시 안내)</span>
+          </div>
+          <div className="foot-row" style={{ marginTop: 8, paddingTop: 12, borderTop: "1px dashed var(--ink-2)" }}>
+            <span className="foot-val" style={{ fontSize: 12, color: "var(--muted)" }}>
+              위 정액 상품에는 부가세가 별도로 부과될 수 있으며, 인지대·송달료 등 실비는 별도입니다. 결과를 보장하지 않습니다.
             </span>
           </div>
         </div>

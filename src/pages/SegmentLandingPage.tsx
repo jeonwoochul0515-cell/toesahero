@@ -23,6 +23,8 @@ type Config = {
   breadcrumbName: string; // BreadcrumbList 표기명
   points: Point[];
   faqs?: QA[];
+  price?: string; // 정액 상품 안내 (있을 때만 노출)
+  priceNote?: string; // 큰 소송 등 별도 견적 안내
 };
 
 const CONFIG: Record<Seg, Config> = {
@@ -43,6 +45,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/harassment",
     breadcrumbName: "직장 내 괴롭힘",
+    price: "직장 내 괴롭힘 대응 · 66만원 (정액)",
+    priceNote: "손해배상 소송으로 이어질 경우 착수금은 상담 후 견적입니다.",
     points: [
       {
         h: "법이 금지하는 행위입니다",
@@ -135,6 +139,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/unfair-dismissal",
     breadcrumbName: "부당해고",
+    price: "부당해고 대응(자문) · 66만원 (정액)",
+    priceNote: "노동위원회 구제신청 대리는 착수금 + 위임계약으로 상담 후 견적입니다.",
     points: [
       {
         h: "해고에는 '정당한 이유'가 필요합니다",
@@ -185,6 +191,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/unpaid-wages",
     breadcrumbName: "임금체불",
+    price: "임금·퇴직금 회수 · 88만원 (정액 · 성공보수 0)",
+    priceNote: "민사소송·지급명령으로 이어질 경우 착수금은 상담 후 견적입니다.",
     points: [
       {
         h: "임금 미지급은 '범죄'입니다",
@@ -235,6 +243,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/severance-pay",
     breadcrumbName: "퇴직금 미지급",
+    price: "임금·퇴직금 회수 · 88만원 (정액 · 성공보수 0)",
+    priceNote: "민사소송·지급명령으로 이어질 경우 착수금은 상담 후 견적입니다.",
     points: [
       {
         h: "1년 이상 일했으면 무조건 발생합니다",
@@ -343,6 +353,30 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
                 </div>
               ))}
             </div>
+          </div>
+        ) : null}
+
+        {c.price ? (
+          <div
+            style={{
+              marginTop: 28,
+              padding: "18px 20px",
+              border: "2.5px solid var(--ink)",
+              borderRadius: 14,
+              background: "var(--cream)",
+              boxShadow: "4px 4px 0 0 var(--ink)",
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".06em", color: "var(--muted)", textTransform: "uppercase" }}>
+              보수 안내
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 900, margin: "4px 0 6px" }}>{c.price}</div>
+            {c.priceNote ? (
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "var(--ink-2)" }}>{c.priceNote}</p>
+            ) : null}
+            <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>
+              부가세 별도. 인지대·송달료 등 실비는 별도이며, 결과를 보장하지 않습니다.
+            </p>
           </div>
         ) : null}
 
