@@ -20,6 +20,19 @@ function fmtDate(ts: PostDoc["publishedAt"]): string {
   });
 }
 
+// 칼럼 → 관련 노동분쟁 랜딩 매핑(태그·slug 기반, Firestore 본문 수정 없이 역링크·OSMU)
+function relatedLanding(post: PostDoc): { to: string; label: string } | null {
+  const hay = `${post.slug} ${post.title} ${post.tags.join(" ")}`;
+  const rules: { test: RegExp; to: string; label: string }[] = [
+    { test: /부당해고|해고|전보|전직/, to: "/unfair-dismissal", label: "부당해고 대응 알아보기" },
+    { test: /괴롭힘/, to: "/harassment", label: "직장 내 괴롭힘 대응 알아보기" },
+    { test: /퇴직금|severance/, to: "/severance-pay", label: "퇴직금 회수 알아보기" },
+    { test: /임금체불|체불|임금/, to: "/unpaid-wages", label: "임금·퇴직금 회수 알아보기" },
+    { test: /5인 미만|small-business/, to: "/small-business", label: "5인 미만 사업장 알아보기" },
+  ];
+  return rules.find((r) => r.test.test(hay)) ?? null;
+}
+
 export function BlogPost() {
   const { slug } = useParams();
   // 빌드타임 정적 글로 초기화 → 프리렌더 시 본문·메타·JSON-LD 가 HTML 에 직렬화된다.
@@ -141,7 +154,16 @@ export function BlogPost() {
             1660-4452 로 변호사와 직접 상담하세요.
           </p>
           <div className="blog-post-cta">
-            <Link to="/" className="btn primary">홈으로</Link>
+            {(() => {
+              const rel = relatedLanding(post);
+              return rel ? (
+                <Link to={rel.to} className="btn primary">
+                  <Icon name="scale" size={16} /> {rel.label}
+                </Link>
+              ) : (
+                <Link to="/" className="btn primary">홈으로</Link>
+              );
+            })()}
             <a
               href="https://pf.kakao.com/_zkzIX"
               target="_blank"

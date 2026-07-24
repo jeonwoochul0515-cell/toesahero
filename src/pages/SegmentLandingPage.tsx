@@ -25,6 +25,7 @@ type Config = {
   faqs?: QA[];
   price?: string; // 정액 상품 안내 (있을 때만 노출)
   priceNote?: string; // 큰 소송 등 별도 견적 안내
+  relatedPosts?: { slug: string; title: string }[]; // 관련 칼럼(내부링크·OSMU)
 };
 
 const CONFIG: Record<Seg, Config> = {
@@ -49,6 +50,12 @@ const CONFIG: Record<Seg, Config> = {
     breadcrumbName: "직장 내 괴롭힘",
     price: "직장 내 괴롭힘 대응 · 66만원 (정액)",
     priceNote: "손해배상 소송으로 이어질 경우 착수금은 상담 후 견적입니다.",
+    relatedPosts: [
+      {
+        slug: "workplace-harassment-labor-office-appeal",
+        title: "직장 내 괴롭힘 불인정 통보 후 대응 — 노동청 진정부터 재심청구까지",
+      },
+    ],
     points: [
       {
         h: "법이 금지하는 행위입니다",
@@ -99,6 +106,12 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/small-business",
     breadcrumbName: "5인 미만 사업장",
+    relatedPosts: [
+      {
+        slug: "small-business-under-5-workers-rights",
+        title: "5인 미만 사업장 — 사장도 모르는 적용·미적용 5가지",
+      },
+    ],
     points: [
       {
         h: "적용되지 않는 규정이 있습니다",
@@ -145,6 +158,16 @@ const CONFIG: Record<Seg, Config> = {
     breadcrumbName: "부당해고",
     price: "부당해고 대응(자문) · 66만원 (정액)",
     priceNote: "노동위원회 구제신청 대리는 착수금 + 위임계약으로 상담 후 견적입니다.",
+    relatedPosts: [
+      {
+        slug: "dismissal-notice-requirements",
+        title: "해고통지서를 받았다면 — 서면 통지 요건과 해고예고수당 확인법",
+      },
+      {
+        slug: "voluntary-vs-recommended-resignation-unemployment-benefit",
+        title: "권고사직과 실업급여 — 회사가 자발적 사직으로 처리하려는 경우",
+      },
+    ],
     points: [
       {
         h: "해고에는 '정당한 이유'가 필요합니다",
@@ -205,6 +228,16 @@ const CONFIG: Record<Seg, Config> = {
     breadcrumbName: "임금체불",
     price: "임금·퇴직금 회수 · 88만원 (정액 · 성공보수 0)",
     priceNote: "민사소송·지급명령으로 이어질 경우 착수금은 상담 후 견적입니다.",
+    relatedPosts: [
+      {
+        slug: "unpaid-wage-report-and-confirmation",
+        title: "임금체불 노동청 신고 방법과 체불임금확인서 발급 절차",
+      },
+      {
+        slug: "unpaid-severance-recovery-steps",
+        title: "퇴직금 못 받고 퇴사했을 때 — 받아내는 절차 3단계",
+      },
+    ],
     points: [
       {
         h: "임금 미지급은 '범죄'입니다",
@@ -257,6 +290,16 @@ const CONFIG: Record<Seg, Config> = {
     breadcrumbName: "퇴직금 미지급",
     price: "임금·퇴직금 회수 · 88만원 (정액 · 성공보수 0)",
     priceNote: "민사소송·지급명령으로 이어질 경우 착수금은 상담 후 견적입니다.",
+    relatedPosts: [
+      {
+        slug: "unpaid-severance-recovery-steps",
+        title: "퇴직금 못 받고 퇴사했을 때 — 받아내는 절차 3단계",
+      },
+      {
+        slug: "unpaid-wage-report-and-confirmation",
+        title: "임금체불 노동청 신고 방법과 체불임금확인서 발급 절차",
+      },
+    ],
     points: [
       {
         h: "1년 이상 일했으면 무조건 발생합니다",
@@ -363,6 +406,37 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
                     {f.a}
                   </p>
                 </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {c.relatedPosts?.length ? (
+          <div style={{ marginTop: 32 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 12px" }}>더 읽어보기</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {c.relatedPosts.map((r) => (
+                <Link
+                  key={r.slug}
+                  to={`/blog/${r.slug}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "14px 16px",
+                    border: "2px solid var(--ink)",
+                    borderRadius: 12,
+                    background: "var(--paper)",
+                    textDecoration: "none",
+                    color: "var(--ink)",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <Icon name="doc" size={16} />
+                  <span>{r.title}</span>
+                </Link>
               ))}
             </div>
           </div>
