@@ -31,7 +31,7 @@ type Config = {
 const CONFIG: Record<Seg, Config> = {
   harassment: {
     icon: "shield",
-    title: "직장 내 괴롭힘, 혼자 버티지 마세요",
+    title: "직장 내 괴롭힘, 신고하면 더 불리해질까 봐 참고 있나요?",
     sub: "근로기준법이 금지하는 직장 내 괴롭힘 — 신고부터 민사·형사까지, 당신 대신 변호사가 다툽니다.",
     metaTitle: "직장 내 괴롭힘 — 변호사 직접 대응 | 퇴사히어로",
     metaDesc:
@@ -139,7 +139,7 @@ const CONFIG: Record<Seg, Config> = {
   },
   "unfair-dismissal": {
     icon: "gavel",
-    title: "부당해고, 당하고 끝내지 마세요",
+    title: "부당해고, 문자 한 통이었나요? 그거 무효일 수 있습니다.",
     sub: "정당한 이유도, 절차도 없는 해고는 무효입니다. 노동위원회 구제신청부터, 당신 대신 변호사가 다툽니다.",
     metaTitle: "부당해고 구제신청 — 변호사 대응 | 퇴사히어로",
     metaDesc:
@@ -211,7 +211,7 @@ const CONFIG: Record<Seg, Config> = {
   },
   "unpaid-wages": {
     icon: "coins",
-    title: "임금체불, 참으면 못 받습니다",
+    title: "임금체불, 사장한테 말 안 하고 받아냅니다.",
     sub: "밀린 월급·수당·퇴직금은 명백한 법 위반입니다. 진정·고소부터 지급까지, 변호사가 대신 받아냅니다.",
     metaTitle: "임금체불 신고·대응 — 변호사 | 퇴사히어로",
     metaDesc:
@@ -273,7 +273,7 @@ const CONFIG: Record<Seg, Config> = {
   },
   "severance-pay": {
     icon: "bank",
-    title: "퇴직금, 안 준다고 포기하지 마세요",
+    title: "퇴직금 없다는 그 말, 거짓일 수 있습니다.",
     sub: "1년 이상 일했다면 퇴직금은 당연한 권리입니다. 5인 미만도, 알바도 예외가 아닙니다.",
     metaTitle: "퇴직금 미지급 — 청구·계산 | 퇴사히어로",
     metaDesc:

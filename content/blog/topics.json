@@ -2,6 +2,30 @@
   "_comment": "하루 1편 자동 발행용 주제 큐. 위에서부터 순서대로, 아직 발행되지 않은 slug를 골라 발행한다. 큐가 비면 스크립트가 AI로 새 주제를 제안한다. 새 주제를 추가하려면 이 배열에 항목을 더하면 된다.",
   "topics": [
     {
+      "slug": "unfair-dismissal-remedy-procedure",
+      "titleHint": "부당해고 구제신청 절차 — 노동위원회 접수부터 판정·화해까지",
+      "keywords": ["부당해고 구제신청", "노동위원회 구제신청 절차", "부당해고 3개월", "근로기준법 제28조"],
+      "coverEmoji": "⚖️"
+    },
+    {
+      "slug": "unfair-transfer-response",
+      "titleHint": "부당전보·보복성 발령을 받았다면 — 다투는 방법과 요건",
+      "keywords": ["부당전보", "부당전직", "전보 거부", "근로기준법 제23조", "보복성 발령"],
+      "coverEmoji": "📍"
+    },
+    {
+      "slug": "wage-guarantee-fund",
+      "titleHint": "회사가 폐업해 임금을 못 받았다면 — 대지급금(간이대지급금) 신청",
+      "keywords": ["대지급금", "간이대지급금", "체당금", "회사 폐업 임금", "임금채권보장법"],
+      "coverEmoji": "🏦"
+    },
+    {
+      "slug": "workplace-harassment-damages-claim",
+      "titleHint": "직장 내 괴롭힘 손해배상 청구 — 위자료 기준과 소송 절차",
+      "keywords": ["직장내괴롭힘 손해배상", "괴롭힘 위자료", "괴롭힘 민사소송", "근로기준법 제76조의2"],
+      "coverEmoji": "🛡️"
+    },
+    {
       "slug": "dismissal-notice-requirements",
       "titleHint": "해고통지서를 받았다면 — 서면 통지 요건과 해고예고수당 확인법",
       "keywords": ["해고통지서", "해고예고통지서", "해고예고수당", "근로기준법 제26조"],
@@ -90,30 +114,6 @@
       "titleHint": "사직 강요·권고사직 압박을 받고 있다면",
       "keywords": ["사직 강요", "권고사직 압박", "부당해고"],
       "coverEmoji": "🚫"
-    },
-    {
-      "slug": "unfair-dismissal-remedy-procedure",
-      "titleHint": "부당해고 구제신청 절차 — 노동위원회 접수부터 판정·화해까지",
-      "keywords": ["부당해고 구제신청", "노동위원회 구제신청 절차", "부당해고 3개월", "근로기준법 제28조"],
-      "coverEmoji": "⚖️"
-    },
-    {
-      "slug": "unfair-transfer-response",
-      "titleHint": "부당전보·보복성 발령을 받았다면 — 다투는 방법과 요건",
-      "keywords": ["부당전보", "부당전직", "전보 거부", "근로기준법 제23조", "보복성 발령"],
-      "coverEmoji": "📍"
-    },
-    {
-      "slug": "wage-guarantee-fund",
-      "titleHint": "회사가 폐업해 임금을 못 받았다면 — 대지급금(간이대지급금) 신청",
-      "keywords": ["대지급금", "간이대지급금", "체당금", "회사 폐업 임금", "임금채권보장법"],
-      "coverEmoji": "🏦"
-    },
-    {
-      "slug": "workplace-harassment-damages-claim",
-      "titleHint": "직장 내 괴롭힘 손해배상 청구 — 위자료 기준과 소송 절차",
-      "keywords": ["직장내괴롭힘 손해배상", "괴롭힘 위자료", "괴롭힘 민사소송", "근로기준법 제76조의2"],
-      "coverEmoji": "🛡️"
     }
   ]
 }
