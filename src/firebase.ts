@@ -326,7 +326,13 @@ function notifyNewConsultation(
   void fetch("/api/notify", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ type, caseId, summary }),
+    // 유입 경로(광고 검색어·키워드)를 함께 보내 알림 문자에서 어느 광고로 온 신청인지 판별한다
+    body: JSON.stringify({
+      type,
+      caseId,
+      summary,
+      attr: (window as unknown as { getAttribution?: () => unknown }).getAttribution?.() ?? null,
+    }),
   }).catch(() => {});
 }
 

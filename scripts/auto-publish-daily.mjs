@@ -38,7 +38,7 @@ const env = loadEnv();
 const ADMIN_EMAIL = env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = env.ADMIN_PASSWORD;
 const ANTHROPIC_API_KEY = env.ANTHROPIC_API_KEY;
-const BLOG_MODEL = env.BLOG_MODEL || "claude-sonnet-4-6";
+const BLOG_MODEL = env.BLOG_MODEL || "claude-sonnet-5";
 const AUTHOR = "변호사 김창희";
 
 for (const [k, v] of Object.entries({
