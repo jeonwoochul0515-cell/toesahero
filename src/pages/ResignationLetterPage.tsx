@@ -9,6 +9,10 @@ type Template = {
   title: string;
   desc: string;
   body: string;
+  /** public/forms 아래 hwpx 파일 경로 */
+  file: string;
+  /** 내려받을 때 사용자에게 보일 한글 파일명 */
+  fileName: string;
 };
 
 const TEMPLATES: Template[] = [
@@ -16,6 +20,8 @@ const TEMPLATES: Template[] = [
     id: "basic",
     title: "일반 사직서",
     desc: "가장 기본적인 형태. 특별한 사정 없이 통상적으로 퇴사할 때 사용합니다.",
+    file: "/forms/resignation-basic.hwpx",
+    fileName: "사직서(일반).hwpx",
     body: `사직서
 
 소속 : (부서명)
@@ -36,6 +42,8 @@ const TEMPLATES: Template[] = [
     id: "immediate",
     title: "즉시 퇴사 요청 사직서",
     desc: "회사의 승낙을 기다리기 어려운 급한 사정일 때. 민법상 근거를 함께 명시합니다.",
+    file: "/forms/resignation-immediate.hwpx",
+    fileName: "사직서(즉시퇴사).hwpx",
     body: `사직서 (즉시 퇴직 요청)
 
 소속 : (부서명)
@@ -56,6 +64,8 @@ const TEMPLATES: Template[] = [
     id: "recommended",
     title: "권고사직 확인서 (겸 사직서)",
     desc: "회사가 먼저 퇴사를 권고한 경우. 이직사유를 명확히 남겨 실업급여 분쟁을 예방합니다.",
+    file: "/forms/resignation-recommended.hwpx",
+    fileName: "권고사직확인서.hwpx",
     body: `권고사직 확인서 (겸 사직서)
 
 소속 : (부서명)
@@ -80,12 +90,14 @@ export function ResignationLetterPage() {
   const seo = usePageMeta({
     title: "사직서 양식 무료 다운로드 — 상황별 3종",
     description:
-      "일반 사직서, 즉시 퇴사 요청, 권고사직 확인서까지 상황별 사직서 양식을 무료로 복사해 쓰실 수 있습니다. 권고사직인 경우 이직사유 기재가 실업급여에 직결됩니다.",
+      "일반 사직서, 즉시 퇴사 요청, 권고사직 확인서까지 상황별 사직서 양식을 한글파일(hwpx)로 무료 다운로드하거나 복사해 쓰실 수 있습니다. 권고사직인 경우 이직사유 기재가 실업급여에 직결됩니다.",
     canonical: "/resignation-letter",
     keywords: [
       "사직서양식",
       "사직서 양식",
       "사직서 양식 다운로드",
+      "사직서 양식 hwp",
+      "사직서 한글파일",
       "사직서 무료 양식",
       "권고사직서 양식",
       "권고사직",
@@ -118,8 +130,9 @@ export function ResignationLetterPage() {
         <div style={{ fontSize: 44, marginTop: 8 }}><Icon name="doc" size={40} /></div>
         <h1 className="page-static-title">사직서 양식 무료 다운로드</h1>
         <p className="page-static-sub">
-          상황에 맞는 사직서를 골라 복사한 뒤 빈칸만 채우세요. 특히 회사가 권고사직을
-          요청한 경우, 이직사유를 서면에 남기는 게 나중에 실업급여를 받을 수 있는지를 좌우합니다.
+          상황에 맞는 사직서를 골라 한글파일로 내려받거나 복사한 뒤 빈칸만 채우세요. 특히 회사가
+          권고사직을 요청한 경우, 이직사유를 서면에 남기는 게 나중에 실업급여를 받을 수 있는지를
+          좌우합니다.
         </p>
       </header>
 
@@ -158,14 +171,22 @@ export function ResignationLetterPage() {
               >
                 {t.body}
               </pre>
-              <div style={{ padding: "12px 20px" }}>
-                <button
+              <div style={{ padding: "12px 20px", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <a
+                  href={t.file}
+                  download={t.fileName}
                   className="btn primary"
-                  style={{ width: "100%", padding: 12 }}
+                  style={{ flex: "1 1 200px", padding: 12, textAlign: "center" }}
+                >
+                  <Icon name="doc" size={16} /> 한글파일 내려받기
+                </a>
+                <button
+                  className="btn"
+                  style={{ flex: "1 1 160px", padding: 12 }}
                   onClick={() => void copy(t)}
                 >
                   <Icon name="clipboard" size={16} />{" "}
-                  {copiedId === t.id ? "복사되었습니다!" : "이 양식 복사하기"}
+                  {copiedId === t.id ? "복사되었습니다!" : "복사하기"}
                 </button>
               </div>
             </div>
