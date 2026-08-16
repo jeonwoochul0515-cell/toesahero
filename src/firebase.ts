@@ -796,6 +796,7 @@ export async function saveDraftConsultation(
 
 export type ConsultationPayload = {
   source: "chat" | "form" | "floating";
+  userName?: string | null; // 폼에서 직접 입력받은 이름 (로그인 displayName보다 우선)
   message?: string;
   pickedItems?: string[];
   estimatedAmount?: number;
@@ -837,7 +838,7 @@ export async function saveConsultation(payload: ConsultationPayload) {
     const ref = await addDoc(collection(database, "consultations"), {
       ...payload,
       uid: user?.uid ?? null,
-      userName: user?.displayName ?? null,
+      userName: payload.userName ?? user?.displayName ?? null,
       userEmail: user?.email ?? null,
       createdAt: serverTimestamp(),
       userAgent:
@@ -854,6 +855,7 @@ export async function saveConsultation(payload: ConsultationPayload) {
         ref.id,
         [
           payload.damageThreat ? "⚠ 손배·위약금 협박 감지" : null,
+          payload.userName ? `이름 ${payload.userName}` : null,
           payload.contact ? `연락처 ${payload.contact}` : null,
           payload.message?.slice(0, 600) ?? null,
           payload.pickedItems?.length
@@ -865,7 +867,7 @@ export async function saveConsultation(payload: ConsultationPayload) {
         ]
           .filter(Boolean)
           .join("\n") || undefined,
-        { name: user?.displayName ?? null, contact: payload.contact ?? null }
+        { name: payload.userName ?? user?.displayName ?? null, contact: payload.contact ?? null }
       );
     }
     return ref.id;

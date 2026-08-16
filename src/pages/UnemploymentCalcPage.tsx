@@ -118,6 +118,9 @@ export function UnemploymentCalcPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<string | null>(null);
+  // 변호사가 회신할 연락처 — 미수집 시 신청이 들어와도 연락할 방법이 없어 필수로 받는다.
+  const [applicantName, setApplicantName] = useState("");
+  const [applicantPhone, setApplicantPhone] = useState("");
 
   const result = useMemo(() => calc(inputs), [inputs]);
 
@@ -126,11 +129,25 @@ export function UnemploymentCalcPage() {
   };
 
   const requestConsult = async () => {
+    const name = applicantName.trim();
+    const phone = applicantPhone.replace(/[^0-9]/g, "");
+    if (!name) {
+      alert("성함을 입력해 주세요. 변호사 회신에 필요합니다.");
+      return;
+    }
+    if (!/^01[016789][0-9]{7,8}$/.test(phone)) {
+      alert("휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)");
+      return;
+    }
     setSubmitting(true);
     try {
       const id = await saveConsultation({
         source: "form",
-        message: `실업급여 계산기 결과: 1일 ${fmt(result.dailyBenefit)}원 × ${result.days}일 = 약 ${fmt(result.total)}원 예상`,
+        userName: name,
+        contact: phone,
+        message: `실업급여 계산기 결과: 1일 ${fmt(result.dailyBenefit)}원 × ${result.days}일 = 약 ${fmt(result.total)}원 예상 (퇴사 사유: ${
+          { voluntary: "자발적 퇴사", boss_pressure: "권고사직", bullying: "직장 내 괴롭힘", layoff: "정리해고/계약만료", no_pay: "임금 체불" }[inputs.reason]
+        })`,
         estimatedAmount: result.total,
         meta: {
           tool: "unemployment-calc",
@@ -275,13 +292,40 @@ export function UnemploymentCalcPage() {
               ) : (
                 <div className="calc-extra" style={{ borderColor: "var(--orange)" }}>
                   <Icon name="warning" size={16} /> <strong>자발적 퇴사</strong>는 원칙적으로
-                  수급자격이 제한됩니다. 정당한 이직 사유(예외)에 해당하는지 확인이 필요합니다.
+                  수급자격이 제한됩니다. 다만 임금체불·괴롭힘·통근곤란 등{" "}
+                  <strong>정당한 이직 사유(예외)</strong>에 해당하면 수급이 가능할 수 있고,
+                  아직 퇴사 전이라면 퇴사 방식에 따라 결과가 달라질 수 있습니다.
+                  <strong> 퇴사하기 전에 확인하는 것이 가장 유리합니다.</strong>
                 </div>
               )}
 
+              <div className="calc-fields" style={{ marginTop: 18 }}>
+                <label className="full" style={{ color: "var(--cream)" }}>
+                  성함 (필수)
+                  <input
+                    type="text"
+                    value={applicantName}
+                    onChange={(e) => setApplicantName(e.target.value)}
+                    placeholder="홍길동"
+                    autoComplete="name"
+                  />
+                </label>
+                <label className="full" style={{ color: "var(--cream)" }}>
+                  휴대전화 (필수 · 변호사 회신용)
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={applicantPhone}
+                    onChange={(e) => setApplicantPhone(e.target.value)}
+                    placeholder="010-1234-5678"
+                    autoComplete="tel"
+                  />
+                </label>
+              </div>
+
               <button
                 className="btn primary"
-                style={{ width: "100%", marginTop: 18, fontSize: 16, padding: 16 }}
+                style={{ width: "100%", marginTop: 12, fontSize: 16, padding: 16 }}
                 onClick={() => void requestConsult()}
                 disabled={submitting}
               >

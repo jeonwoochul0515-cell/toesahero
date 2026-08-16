@@ -63,3 +63,13 @@
 - [x] 다크 섹션(Marquee/Calculator/Footer) 웜브라운 확인
 - [x] `npm run build` 통과
 - [x] 브라우저 육안 확인(Hero/Audience/Calculator/Pricing/Footer)
+
+---
+
+## F1 — 계산기 퍼널 전환 강화 (2026-08-16)  ✅ 완료
+배경. 30일 실측 — 광고 클릭 466회 중 6할이 실업급여 검색어인데 상담은 월 4건. 고입찰 확장 대신(돈만 나감) 기존 저가 트래픽의 전환율을 올리기로 결정.
+- [x] `UnemploymentCalcPage` 상담 신청에 이름·휴대전화 필수 수집 (기존엔 연락처 없이 접수돼 연락 불가) → 검증: 라이브 접수 #9XsSSfS1 문자에 연락처 표시 확인
+- [x] `saveConsultation`에 `userName` 전달 경로 추가 (폼 입력 이름이 문자·접수함에 실리게) → 검증: 문자 본문 "이름 …" 표시
+- [x] 자발적 퇴사 결과 안내 강화 (예외사유·퇴사 전 상담 유도 — 단정 표현 없이)
+- [x] 광고: 실업급여 계열 키워드 87개 랜딩을 `/unemployment-calc`로 정합 (`PUT /ncc/keywords?fields=links`) → 변경분은 일시 재검수(UNDER_REVIEW) 후 자동 재개
+- [x] 빌드·배포·E2E — 브라우저 실접수 1건 → 문자·접수함 확인 → 테스트 데이터 접수함에서 삭제 (Firestore 테스트 문서 #9XsSSfS1·#deployte는 어드민에서 종결 처리 필요)
