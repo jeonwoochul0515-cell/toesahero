@@ -745,6 +745,7 @@ export type DraftSubmission = {
   conversationLog: string;
   draftLetter: string;
   userName?: string | null;
+  contact?: string | null; // 같은 대화에서 이미 제출한 연락처가 있으면 함께 전달
   sessionId?: string | null;
 };
 
@@ -761,10 +762,11 @@ export async function saveDraftConsultation(
   try {
     const ref = await addDoc(collection(database, "consultations"), {
       source: "draft",
-      message: "AI 자동 생성 통보문 초안 — 변호사 검토 대기",
+      message: "자동 생성 통보문 초안 — 변호사 검토 대기",
       uid: user?.uid ?? null,
-      userName: user?.displayName ?? payload.userName ?? null,
+      userName: payload.userName ?? user?.displayName ?? null,
       userEmail: user?.email ?? null,
+      contact: payload.contact ?? null,
       conversationLog: payload.conversationLog,
       sessionId: payload.sessionId ?? null,
       draftLetter: payload.draftLetter,
@@ -780,12 +782,17 @@ export async function saveDraftConsultation(
       ref.id,
       [
         payload.userName ? `이름 ${payload.userName}` : null,
+        payload.contact ? `연락처 ${payload.contact}` : null,
         payload.conversationLog
           ? `대화 내용:\n${payload.conversationLog.slice(0, 500)}`
           : null,
       ]
         .filter(Boolean)
-        .join("\n") || undefined
+        .join("\n") || undefined,
+      {
+        name: payload.userName ?? user?.displayName ?? null,
+        contact: payload.contact ?? null,
+      }
     );
     return ref.id;
   } catch (e) {
@@ -804,21 +811,34 @@ export type ConsultationPayload = {
   meta?: Record<string, unknown>;
   sessionId?: string | null;
   damageThreat?: boolean;
+  browseEvent?: boolean; // 가격 카드 클릭 같은 탐색 이벤트 — 저장만 하고 문자 알림 없음
 };
 
-// 상담 저장 시 문자 알림 여부 판단. 카드 클릭 제외 + 채팅은 대화당 1회 (연락처·손배협박은 예외).
+// 상담 저장 시 문자 알림 여부 판단.
+// - 탐색 이벤트(browseEvent)는 알림 제외 — 문구 매칭이 아니라 명시 플래그로 판정한다.
+//   (예전엔 message의 "카드 클릭" 포함 여부로 걸렀는데, 카피를 바꾸면 조용히 풀리고
+//    실제 상담 문장에 그 단어가 들어가면 억제되는 취약한 방식이었다.)
+// - 채팅은 종류별로 대화(sessionId)당 1회: 일반 메시지 1회 + 손배협박 감지 1회.
+//   연락처 제출은 사용자가 버튼을 눌러야만 발생하므로 항상 알린다.
 function shouldNotifyConsultation(payload: ConsultationPayload): boolean {
-  if ((payload.message ?? "").includes("카드 클릭")) return false;
-  if (
-    payload.source === "chat" &&
-    payload.sessionId &&
-    !payload.contact &&
-    !payload.damageThreat
-  ) {
+  if (payload.browseEvent) return false;
+  if (payload.source === "chat" && payload.sessionId) {
     try {
-      const key = `toesahero_notified_${payload.sessionId}`;
-      if (sessionStorage.getItem(key)) return false;
-      sessionStorage.setItem(key, "1");
+      const firstKey = `toesahero_notified_${payload.sessionId}`;
+      const threatKey = `toesahero_threat_${payload.sessionId}`;
+      if (payload.contact) {
+        sessionStorage.setItem(firstKey, "1");
+        return true;
+      }
+      if (payload.damageThreat) {
+        // 손배 키워드는 대화 내내 반복 등장할 수 있다 — 세션당 한 번만 긴급 알림.
+        if (sessionStorage.getItem(threatKey)) return false;
+        sessionStorage.setItem(threatKey, "1");
+        sessionStorage.setItem(firstKey, "1");
+        return true;
+      }
+      if (sessionStorage.getItem(firstKey)) return false;
+      sessionStorage.setItem(firstKey, "1");
     } catch {
       // sessionStorage 사용 불가 환경이면 그냥 알림 (누락보다 중복이 낫다)
     }
@@ -854,7 +874,8 @@ export async function saveConsultation(payload: ConsultationPayload) {
         "consultation",
         ref.id,
         [
-          payload.damageThreat ? "⚠ 손배·위약금 협박 감지" : null,
+          // 이모지(⚠ 등)는 EUC-KR에 없어 문자 발송에서 깨질 수 있다 — 텍스트로 표기.
+          payload.damageThreat ? "[긴급] 손배·위약금 협박 감지" : null,
           payload.userName ? `이름 ${payload.userName}` : null,
           payload.contact ? `연락처 ${payload.contact}` : null,
           payload.message?.slice(0, 600) ?? null,

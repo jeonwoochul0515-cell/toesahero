@@ -16,7 +16,6 @@ type RequestBody = {
   name?: string | null;
   contact?: string | null;
   attr?: unknown;
-  company?: string; // 허니팟 — 사람에게는 숨겨진 칸
 };
 
 const LABEL: Record<RequestBody["type"], string> = {
@@ -26,28 +25,36 @@ const LABEL: Record<RequestBody["type"], string> = {
 };
 
 // 스팸 방어 — 이 엔드포인트는 호출 1건당 문자 요금이 나가므로 봇이 두드리면 그대로 비용이 된다.
-// (캡차를 걷어낸 자리를 Origin 검사 + IP 레이트리밋 + 허니팟으로 메운다. 2026-07-31)
+// (Origin 화이트리스트 + IP 레이트리밋. 2026-08-16 보강 — 호스트 경계 고정, 헤더 없는 요청 차단)
 // 워커 isolate가 살아 있는 동안만 카운터가 유지되는 베스트에포트 방식이다 — 완전 차단이 아니라 감속이 목적.
-const ALLOWED_ORIGIN = /toesahero\.com|localhost|127\.0\.0\.1|\.pages\.dev/;
+// 브라우저는 POST에 항상 Origin을 붙이므로(fetch 표준) 헤더 부재 = 스크립트 직접 호출로 본다.
+const ALLOWED_ORIGIN =
+  /^https?:\/\/([a-z0-9-]+\.)?toesahero\.com(\/|$)|^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|^https:\/\/[a-z0-9-]+\.toesahero\.pages\.dev(\/|$)/i;
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
 const hits = new Map<string, number[]>();
 
+// 이미 한도에 걸린 요청은 히트로 세지 않는다 — 거부까지 세면 사용 중인 IP는 창이
+// 계속 미끄러져 차단이 영영 안 풀리고, 정작 연락처가 담긴 마지막 호출이 유실된다.
 function rateLimited(ip: string): boolean {
   const now = Date.now();
   const arr = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
+  if (arr.length >= MAX_PER_WINDOW) {
+    hits.set(ip, arr);
+    return true;
+  }
   arr.push(now);
   hits.set(ip, arr);
   if (hits.size > 5000) {
     for (const [k, v] of hits) if (!v.some((t) => now - t < WINDOW_MS)) hits.delete(k);
   }
-  return arr.length > MAX_PER_WINDOW;
+  return false;
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 외부 스크립트의 직접 호출 차단
   const origin = request.headers.get("origin") || request.headers.get("referer") || "";
-  if (origin && !ALLOWED_ORIGIN.test(origin)) {
+  if (!ALLOWED_ORIGIN.test(origin)) {
     return json({ ok: false, reason: "forbidden" }, 403);
   }
 
@@ -63,19 +70,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return json({ ok: false, reason: "invalid_json" }, 200);
   }
 
-  // 허니팟 — 사람 눈에 안 보이는 칸이 채워져 있으면 봇. 조용히 성공 응답(재시도 유도 방지).
-  if (body.company) {
-    return json({ ok: true, reason: "skipped" }, 200);
-  }
-
-  const label = LABEL[body.type];
-  if (!label) {
+  // 외부 입력이므로 타입을 실제로 검증한다 — "constructor" 같은 프로토타입 키가
+  // LABEL[type]에서 함수로 풀려 문자에 실리거나, 문자열 아닌 caseId가 500을 내지 않게.
+  const type =
+    typeof body.type === "string" &&
+    Object.prototype.hasOwnProperty.call(LABEL, body.type)
+      ? (body.type as RequestBody["type"])
+      : null;
+  if (!type) {
     return json({ ok: false, reason: "unknown_type" }, 200);
   }
+  const label = LABEL[type];
 
-  const ref = body.caseId ? `#${body.caseId.slice(0, 8)}` : "";
+  const caseId = typeof body.caseId === "string" ? body.caseId : "";
+  const ref = caseId ? `#${caseId.slice(0, 8)}` : "";
   // LMS(2,000바이트)로 나가므로 신청 내용을 최대한 담는다. 최종 길이는 sendSms가 바이트 기준으로 자른다.
-  const summary = (body.summary ?? "").slice(0, 1200);
+  const summary = typeof body.summary === "string" ? body.summary.slice(0, 1200) : "";
   const text = `[퇴사히어로] ${label}${ref ? `\n사건 ${ref}` : ""}${
     summary ? `\n${summary}` : ""
   }\n유입경로: ${summarizeAttr(body.attr)}\n어드민에서 확인해 주세요.`;
@@ -98,8 +108,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           name: String(body.name ?? "").trim() || "미입력",
           phone,
           detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 1500),
-          link: body.caseId
-            ? `https://toesahero.com/admin/consultations/${body.caseId}`
+          link: caseId
+            ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
             : "https://toesahero.com/admin/consultations",
         }),
       });

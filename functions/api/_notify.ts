@@ -31,11 +31,15 @@ function randomSalt(): string {
 }
 
 // LMS 본문 한도는 EUC-KR 기준 2,000바이트(한글 2바이트). 초과분은 잘라서 발송 실패를 막는다.
+// 코드포인트 단위로 순회한다 — UTF-16 인덱스로 자르면 이모지(서로게이트 쌍) 한가운데가
+// 잘려 비정상 문자열이 되고, 그대로 직렬화하면 발송 자체가 깨질 수 있다.
 function truncateToLmsBytes(text: string, maxBytes = 1900): string {
   let bytes = 0;
-  for (let i = 0; i < text.length; i++) {
-    bytes += text.charCodeAt(i) > 0x7f ? 2 : 1;
-    if (bytes > maxBytes) return text.slice(0, i) + "…";
+  let out = "";
+  for (const ch of text) {
+    bytes += (ch.codePointAt(0) ?? 0) > 0x7f ? 2 : 1;
+    if (bytes > maxBytes) return out + "…";
+    out += ch;
   }
   return text;
 }

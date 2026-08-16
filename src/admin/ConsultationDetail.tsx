@@ -41,20 +41,31 @@ export function ConsultationDetail() {
   const sessionId = row?.sessionId ?? null;
 
   useEffect(() => {
+    // 사건(id)이 바뀌면 이전 사건의 편집 내용부터 비운다 — 남겨두면 A 사건의
+    // 문서가 B 사건 화면에 그대로 보이고 저장까지 될 수 있다.
+    setRow(null);
+    setNotes("");
+    setDraftEdit("");
+    setNoticeEdit("");
+    let seeded = false;
     return watchConsultations((rows) => {
       const found = rows.find((r) => r.id === id) ?? null;
       setRow(found);
-      if (found) {
+      if (!found) return;
+      // 메모는 첫 스냅샷에서 한 번만 시딩 — 이후 스냅샷이 수정 중인 내용을 덮지 않게.
+      if (!seeded) {
+        seeded = true;
         setNotes(found.notes ?? "");
-        if (found.draftLetter && draftEdit === "") {
-          setDraftEdit(found.draftLetter);
-        }
-        if (found.noticeLetter && noticeEdit === "") {
-          setNoticeEdit(found.noticeLetter);
-        }
+      }
+      // 문서는 "아직 비어 있을 때만" 채운다(늦게 생성되는 경우 대비). functional
+      // updater라 스냅샷이 다시 와도 수정 중인 내용은 보존된다.
+      if (found.draftLetter) {
+        setDraftEdit((prev) => (prev === "" ? found.draftLetter ?? "" : prev));
+      }
+      if (found.noticeLetter) {
+        setNoticeEdit((prev) => (prev === "" ? found.noticeLetter ?? "" : prev));
       }
     }, 500);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // 같은 대화(sessionId)에 속한 채팅 메시지 전체를 불러와 시간순으로 표시.

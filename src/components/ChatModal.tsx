@@ -175,6 +175,8 @@ export function ChatModal({ open, onClose }: Props) {
       conversationLog,
       draftLetter,
       userName: user?.displayName ?? null,
+      // 이 대화에서 연락처를 이미 남겼다면 초안 접수에도 실어 변호사가 바로 회신할 수 있게 한다.
+      contact: contactSaved ? contact.trim() : null,
       sessionId: sessionIdRef.current,
     });
     setDraftSubmitted(true);

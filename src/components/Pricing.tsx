@@ -130,6 +130,7 @@ export function Pricing({ openChat }: Props) {
       source: "form",
       message: `가격 카드 클릭: ${t.name}`,
       meta: { tier: t.id, price: t.price },
+      browseEvent: true,
     });
     openChat();
   };
@@ -139,6 +140,7 @@ export function Pricing({ openChat }: Props) {
       source: "form",
       message: `노동분쟁 카드 클릭: ${t.name}`,
       meta: { product: t.id, price: t.price },
+      browseEvent: true,
     });
     openChat();
   };

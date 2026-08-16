@@ -84,11 +84,13 @@ export function Calculator() {
 
   const handleAsk = async () => {
     const pickedItems = items.filter((i) => picked.has(i.id)).map((i) => i.label);
+    // 버튼을 눌러 채팅을 여는 탐색 단계 — 알림은 이어지는 채팅 첫 메시지에서 발송된다.
     void saveConsultation({
       source: "form",
       message: "체크리스트 기반 상담 요청",
       pickedItems,
       estimatedAmount: total,
+      browseEvent: true,
     });
     window.dispatchEvent(new CustomEvent("open-chat"));
   };
