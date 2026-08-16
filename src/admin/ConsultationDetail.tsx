@@ -29,6 +29,7 @@ export function ConsultationDetail() {
   const [row, setRow] = useState<ConsultationDoc | null>(null);
   const [notes, setNotes] = useState("");
   const [draftEdit, setDraftEdit] = useState("");
+  const [noticeEdit, setNoticeEdit] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [emailTo, setEmailTo] = useState("");
@@ -47,6 +48,9 @@ export function ConsultationDetail() {
         setNotes(found.notes ?? "");
         if (found.draftLetter && draftEdit === "") {
           setDraftEdit(found.draftLetter);
+        }
+        if (found.noticeLetter && noticeEdit === "") {
+          setNoticeEdit(found.noticeLetter);
         }
       }
     }, 500);
@@ -161,6 +165,65 @@ export function ConsultationDetail() {
       new Date().toISOString().slice(0, 10)
     }.txt`;
     const blob = new Blob([draftEdit], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const saveNotice = async () => {
+    setSaving(true);
+    try {
+      await updateConsultation(row.id, {
+        noticeLetter: noticeEdit,
+        noticeStatus: "edited",
+      });
+      setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const approveNotice = async () => {
+    if (
+      !confirm(
+        "이 내용증명을 승인합니다. 발송 준비가 완료된 상태로 표시됩니다. 진행하시겠습니까?"
+      )
+    )
+      return;
+    setSaving(true);
+    try {
+      await updateConsultation(row.id, {
+        noticeLetter: noticeEdit,
+        noticeStatus: "approved",
+      });
+      setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const markNoticeSent = async () => {
+    if (!confirm("내용증명을 발송했음을 표시합니다. 진행하시겠습니까?")) return;
+    setSaving(true);
+    try {
+      await updateConsultation(row.id, {
+        noticeStatus: "sent",
+        status: "contacted",
+      });
+      setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const downloadNotice = () => {
+    const filename = `naeyongjeungmyeong_${row.id.slice(0, 8)}_${
+      new Date().toISOString().slice(0, 10)
+    }.txt`;
+    const blob = new Blob([noticeEdit], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -475,6 +538,111 @@ export function ConsultationDetail() {
               ⚠️ 본 초안은 AI가 1차 작성한 것이며, 변호사가 사실관계 확인 및 법적
               검토 후 최종 발송됩니다. 변호사법·변협 윤리장전상 발송 전 변호사
               본인의 검토가 의무입니다.
+            </p>
+          </div>
+        )}
+
+        {row.noticeLetter && (
+          <div className="admin-detail-card admin-detail-actions">
+            <h3>
+              📜 내용증명 (표준) — AI 1차 초안
+              <span
+                className={`admin-status st-${
+                  row.noticeStatus === "approved"
+                    ? "contracted"
+                    : row.noticeStatus === "sent"
+                    ? "closed"
+                    : row.noticeStatus === "edited"
+                    ? "consulted"
+                    : "new"
+                }`}
+                style={{ marginLeft: 12, fontSize: 11 }}
+              >
+                {row.noticeStatus === "approved"
+                  ? "승인됨 (발송 대기)"
+                  : row.noticeStatus === "sent"
+                  ? "발송됨"
+                  : row.noticeStatus === "edited"
+                  ? "수정됨"
+                  : "검토 대기"}
+              </span>
+            </h3>
+            {typeof row.meta?.factSummary === "string" && (
+              <details style={{ marginBottom: 12 }}>
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: "var(--muted)",
+                    fontWeight: 700,
+                  }}
+                >
+                  의뢰인 계산기 입력 요약 보기
+                </summary>
+                <pre
+                  className="admin-message"
+                  style={{ fontSize: 12, marginTop: 8 }}
+                >
+                  {row.meta.factSummary}
+                </pre>
+              </details>
+            )}
+            <textarea
+              className="admin-textarea"
+              value={noticeEdit}
+              onChange={(e) => setNoticeEdit(e.target.value)}
+              rows={20}
+              style={{ fontFamily: "monospace", fontSize: 13 }}
+              placeholder="내용증명 초안 — [대괄호] 부분을 채우세요"
+            />
+            <div className="admin-detail-actions-row" style={{ flexWrap: "wrap" }}>
+              <button
+                className="btn"
+                onClick={() => void saveNotice()}
+                disabled={saving || noticeEdit === (row.noticeLetter ?? "")}
+              >
+                {saving ? "저장 중..." : "💾 수정 저장"}
+              </button>
+              <button
+                className="btn"
+                onClick={downloadNotice}
+                style={{ background: "var(--gray-1)" }}
+              >
+                ⬇ .txt 다운로드
+              </button>
+              {row.noticeStatus !== "approved" && row.noticeStatus !== "sent" && (
+                <button
+                  className="btn primary"
+                  onClick={() => void approveNotice()}
+                  disabled={saving}
+                  style={{ background: "var(--green)", color: "var(--ink)" }}
+                >
+                  ✓ 승인 (발송 준비)
+                </button>
+              )}
+              {row.noticeStatus === "approved" && (
+                <button
+                  className="btn primary"
+                  onClick={() => void markNoticeSent()}
+                  disabled={saving}
+                  style={{ background: "var(--orange)" }}
+                >
+                  📤 발송 완료 (수동)
+                </button>
+              )}
+              {savedAt && <span className="admin-saved">✓ {savedAt}</span>}
+            </div>
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--muted)",
+                marginTop: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              ⚠️ 본 초안은 AI가 1차 작성한 것이며, 변호사가 사실관계 확인 및 법적
+              검토 후 최종 발송됩니다. 내용증명 발송은 우체국 e그린 또는 서면으로
+              진행하세요.
             </p>
           </div>
         )}
