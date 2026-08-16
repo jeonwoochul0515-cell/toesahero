@@ -486,7 +486,7 @@ export function ChatModal({ open, onClose }: Props) {
               style={{ width: "100%" }}
             >
               {draftLoading ? (
-                "AI가 초안 작성 중..."
+                "초안 작성 중..."
               ) : (
                 <>
                   <Icon name="doc" size={16} /> 통보문 초안 생성하기
@@ -499,7 +499,7 @@ export function ChatModal({ open, onClose }: Props) {
         {draftLetter && !draftSubmitted && (
           <div className="draft-preview">
             <div className="draft-preview-head">
-              <strong>{REVIEWING_LAWYER} 변호사 명의 통보문 — AI 1차 초안</strong>
+              <strong>{REVIEWING_LAWYER} 변호사 명의 통보문 — 자동 1차 초안</strong>
               <span className="draft-tag">검토 대기</span>
             </div>
             <pre className="draft-preview-body">{draftLetter}</pre>
@@ -539,7 +539,7 @@ export function ChatModal({ open, onClose }: Props) {
           </a>
         </div>
         <div className="chat-foot-note">
-          <Icon name="lock" size={13} /> 변호사 비밀유지 의무 적용 · AI 응답은 {REVIEWING_LAWYER} 변호사가 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
+          <Icon name="lock" size={13} /> 변호사 비밀유지 의무 적용 · 자동 응답은 {REVIEWING_LAWYER} 변호사가 사후 검토 · 본 사이트는 변호사법 제23조에 따른 광고물입니다
         </div>
       </div>
     </div>

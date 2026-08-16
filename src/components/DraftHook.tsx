@@ -22,7 +22,7 @@ export function DraftHook({ openChat }: Props) {
             <span style={{ color: "var(--yellow)" }}>통보문 1차 초안</span>을 확인하실 수 있어요
           </h2>
           <p className="lead" style={{ color: "var(--gray-2)", margin: "0 auto 28px" }}>
-            카톡으로 상황을 몇 마디 남겨주시면 AI가 통보문 초안을 먼저 만들어드리고,
+            카톡으로 상황을 몇 마디 남겨주시면 통보문 초안을 자동으로 먼저 만들어드리고,
             김창희 변호사가 검토·수정한 뒤 최종본을 안내합니다.
           </p>
           <button
@@ -43,7 +43,7 @@ export function DraftHook({ openChat }: Props) {
               gap: 6,
             }}
           >
-            <Icon name="lock" size={12} /> AI 초안은 김창희 변호사가 사후 검토 후 발송됩니다
+            <Icon name="lock" size={12} /> 자동 생성 초안은 김창희 변호사가 사후 검토 후 발송됩니다
           </p>
         </div>
       </div>
