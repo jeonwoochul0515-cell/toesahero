@@ -30,6 +30,16 @@ function randomSalt(): string {
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// LMS 본문 한도는 EUC-KR 기준 2,000바이트(한글 2바이트). 초과분은 잘라서 발송 실패를 막는다.
+function truncateToLmsBytes(text: string, maxBytes = 1900): string {
+  let bytes = 0;
+  for (let i = 0; i < text.length; i++) {
+    bytes += text.charCodeAt(i) > 0x7f ? 2 : 1;
+    if (bytes > maxBytes) return text.slice(0, i) + "…";
+  }
+  return text;
+}
+
 // 문자 1건 발송. 설정 누락 시 조용히 skip, 예외는 삼켜서 호출부 흐름을 보호한다.
 export async function sendSms(
   env: NotifyEnv,
@@ -59,7 +69,7 @@ export async function sendSms(
         message: {
           to: recipient.replace(/[^0-9]/g, ""),
           from: from.replace(/[^0-9]/g, ""),
-          text,
+          text: truncateToLmsBytes(text),
         },
       }),
     });

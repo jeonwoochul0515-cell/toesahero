@@ -318,10 +318,12 @@ export function watchMyCases(
 }
 
 // 신규 상담 신청 시 변호사에게 문자 알림 (서버 /api/notify 경유). fire-and-forget — 저장 흐름을 막지 않는다.
+// name·contact를 명시적으로 보내면 서버가 중앙 접수함(lead-inbox)에도 사본을 남긴다.
 function notifyNewConsultation(
   type: "consultation" | "draft" | "notice",
   caseId: string,
-  summary?: string
+  summary?: string,
+  who?: { name?: string | null; contact?: string | null }
 ): void {
   void fetch("/api/notify", {
     method: "POST",
@@ -331,6 +333,8 @@ function notifyNewConsultation(
       type,
       caseId,
       summary,
+      name: who?.name ?? null,
+      contact: who?.contact ?? null,
       attr: (window as unknown as { getAttribution?: () => unknown }).getAttribution?.() ?? null,
     }),
   }).catch(() => {});
@@ -343,6 +347,7 @@ export type NoticeSubmission = {
   computedTotal: number;
   factSummary: string; // 의뢰인 입력 (계산기) 요약
   userName?: string | null;
+  contact?: string | null; // 변호사 회신용 휴대전화
 };
 
 export async function saveNoticeConsultation(
@@ -360,8 +365,9 @@ export async function saveNoticeConsultation(
       source: "notice",
       message: "표준 패키지: 내용증명 1차 초안 — 변호사 검토 대기",
       uid: user?.uid ?? null,
-      userName: user?.displayName ?? payload.userName ?? null,
+      userName: payload.userName ?? user?.displayName ?? null,
       userEmail: user?.email ?? null,
+      contact: payload.contact ?? null,
       pickedItems: payload.computedItems.map((i) => i.label),
       estimatedAmount: payload.computedTotal,
       meta: { factSummary: payload.factSummary, items: payload.computedItems },
@@ -373,7 +379,25 @@ export async function saveNoticeConsultation(
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
-    notifyNewConsultation("notice", ref.id, payload.userName ?? undefined);
+    notifyNewConsultation(
+      "notice",
+      ref.id,
+      [
+        payload.userName ? `이름 ${payload.userName}` : null,
+        payload.contact ? `연락처 ${payload.contact}` : null,
+        `합산액 ${payload.computedTotal.toLocaleString("ko-KR")}원`,
+        payload.computedItems.length
+          ? "청구 항목: " +
+            payload.computedItems
+              .map((i) => `${i.label} ${i.amount.toLocaleString("ko-KR")}원`)
+              .join(" / ")
+          : null,
+        payload.factSummary ? `입력 내용: ${payload.factSummary.slice(0, 500)}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n") || undefined,
+      { name: payload.userName, contact: payload.contact }
+    );
     return ref.id;
   } catch (e) {
     console.warn("[firebase] saveNoticeConsultation failed", e);
@@ -386,7 +410,7 @@ export async function updateConsultation(
   patch: Partial<
     Pick<
       ConsultationDoc,
-      "status" | "notes" | "draftLetter" | "draftStatus"
+      "status" | "notes" | "draftLetter" | "draftStatus" | "noticeLetter" | "noticeStatus"
     >
   >
 ): Promise<void> {
@@ -751,7 +775,18 @@ export async function saveDraftConsultation(
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
-    notifyNewConsultation("draft", ref.id, payload.userName ?? undefined);
+    notifyNewConsultation(
+      "draft",
+      ref.id,
+      [
+        payload.userName ? `이름 ${payload.userName}` : null,
+        payload.conversationLog
+          ? `대화 내용:\n${payload.conversationLog.slice(0, 500)}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n") || undefined
+    );
     return ref.id;
   } catch (e) {
     console.warn("[firebase] saveDraftConsultation failed", e);
@@ -769,6 +804,26 @@ export type ConsultationPayload = {
   sessionId?: string | null;
   damageThreat?: boolean;
 };
+
+// 상담 저장 시 문자 알림 여부 판단. 카드 클릭 제외 + 채팅은 대화당 1회 (연락처·손배협박은 예외).
+function shouldNotifyConsultation(payload: ConsultationPayload): boolean {
+  if ((payload.message ?? "").includes("카드 클릭")) return false;
+  if (
+    payload.source === "chat" &&
+    payload.sessionId &&
+    !payload.contact &&
+    !payload.damageThreat
+  ) {
+    try {
+      const key = `toesahero_notified_${payload.sessionId}`;
+      if (sessionStorage.getItem(key)) return false;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // sessionStorage 사용 불가 환경이면 그냥 알림 (누락보다 중복이 낫다)
+    }
+  }
+  return true;
+}
 
 export async function saveConsultation(payload: ConsultationPayload) {
   const database = getDb();
@@ -789,14 +844,28 @@ export async function saveConsultation(payload: ConsultationPayload) {
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       path: typeof window !== "undefined" ? window.location.pathname : "/",
     });
-    // 연락처를 남겼을 때만 변호사에게 문자 알림. 단순 채팅·탐색 이벤트로는 알림하지 않는다.
-    if (payload.contact) {
+    // 어떤 형태의 상담이든 변호사에게 문자 알림 (놓치는 상담 방지).
+    // 예외 ① 가격·상품 카드 클릭은 상담이 아닌 탐색 이벤트라 제외 (클릭 후 채팅하면 그때 알림).
+    // 예외 ② 채팅은 대화(sessionId)당 첫 메시지만 — 메시지마다 울리면 문자 폭주.
+    //        단 연락처 제출·손배협박 감지 메시지는 같은 대화여도 다시 알린다.
+    if (shouldNotifyConsultation(payload)) {
       notifyNewConsultation(
         "consultation",
         ref.id,
-        `연락처 ${payload.contact}${
-          payload.message ? `\n${payload.message.slice(0, 60)}` : ""
-        }`
+        [
+          payload.damageThreat ? "⚠ 손배·위약금 협박 감지" : null,
+          payload.contact ? `연락처 ${payload.contact}` : null,
+          payload.message?.slice(0, 600) ?? null,
+          payload.pickedItems?.length
+            ? `선택 항목: ${payload.pickedItems.join(", ")}`
+            : null,
+          typeof payload.estimatedAmount === "number"
+            ? `예상 청구액 ${payload.estimatedAmount.toLocaleString("ko-KR")}원`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n") || undefined,
+        { name: user?.displayName ?? null, contact: payload.contact ?? null }
       );
     }
     return ref.id;

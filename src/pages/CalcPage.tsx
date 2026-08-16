@@ -174,6 +174,9 @@ export function CalcPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<string | null>(null);
+  // 변호사가 회신할 연락처 — 미수집 시 신청이 들어와도 연락할 방법이 없어 필수로 받는다.
+  const [applicantName, setApplicantName] = useState("");
+  const [applicantPhone, setApplicantPhone] = useState("");
 
   const result = useMemo(() => calc(inputs), [inputs]);
 
@@ -221,6 +224,29 @@ export function CalcPage() {
       alert("청구 항목이 없습니다. 입력값을 확인해 주세요.");
       return;
     }
+    // 입력값 검증 — 월급 단위(원) 오입력으로 수십억대 엉터리 합산이 저장되는 것을 차단
+    if (inputs.monthlySalary > 100_000_000) {
+      alert(
+        "월급 입력값을 확인해 주세요. 원 단위로 입력합니다 (예: 월 300만원 → 3000000)."
+      );
+      return;
+    }
+    if (total > 1_000_000_000) {
+      alert(
+        "합산액이 10억원을 넘습니다. 월급·상여금 입력값(원 단위)을 다시 확인해 주세요."
+      );
+      return;
+    }
+    const name = applicantName.trim();
+    const phone = applicantPhone.replace(/[^0-9]/g, "");
+    if (!name) {
+      alert("성함을 입력해 주세요. 변호사 회신에 필요합니다.");
+      return;
+    }
+    if (!/^01[016789][0-9]{7,8}$/.test(phone)) {
+      alert("휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)");
+      return;
+    }
     setSubmitting(true);
     try {
       // AI 내용증명 생성 호출
@@ -252,7 +278,7 @@ export function CalcPage() {
       }
       if (!noticeLetter) {
         noticeLetter =
-          "(AI 초안 생성 실패. 변호사가 사실관계를 직접 확인 후 작성합니다.)\n\n" +
+          "(자동 초안 생성 실패. 변호사가 사실관계를 직접 확인 후 작성합니다.)\n\n" +
           factSummary +
           "\n\n청구 항목:\n" +
           computedItems.map((i) => `- ${i.label}: ${fmt(i.amount)}원`).join("\n");
@@ -263,6 +289,8 @@ export function CalcPage() {
         computedItems,
         computedTotal: total,
         factSummary,
+        userName: name,
+        contact: phone,
       });
       if (id) {
         setSubmitted(id);
@@ -329,6 +357,7 @@ export function CalcPage() {
                 value={inputs.monthlySalary}
                 onValue={(n) => onChange("monthlySalary", n)}
                 min={0}
+                max={100000000}
                 step={100000}
                 unit="원"
               />
@@ -363,6 +392,7 @@ export function CalcPage() {
                 value={inputs.annualBonus}
                 onValue={(n) => onChange("annualBonus", n)}
                 min={0}
+                max={500000000}
                 step={100000}
                 unit="원"
                 full
@@ -488,17 +518,41 @@ export function CalcPage() {
                 </div>
               )}
 
+              <div className="calc-fields" style={{ marginTop: 18 }}>
+                <label className="full" style={{ color: "var(--cream)" }}>
+                  성함 (필수)
+                  <input
+                    type="text"
+                    value={applicantName}
+                    onChange={(e) => setApplicantName(e.target.value)}
+                    placeholder="홍길동"
+                    autoComplete="name"
+                  />
+                </label>
+                <label className="full" style={{ color: "var(--cream)" }}>
+                  휴대전화 (필수 · 변호사 회신용)
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={applicantPhone}
+                    onChange={(e) => setApplicantPhone(e.target.value)}
+                    placeholder="010-1234-5678"
+                    autoComplete="tel"
+                  />
+                </label>
+              </div>
+
               <button
                 className="btn primary"
-                style={{ width: "100%", marginTop: 18, fontSize: 16, padding: 16 }}
+                style={{ width: "100%", marginTop: 12, fontSize: 16, padding: 16 }}
                 onClick={() => void requestNotice()}
                 disabled={submitting || visibleItems.length === 0}
               >
                 {submitting ? (
-                  "AI 1차 초안 생성 중..."
+                  "1차 초안 생성 중..."
                 ) : (
                   <>
-                    <Icon name="doc" size={16} /> 변호사 검토 신청 (AI 1차 초안 자동 생성)
+                    <Icon name="doc" size={16} /> 변호사 검토 신청 (1차 초안 자동 생성)
                   </>
                 )}
               </button>
