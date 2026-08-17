@@ -1,8 +1,28 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveNoticeConsultation } from "../firebase";
-import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
+import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
 import { Icon } from "../components/Icon";
+
+// 검색·AI 답변엔진용 FAQ — 질문형 제목 + 두괄식 답. 화면과 JSON-LD에 1:1로 쓴다.
+const FAQ_ITEMS = [
+  {
+    q: "퇴직금은 어떻게 계산하나요?",
+    a: "퇴직 직전 3개월 평균임금 30일분에 근속연수를 곱해 계산합니다. 1년 이상 근무했다면 5인 미만 사업장을 포함한 모든 사업장에서 청구할 수 있고, 정기 상여금이 있다면 평균임금에 포함해 더 커질 수 있습니다.",
+  },
+  {
+    q: "회사가 퇴직금을 안 주면 어떻게 하나요?",
+    a: "퇴직일부터 14일 안에 지급하지 않으면 연 20%의 지연이자가 붙습니다. 내용증명으로 지급을 요구해 기록을 남기고, 그래도 주지 않으면 노동청 진정이나 민사 청구로 나아갈 수 있습니다.",
+  },
+  {
+    q: "밀린 월급은 언제까지 청구할 수 있나요?",
+    a: "임금채권의 소멸시효는 3년입니다. 오래된 체불분부터 순서대로 청구할 수 없게 되므로, 체불이 시작됐다면 미루지 말고 빨리 조치하는 것이 좋습니다.",
+  },
+  {
+    q: "5인 미만 사업장인데 연차수당도 받을 수 있나요?",
+    a: "연차수당과 연장근로 가산수당은 상시 5인 이상 사업장에만 적용됩니다. 다만 퇴직금과 밀린 월급, 지연이자는 5인 미만 사업장이라도 전부 청구할 수 있습니다.",
+  },
+];
 
 const fmt = new Intl.NumberFormat("ko-KR").format;
 
@@ -153,10 +173,13 @@ export function CalcPage() {
       "변호사 검토",
       "법률사무소 청송",
     ],
-    jsonLd: breadcrumbJsonLd([
-      { name: "홈", url: "/" },
-      { name: "자동 계산기", url: "/calc" },
-    ]),
+    jsonLd: [
+      breadcrumbJsonLd([
+        { name: "홈", url: "/" },
+        { name: "자동 계산기", url: "/calc" },
+      ]),
+      faqJsonLd(FAQ_ITEMS),
+    ],
   });
   const [inputs, setInputs] = useState<Inputs>({
     monthlySalary: 3000000,
@@ -602,6 +625,16 @@ export function CalcPage() {
             </div>
           </aside>
         </div>
+
+        <section className="calc-aside-info" style={{ marginTop: 28 }}>
+          <h2 style={{ fontSize: 18, marginTop: 0 }}>퇴직금·임금체불 자주 묻는 질문</h2>
+          {FAQ_ITEMS.map((f) => (
+            <div key={f.q} style={{ marginTop: 14 }}>
+              <h3 style={{ fontSize: 15, margin: "0 0 6px" }}>{f.q}</h3>
+              <p style={{ margin: 0, lineHeight: 1.6 }}>{f.a}</p>
+            </div>
+          ))}
+        </section>
 
         <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap", justifyContent: "center" }}>
           <Link to="/unemployment-calc" className="btn" style={{ padding: "10px 16px", fontSize: 13 }}>

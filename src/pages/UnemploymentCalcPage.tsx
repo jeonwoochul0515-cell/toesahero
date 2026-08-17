@@ -2,8 +2,28 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { saveConsultation } from "../firebase";
-import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
+import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
 import { Icon } from "../components/Icon";
+
+// 검색·AI 답변엔진용 FAQ — 질문형 제목 + 두괄식 답. 화면과 JSON-LD에 1:1로 쓴다.
+const FAQ_ITEMS = [
+  {
+    q: "실업급여는 한 달에 얼마나 받나요?",
+    a: "1일 평균임금의 60%를 기준으로, 2026년은 하루 상한 68,100원과 하한 66,048원 사이에서 120~270일간 지급됩니다. 월로 환산하면 대략 198만~204만 원 수준이며, 정확한 금액은 월급과 가입기간에 따라 달라집니다.",
+  },
+  {
+    q: "자발적 퇴사도 실업급여를 받을 수 있나요?",
+    a: "원칙적으로는 받을 수 없지만, 2개월 이상 임금체불, 직장 내 괴롭힘, 통근 왕복 3시간 이상 등 정당한 이직 사유에 해당하면 자발적 퇴사여도 수급이 인정될 수 있습니다. 퇴사하기 전에 사유를 확인해 두는 것이 유리합니다.",
+  },
+  {
+    q: "권고사직이면 실업급여를 받을 수 있나요?",
+    a: "권고사직은 비자발적 이직이라 수급자격이 인정될 가능성이 높습니다. 다만 회사가 이직확인서에 적는 사유 코드에 따라 결과가 달라질 수 있어, 제출 전에 내용을 확인하는 것이 중요합니다.",
+  },
+  {
+    q: "실업급여는 언제까지 신청해야 하나요?",
+    a: "이직일 다음 날부터 12개월 안에만 받을 수 있습니다. 늦게 신청하면 남은 지급일수가 있어도 12개월이 지나는 순간 받지 못하므로, 퇴사 후 가능한 한 빨리 고용센터에 수급자격을 신청하는 것이 안전합니다.",
+  },
+];
 
 const fmt = new Intl.NumberFormat("ko-KR").format;
 
@@ -103,10 +123,13 @@ export function UnemploymentCalcPage() {
       "퇴사대행",
       "법률사무소 청송",
     ],
-    jsonLd: breadcrumbJsonLd([
-      { name: "홈", url: "/" },
-      { name: "실업급여 계산기", url: "/unemployment-calc" },
-    ]),
+    jsonLd: [
+      breadcrumbJsonLd([
+        { name: "홈", url: "/" },
+        { name: "실업급여 계산기", url: "/unemployment-calc" },
+      ]),
+      faqJsonLd(FAQ_ITEMS),
+    ],
   });
 
   const [inputs, setInputs] = useState<Inputs>({
@@ -356,6 +379,16 @@ export function UnemploymentCalcPage() {
             </div>
           </aside>
         </div>
+
+        <section className="calc-aside-info" style={{ marginTop: 28 }}>
+          <h2 style={{ fontSize: 18, marginTop: 0 }}>실업급여 자주 묻는 질문</h2>
+          {FAQ_ITEMS.map((f) => (
+            <div key={f.q} style={{ marginTop: 14 }}>
+              <h3 style={{ fontSize: 15, margin: "0 0 6px" }}>{f.q}</h3>
+              <p style={{ margin: 0, lineHeight: 1.6 }}>{f.a}</p>
+            </div>
+          ))}
+        </section>
 
         <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap", justifyContent: "center" }}>
           <Link to="/calc" className="btn" style={{ padding: "10px 16px", fontSize: 13 }}>
