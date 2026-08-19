@@ -45,6 +45,10 @@ const fallbackResponses: Record<string, string> = {
 const FALLBACK_DEFAULT =
   "메시지 확인했습니다. 정확한 답변을 위해 카카오톡 채널 또는 1660-4452로 변호사와 직접 연결드리겠습니다.";
 
+// 익명 상담 차단 안내 — 연락처 없이 채팅만 하고 떠나면 변호사가 연락할 방법이 없다.
+const CONTACT_GATE_MSG =
+  "상담을 시작하려면 회신받을 연락처(전화번호 또는 카카오톡 ID)를 먼저 남겨 주세요.\n남겨주신 연락처는 변호사 회신 용도로만 사용되며, 변호사 비밀유지 의무가 적용됩니다.";
+
 async function callAiChat(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
   userName: string | null
@@ -81,7 +85,7 @@ export function ChatModal({ open, onClose }: Props) {
     { who: "them", text: `안녕하세요. 법률사무소 청송 ${REVIEWING_LAWYER} 변호사입니다.` },
     {
       who: "them",
-      text: "퇴사 관련하여 가장 우선적으로 검토가 필요한 사항을 선택해 주시거나, 직접 작성해 주세요. 변호사 비밀유지 의무가 적용됩니다.",
+      text: "퇴사 관련하여 가장 우선적으로 검토가 필요한 사항을 선택해 주시거나, 직접 작성해 주세요. 변호사 비밀유지 의무가 적용됩니다.\n\n상담 시작 전, 아래 입력란에 회신받을 연락처를 먼저 남겨 주세요.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -94,6 +98,7 @@ export function ChatModal({ open, onClose }: Props) {
   const [contact, setContact] = useState("");
   const [contactSaved, setContactSaved] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const contactInputRef = useRef<HTMLInputElement>(null);
   // 이 모달 인스턴스(=한 대화) 동안 유지되는 세션 ID. 메시지와 상담 건을 묶는다.
   const sessionIdRef = useRef<string | null>(null);
   if (!sessionIdRef.current) sessionIdRef.current = makeSessionId();
@@ -295,6 +300,17 @@ export function ChatModal({ open, onClose }: Props) {
 
   const send = async (text: string) => {
     if (!text.trim()) return;
+    // 익명 채팅 차단 — 연락처를 남기기 전에는 메시지를 보낼 수 없다.
+    // (입력창 내용은 지우지 않아, 연락처 저장 후 다시 보내기만 누르면 된다.)
+    if (!contactSaved) {
+      setMessages((m) =>
+        m[m.length - 1]?.text === CONTACT_GATE_MSG
+          ? m
+          : [...m, { who: "them", text: CONTACT_GATE_MSG }]
+      );
+      contactInputRef.current?.focus();
+      return;
+    }
     const userMsg: Msg = { who: "me", text };
     const nextMsgs = [...messages, userMsg];
     setMessages(nextMsgs);
@@ -444,7 +460,8 @@ export function ChatModal({ open, onClose }: Props) {
             <input
               type="tel"
               className="chat-input"
-              placeholder="회신받을 연락처 (전화·카톡 ID)"
+              placeholder="회신받을 연락처 (전화·카톡 ID) — 필수"
+              ref={contactInputRef}
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               onKeyDown={(e) => {
