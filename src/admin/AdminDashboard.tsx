@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { watchConsultations, type ConsultationDoc } from "../firebase";
+import { groupChatSessions } from "./groupChatSessions";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "신규",
@@ -21,6 +22,9 @@ export function AdminDashboard() {
 
   useEffect(() => watchConsultations(setRows, 200), []);
 
+  // 같은 채팅 대화(sessionId)는 1건으로 묶어 집계한다.
+  const grouped = useMemo(() => groupChatSessions(rows), [rows]);
+
   const stats = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -35,7 +39,7 @@ export function AdminDashboard() {
     let newN = 0;
     let pendingN = 0;
     const bySource: Record<string, number> = {};
-    for (const r of rows) {
+    for (const r of grouped) {
       const s = r.createdAt?.seconds ?? 0;
       if (s >= todaySec) todayN++;
       if (s >= weekSec) weekN++;
@@ -43,10 +47,10 @@ export function AdminDashboard() {
       if (r.status === "contacted" || r.status === "consulted") pendingN++;
       bySource[r.source] = (bySource[r.source] ?? 0) + 1;
     }
-    return { total: rows.length, todayN, weekN, newN, pendingN, bySource };
-  }, [rows]);
+    return { total: grouped.length, todayN, weekN, newN, pendingN, bySource };
+  }, [grouped]);
 
-  const recent = rows.slice(0, 8);
+  const recent = grouped.slice(0, 8);
 
   return (
     <div className="admin-dash">
@@ -98,6 +102,15 @@ export function AdminDashboard() {
                     <Link to={`/admin/consultations/${r.id}`}>
                       {r.message ?? "(메시지 없음)"}
                     </Link>
+                    {(r.chatCount ?? 1) > 1 && (
+                      <span
+                        className="admin-pick"
+                        style={{ marginLeft: 6 }}
+                        title="같은 대화의 메시지를 1건으로 묶었습니다"
+                      >
+                        💬 {r.chatCount}건 묶음
+                      </span>
+                    )}
                   </td>
                   <td>
                     <span className={`admin-status st-${r.status ?? "new"}`}>

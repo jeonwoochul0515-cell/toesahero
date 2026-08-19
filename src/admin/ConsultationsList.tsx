@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { watchConsultations, type ConsultationDoc } from "../firebase";
+import {
+  groupChatSessions,
+  type GroupedConsultation,
+} from "./groupChatSessions";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "신규",
@@ -88,13 +92,17 @@ export function ConsultationsList() {
 
   useEffect(() => watchConsultations(setRows, 500), []);
 
+  // 같은 채팅 대화(sessionId)는 1건으로 묶어 표시·계산한다.
+  const grouped = useMemo(() => groupChatSessions(rows), [rows]);
+
   const filtered = useMemo(() => {
-    return rows.filter((r) => {
+    return grouped.filter((r: GroupedConsultation) => {
       if (status !== "all" && (r.status ?? "new") !== status) return false;
       if (!keyword.trim()) return true;
       const k = keyword.toLowerCase();
       return [
         r.message,
+        r.groupSearchText,
         r.userName,
         r.userEmail,
         r.contact,
@@ -103,7 +111,7 @@ export function ConsultationsList() {
         .filter(Boolean)
         .some((s) => String(s).toLowerCase().includes(k));
     });
-  }, [rows, keyword, status]);
+  }, [grouped, keyword, status]);
 
   return (
     <div className="admin-dash">
@@ -183,6 +191,15 @@ export function ConsultationsList() {
                   <Link to={`/admin/consultations/${r.id}`}>
                     {r.message ?? "(메시지 없음)"}
                   </Link>
+                  {(r.chatCount ?? 1) > 1 && (
+                    <span
+                      className="admin-pick"
+                      style={{ marginLeft: 6 }}
+                      title="같은 대화의 메시지를 1건으로 묶었습니다"
+                    >
+                      💬 {r.chatCount}건 묶음
+                    </span>
+                  )}
                   {r.pickedItems && r.pickedItems.length > 0 && (
                     <div className="admin-picks">
                       {r.pickedItems.map((p, i) => (

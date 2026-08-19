@@ -5,6 +5,10 @@ import {
   updateConsultation,
   type ConsultationDoc,
 } from "../firebase";
+import {
+  groupChatSessions,
+  type GroupedConsultation,
+} from "./groupChatSessions";
 
 type Status = NonNullable<ConsultationDoc["status"]>;
 
@@ -37,14 +41,15 @@ export function Kanban() {
   useEffect(() => watchConsultations(setRows, 300), []);
 
   const grouped = useMemo(() => {
-    const out: Record<Status, ConsultationDoc[]> = {
+    const out: Record<Status, GroupedConsultation[]> = {
       new: [],
       contacted: [],
       consulted: [],
       contracted: [],
       closed: [],
     };
-    for (const r of rows) {
+    // 같은 채팅 대화(sessionId)는 카드 1장으로 묶는다.
+    for (const r of groupChatSessions(rows)) {
       const s = (r.status ?? "new") as Status;
       if (out[s]) out[s].push(r);
     }
@@ -133,7 +138,7 @@ function KanbanCard({
   onDragEnd,
   isDragging,
 }: {
-  row: ConsultationDoc;
+  row: GroupedConsultation;
   onMove: (id: string, status: Status) => void;
   onDragStart: (id: string) => void;
   onDragEnd: () => void;
@@ -153,6 +158,14 @@ function KanbanCard({
     >
       <div className="kanban-card-row">
         <span className={`admin-tag src-${row.source}`}>{row.source}</span>
+        {(row.chatCount ?? 1) > 1 && (
+          <span
+            className="kanban-card-badge"
+            title="같은 대화의 메시지를 1건으로 묶었습니다"
+          >
+            💬 {row.chatCount}
+          </span>
+        )}
         {row.draftLetter && (
           <span className="kanban-card-badge">📝 초안</span>
         )}
