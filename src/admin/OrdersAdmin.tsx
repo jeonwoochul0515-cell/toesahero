@@ -1,7 +1,7 @@
 // 결제 주문(orders) 목록을 보여주는 어드민 화면 — 상담 미연결(noref) 결제까지 확인용
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { watchOrders, type OrderDoc } from "../firebase";
+import { lookupPayerNames, watchOrders, type OrderDoc } from "../firebase";
 
 const STATUS_LABEL: Record<string, string> = {
   ready: "대기",
@@ -28,8 +28,36 @@ function won(n?: number): string {
 export function OrdersAdmin() {
   const [rows, setRows] = useState<OrderDoc[]>([]);
   const [status, setStatus] = useState<string>("all");
+  // uid → 상담 기록에서 찾은 이름·이메일 (주문에 이름이 저장되기 전 건 보완용)
+  const [payerByUid, setPayerByUid] = useState<
+    Record<string, { name: string | null; email: string | null }>
+  >({});
 
   useEffect(() => watchOrders(setRows, 300), []);
+
+  useEffect(() => {
+    const uids = Array.from(
+      new Set(
+        rows
+          .filter((r) => !r.userName && !r.userEmail && r.uid)
+          .map((r) => r.uid as string)
+      )
+    );
+    if (uids.length === 0) return;
+    void lookupPayerNames(uids).then((found) =>
+      setPayerByUid((prev) => ({ ...prev, ...found }))
+    );
+  }, [rows]);
+
+  // 결제자 표시 우선순위: 주문에 저장된 이름 → 상담 기록에서 찾은 이름 → 이메일 → 익명
+  const payerLabel = (r: OrderDoc): { text: string; anon: boolean } => {
+    const looked = r.uid ? payerByUid[r.uid] : undefined;
+    const name = r.userName ?? looked?.name;
+    if (name) return { text: name, anon: false };
+    const email = r.userEmail ?? looked?.email;
+    if (email) return { text: email, anon: false };
+    return { text: r.uid ? "이름 미확인" : "익명", anon: true };
+  };
 
   const filtered = useMemo(
     () => rows.filter((r) => status === "all" || (r.status ?? "ready") === status),
@@ -70,6 +98,7 @@ export function OrdersAdmin() {
         <thead>
           <tr>
             <th style={{ width: 150 }}>일시</th>
+            <th style={{ width: 110 }}>결제자</th>
             <th style={{ width: 100 }}>패키지</th>
             <th style={{ width: 120 }}>금액</th>
             <th style={{ width: 100 }}>상태</th>
@@ -80,7 +109,7 @@ export function OrdersAdmin() {
         <tbody>
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={6} className="admin-empty">
+              <td colSpan={7} className="admin-empty">
                 결과가 없습니다.
               </td>
             </tr>
@@ -88,6 +117,18 @@ export function OrdersAdmin() {
             filtered.map((r) => (
               <tr key={r.id}>
                 <td>{fmtDate(r.createdAt)}</td>
+                <td>
+                  {(() => {
+                    const p = payerLabel(r);
+                    return p.anon ? (
+                      <span className="admin-anon" title={r.uid ?? undefined}>
+                        {p.text}
+                      </span>
+                    ) : (
+                      <span title={r.uid ?? undefined}>{p.text}</span>
+                    );
+                  })()}
+                </td>
                 <td>{PACKAGE_LABEL[r.packageId ?? ""] ?? r.packageId ?? "—"}</td>
                 <td>{won(r.amount)}</td>
                 <td>

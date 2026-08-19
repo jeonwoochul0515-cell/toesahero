@@ -12,6 +12,8 @@ type RequestBody = {
   packageId: string;
   caseId?: string | null;
   uid?: string | null;
+  userName?: string | null; // 로그인 이름 — 어드민 결제자 표시용
+  userEmail?: string | null;
 };
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
@@ -48,6 +50,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       amount,
       caseId: body.caseId ?? null,
       uid: body.uid ?? null,
+      userName: typeof body.userName === "string" ? body.userName.slice(0, 100) : null,
+      userEmail: typeof body.userEmail === "string" ? body.userEmail.slice(0, 200) : null,
       status: "ready",
       createdAt: nowTimestamp(),
     });

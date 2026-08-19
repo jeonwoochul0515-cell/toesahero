@@ -19,6 +19,7 @@ import {
 import {
   doc,
   getDoc,
+  getDocs,
   setDoc,
   query,
   where,
@@ -213,11 +214,48 @@ export type OrderDoc = {
   amount?: number;
   caseId?: string | null;
   uid?: string | null;
+  userName?: string | null; // 주문 생성 시점의 로그인 이름 (2026-08-19부터 저장)
+  userEmail?: string | null;
   status?: "ready" | "paid" | "canceled" | "failed";
   paymentKey?: string | null;
   createdAt?: { seconds: number; nanoseconds: number } | null;
   approvedAt?: { seconds: number; nanoseconds: number } | null;
 };
+
+// 주문에 이름이 저장되기 전(2026-08-19 이전) 건을 위해, 같은 uid의 상담 기록에서
+// 이름·이메일을 찾아 결제자를 식별한다 (어드민 전용 — consultations 읽기 권한 필요).
+export async function lookupPayerNames(
+  uids: string[]
+): Promise<Record<string, { name: string | null; email: string | null }>> {
+  const database = getDb();
+  const out: Record<string, { name: string | null; email: string | null }> = {};
+  if (!database) return out;
+  await Promise.all(
+    uids.map(async (uid) => {
+      try {
+        const snap = await getDocs(
+          query(
+            collection(database, "consultations"),
+            where("uid", "==", uid),
+            limit(10)
+          )
+        );
+        let name: string | null = null;
+        let email: string | null = null;
+        for (const d of snap.docs) {
+          const data = d.data() as { userName?: string | null; userEmail?: string | null };
+          if (!name && data.userName) name = data.userName;
+          if (!email && data.userEmail) email = data.userEmail;
+          if (name && email) break;
+        }
+        out[uid] = { name, email };
+      } catch (e) {
+        console.warn("[firebase] lookupPayerNames failed", uid, e);
+      }
+    })
+  );
+  return out;
+}
 
 // 결제 주문 실시간 구독 (어드민 전용 — orders 읽기는 보안 규칙상 어드민만 허용).
 export function watchOrders(

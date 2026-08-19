@@ -397,3 +397,8 @@
 
 ## 배포 주의
 - **wrangler pages deploy는 반드시 `--branch main`** — 이 프로젝트 Pages production 브랜치는 main이다. `--branch master`로 올리면 Preview로 가서 toesahero.com에 반영 안 됨 (2026-08-19 실측).
+
+## 결제 주문 화면 결제자 표시 (2026-08-19, 같은 날 추가 배포)
+- `OrdersAdmin`에 "결제자" 열 추가. 표시 우선순위 = 주문에 저장된 이름 → 같은 uid의 상담 기록에서 찾은 이름(`lookupPayerNames`, firebase.ts) → 이메일 → "이름 미확인/익명". 이름 칸에 마우스를 올리면 uid 툴팁.
+- 신규 주문은 생성 시점에 이름·이메일을 주문 문서에 직접 저장 (`/api/payment/order` body에 userName·userEmail 추가, CheckoutPage가 전달). 과거 주문은 상담 기록 대조로 보완 — 상담 기록이 전혀 없는 결제자는 "이름 미확인"으로 뜰 수 있음(토스 상점관리자에서 확인).
+- 실사이트 검증: 8/17 결제완료 = 이연재, 6/18 3건 = jeonwoochul0515@gmail.com 표시 확인.

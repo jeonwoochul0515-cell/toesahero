@@ -193,6 +193,8 @@ export function CheckoutPage() {
           packageId: pkg.id,
           caseId: caseId ?? null,
           uid: user.uid,
+          userName: user.displayName ?? null,
+          userEmail: user.email ?? null,
         }),
       });
       const data = (await resp.json()) as {
