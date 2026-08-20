@@ -7,6 +7,7 @@ import { Marquee } from "./components/Marquee";
 import { StatsBand } from "./components/StatsBand";
 import { Audience } from "./components/Audience";
 import { LaborDisputes } from "./components/LaborDisputes";
+import { ContractClauses } from "./components/ContractClauses";
 import { DraftHook } from "./components/DraftHook";
 import { Calculator } from "./components/Calculator";
 import { Process } from "./components/Process";
@@ -69,6 +70,7 @@ export function Home() {
       <StatsBand />
       <Audience />
       <LaborDisputes />
+      <ContractClauses openChat={openChat} />
       <DraftHook openChat={openChat} />
       <Calculator />
       <Process />
