@@ -330,6 +330,62 @@ export function ConsultationDetail() {
           />
         </div>
 
+        {(row.meta as { docType?: string } | undefined)?.docType ===
+          "delegation" && (
+          <div className="admin-detail-card">
+            <h3>전자서명 위임장</h3>
+            {(() => {
+              const m = row.meta as {
+                birth?: string;
+                address?: string;
+                signaturePng?: string;
+                signedAt?: string;
+              };
+              return (
+                <>
+                  <DList
+                    items={[
+                      ["생년월일", m.birth ?? "—"],
+                      ["주소", m.address ?? "—"],
+                      [
+                        "제출일시",
+                        m.signedAt
+                          ? new Date(m.signedAt).toLocaleString("ko-KR", {
+                              hour12: false,
+                            })
+                          : "—",
+                      ],
+                    ]}
+                  />
+                  {m.signaturePng && (
+                    <img
+                      src={m.signaturePng}
+                      alt="위임인 전자서명"
+                      style={{
+                        width: 220,
+                        border: "1px solid var(--line, #ddd)",
+                        borderRadius: 8,
+                        background: "#fff",
+                        margin: "10px 0",
+                        display: "block",
+                      }}
+                    />
+                  )}
+                  <a
+                    href={`/admin/consultations/${row.id}/delegation-print`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn primary"
+                    style={{ fontSize: 13 }}
+                  >
+                    🖨 위임장 인쇄 / PDF 저장
+                  </a>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
         <div className="admin-detail-card">
           <h3>메시지</h3>
           <pre className="admin-message">

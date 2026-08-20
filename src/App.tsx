@@ -18,6 +18,11 @@ import { AdminAuthProvider } from "./admin/AdminAuthContext";
 const MyPage = lazy(() =>
   import("./pages/MyPage").then((m) => ({ default: m.MyPage }))
 );
+const DelegationSignPage = lazy(() =>
+  import("./pages/DelegationSignPage").then((m) => ({
+    default: m.DelegationSignPage,
+  }))
+);
 const CheckoutPage = lazy(() =>
   import("./pages/CheckoutPage").then((m) => ({ default: m.CheckoutPage }))
 );
@@ -59,6 +64,11 @@ const StatsAdmin = lazy(() =>
 );
 const ChatLogs = lazy(() =>
   import("./admin/ChatLogs").then((m) => ({ default: m.ChatLogs }))
+);
+const PrintDelegation = lazy(() =>
+  import("./admin/PrintDelegation").then((m) => ({
+    default: m.PrintDelegation,
+  }))
 );
 const PrintLetter = lazy(() =>
   import("./admin/PrintLetter").then((m) => ({ default: m.PrintLetter }))
@@ -122,6 +132,7 @@ export const routes: RouteRecord[] = [
       { path: "foreign-workers", element: <ForeignWorkerPage /> },
       { path: "checkout/:id", element: <CheckoutPage /> },
       { path: "checkout", element: <CheckoutPage /> },
+      { path: "delegation", element: <DelegationSignPage /> },
       { path: "terms", element: <Navigate to="/terms.html" replace /> },
       { path: "privacy", element: <Navigate to="/privacy.html" replace /> },
       { path: "blog", element: <BlogList /> },
@@ -136,6 +147,14 @@ export const routes: RouteRecord[] = [
             element: (
               <RequireAdmin>
                 <PrintLetter />
+              </RequireAdmin>
+            ),
+          },
+          {
+            path: "admin/consultations/:id/delegation-print",
+            element: (
+              <RequireAdmin>
+                <PrintDelegation />
               </RequireAdmin>
             ),
           },

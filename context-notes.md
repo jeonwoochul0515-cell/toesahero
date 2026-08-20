@@ -409,3 +409,10 @@
 - FAQ 3건 추가(연락 대응 범위 / 30일 통보·승인 조항 / 지급보류·손해배상 조항), 제목 12→15가지, FAQPage JSON-LD 자동 동기화.
 - Pricing 기본 절차 perk "회사 연락 응대 대행" → "통보 후 회사·파견업체 연락, 사무소가 대신 응대".
 - ChatModal 빠른답장 "계약서에 무서운 조항이 있어요" + 폴백 응답, 챗봇 시스템 프롬프트에 계약서 조항 문의 대응 지침(단정 금지, 카톡으로 계약서 사진 유도).
+
+## 위임장 전자서명 기능 (2026-08-20 배포)
+- 계기: 유니에스가 김민지 건 위임장을 요구 — 출력·자필서명·사진 회신 방식의 마찰을 없애기 위해 구현.
+- `/delegation` (공개, noindex, 로그인 불요) — 위임장 전문 + 위임인 정보 4필드 + 캔버스 서명(포인터 이벤트) → 제출 시 consultations 문서로 저장(source form, meta.docType="delegation", 서명 PNG dataURL·제출시각 포함). 문자 알림 자동 발송.
+- 어드민: ConsultationDetail에 "전자서명 위임장" 블록(서명 이미지·생년월일·주소·제출시각) + `/admin/consultations/:id/delegation-print` 인쇄 화면(PrintLetter 패턴, 자동 인쇄 다이얼로그) — 서명 합성된 완성 위임장을 인쇄/PDF 저장.
+- 라우팅 주의: 새 클라 전용 라우트는 main.tsx PRERENDER_EXCLUDE와 functions/_middleware.ts isClientRoute **두 곳 모두**에 추가해야 한다(delegation 추가함). 이걸 빼먹으면 직접 URL 접속이 404.
+- E2E 검증: 실사이트에서 테스트 제출(#Z82Z1F1N) → 어드민 표시·인쇄 버튼 확인. 테스트 건은 어드민에서 삭제/종료 처리 가능.

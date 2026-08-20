@@ -11,7 +11,7 @@ export const createRoot = ViteReactSSG({ routes });
 
 // 프리렌더 대상 — 공개 콘텐츠 라우트만. admin/checkout/my/약관/동적(:param)·catch-all 제외.
 // vite-react-ssg 가 server entry 의 named export 로 읽어 적용한다.
-const PRERENDER_EXCLUDE = ["admin", "checkout", "my", "terms", "privacy"];
+const PRERENDER_EXCLUDE = ["admin", "checkout", "my", "terms", "privacy", "delegation"];
 export function includedRoutes(paths: string[]): string[] {
   const staticRoutes = paths.filter((p) => {
     if (p.includes(":") || p.includes("*")) return false;

@@ -12,7 +12,9 @@ function isClientRoute(pathname: string): boolean {
     pathname === "/checkout" ||
     pathname.startsWith("/checkout/") ||
     pathname === "/admin" ||
-    pathname.startsWith("/admin/")
+    pathname.startsWith("/admin/") ||
+    pathname === "/delegation" ||
+    pathname.startsWith("/delegation/")
   );
 }
 
