@@ -68,11 +68,21 @@ export function CheckoutPage() {
   const [doc1, setDoc1] = useState<ConsultationDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [agreed, setAgreed] = useState(false);
+  // 로그인 없이 결제 가능 — 이름·연락처를 직접 입력받아 주문에 저장한다 (2026-08-20).
+  const [buyerName, setBuyerName] = useState("");
+  const [buyerPhone, setBuyerPhone] = useState("");
   const [tossLoaded, setTossLoaded] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmResult, setConfirmResult] = useState<string | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
+
+  // 로그인되어 있으면 이름을 미리 채워준다 (수정 가능).
+  useEffect(() => {
+    if (user?.displayName) {
+      setBuyerName((prev) => prev || user.displayName!);
+    }
+  }, [user]);
 
   // Firestore에서 사건 정보 로드
   useEffect(() => {
@@ -177,8 +187,15 @@ export function CheckoutPage() {
       );
       return;
     }
-    if (!user) {
-      alert("결제 진행을 위해 카카오 로그인이 필요합니다.");
+    // 로그인 필수 아님 — 이름·연락처만 확인되면 결제 진행 (변호사가 연락할 수단 확보 목적).
+    const name = buyerName.trim();
+    const phone = buyerPhone.replace(/[^0-9]/g, "");
+    if (!name) {
+      alert("성함을 입력해 주세요.");
+      return;
+    }
+    if (phone.length < 9) {
+      alert("연락받으실 전화번호를 입력해 주세요.");
       return;
     }
 
@@ -192,9 +209,10 @@ export function CheckoutPage() {
         body: JSON.stringify({
           packageId: pkg.id,
           caseId: caseId ?? null,
-          uid: user.uid,
-          userName: user.displayName ?? null,
-          userEmail: user.email ?? null,
+          uid: user?.uid ?? null,
+          userName: name,
+          userEmail: user?.email ?? null,
+          contact: phone,
         }),
       });
       const data = (await resp.json()) as {
@@ -227,8 +245,8 @@ export function CheckoutPage() {
         amount,
         orderId,
         orderName: `퇴사히어로 ${pkg.name} 패키지`,
-        customerName: user.displayName ?? "의뢰인",
-        customerEmail: user.email ?? undefined,
+        customerName: name || user?.displayName || "의뢰인",
+        customerEmail: user?.email ?? undefined,
         successUrl: window.location.origin + window.location.pathname,
         failUrl: window.location.origin + window.location.pathname + "?fail=1",
       });
@@ -273,6 +291,31 @@ export function CheckoutPage() {
                   {doc1.userName && <>· 의뢰인: {doc1.userName}</>}
                 </div>
               )}
+            </div>
+
+            <div className="checkout-terms">
+              <h3>의뢰인 정보</h3>
+              <p style={{ fontSize: 13, color: "#666", margin: "4px 0 10px" }}>
+                로그인 없이 진행됩니다. 변호사가 연락드릴 정보만 입력해 주세요.
+              </p>
+              <div style={{ display: "grid", gap: 10, marginBottom: 6 }}>
+                <input
+                  type="text"
+                  className="chat-input"
+                  placeholder="성함 (필수)"
+                  value={buyerName}
+                  onChange={(e) => setBuyerName(e.target.value)}
+                  autoComplete="name"
+                />
+                <input
+                  type="tel"
+                  className="chat-input"
+                  placeholder="연락받으실 전화번호 (필수)"
+                  value={buyerPhone}
+                  onChange={(e) => setBuyerPhone(e.target.value)}
+                  autoComplete="tel"
+                />
+              </div>
             </div>
 
             <div className="checkout-terms">

@@ -214,8 +214,9 @@ export type OrderDoc = {
   amount?: number;
   caseId?: string | null;
   uid?: string | null;
-  userName?: string | null; // 주문 생성 시점의 로그인 이름 (2026-08-19부터 저장)
+  userName?: string | null; // 주문 생성 시점의 결제자 이름 (2026-08-19부터 저장, 8-20부터 직접 입력)
   userEmail?: string | null;
+  contact?: string | null; // 결제자 연락처 (2026-08-20부터 결제 페이지에서 직접 입력)
   status?: "ready" | "paid" | "canceled" | "failed";
   paymentKey?: string | null;
   createdAt?: { seconds: number; nanoseconds: number } | null;

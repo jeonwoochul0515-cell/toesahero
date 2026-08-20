@@ -12,8 +12,9 @@ type RequestBody = {
   packageId: string;
   caseId?: string | null;
   uid?: string | null;
-  userName?: string | null; // 로그인 이름 — 어드민 결제자 표시용
+  userName?: string | null; // 결제자 이름 — 어드민 결제자 표시용 (직접 입력 or 로그인 이름)
   userEmail?: string | null;
+  contact?: string | null; // 결제자 연락처 — 변호사 회신용
 };
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
@@ -52,6 +53,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       uid: body.uid ?? null,
       userName: typeof body.userName === "string" ? body.userName.slice(0, 100) : null,
       userEmail: typeof body.userEmail === "string" ? body.userEmail.slice(0, 200) : null,
+      contact: typeof body.contact === "string" ? body.contact.slice(0, 40) : null,
       status: "ready",
       createdAt: nowTimestamp(),
     });

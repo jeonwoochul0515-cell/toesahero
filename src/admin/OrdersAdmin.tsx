@@ -128,6 +128,7 @@ export function OrdersAdmin() {
                       <span title={r.uid ?? undefined}>{p.text}</span>
                     );
                   })()}
+                  {r.contact && <div className="admin-email">{r.contact}</div>}
                 </td>
                 <td>{PACKAGE_LABEL[r.packageId ?? ""] ?? r.packageId ?? "—"}</td>
                 <td>{won(r.amount)}</td>
