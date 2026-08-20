@@ -41,6 +41,9 @@ export function ReviewsAdmin() {
       setTag("");
       setBg("paper");
       setConsentNote("");
+    } catch (e) {
+      // 실패가 조용히 삼켜져 등록된 줄 착각하는 사고 방지 (2026-08-20 실제 발생)
+      alert(`후기 저장에 실패했습니다. 어드민 로그인 상태를 확인해 주세요.\n${String(e)}`);
     } finally {
       setCreating(false);
     }

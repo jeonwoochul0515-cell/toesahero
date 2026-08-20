@@ -100,6 +100,10 @@ export function DiagnosePage() {
   const [result, setResult] = useState<ReturnType<typeof recommend> | null>(null);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // 익명 진단 방지 — 연락처 없이는 결과 제출 불가 (2026-08-20, 채팅 게이트와 동일 원칙)
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const phoneOk = phone.replace(/[^0-9]/g, "").length >= 9;
 
   const seo = usePageMeta({
     title: "셀프 진단 — 내 사안에 맞는 퇴사대행 패키지 찾기",
@@ -121,7 +125,7 @@ export function DiagnosePage() {
   const allAnswered = QUESTIONS.every((q) => answers[q.key]);
 
   const submit = async () => {
-    if (!allAnswered || submitting) return;
+    if (!allAnswered || submitting || !phoneOk) return;
     setSubmitting(true);
     const r = recommend(answers);
     const pickedItems = QUESTIONS.map((q) => {
@@ -132,6 +136,8 @@ export function DiagnosePage() {
       const id = await saveConsultation({
         source: "form",
         message: `셀프 진단 결과: ${PKG[r.tier].name} 추천`,
+        userName: name.trim() || null,
+        contact: phone.trim(),
         pickedItems,
         meta: { recommendedTier: r.tier, urgency: answers.urgency },
         ...(r.damageThreat ? { damageThreat: true } : {}),
@@ -196,13 +202,46 @@ export function DiagnosePage() {
                 </div>
               </div>
             ))}
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ fontWeight: 800, marginBottom: 6 }}>
+                결과를 받아보실 정보를 입력해 주세요
+              </p>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 10px" }}>
+                진단 결과는 변호사가 함께 확인합니다. 검토 의견이 필요한 경우
+                남겨주신 연락처로 안내드립니다.
+              </p>
+              <div style={{ display: "grid", gap: 8 }}>
+                <input
+                  type="text"
+                  className="chat-input"
+                  placeholder="성함 (선택)"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                />
+                <input
+                  type="tel"
+                  className="chat-input"
+                  placeholder="연락받으실 전화번호 (필수)"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
+                />
+              </div>
+            </div>
             <button
               className="btn primary"
               style={{ width: "100%", padding: 16, fontSize: 16, marginTop: 8 }}
               onClick={() => void submit()}
-              disabled={!allAnswered || submitting}
+              disabled={!allAnswered || submitting || !phoneOk}
             >
-              {submitting ? "분석 중..." : allAnswered ? "진단 결과 보기" : "모든 항목을 선택해 주세요"}
+              {submitting
+                ? "분석 중..."
+                : !allAnswered
+                ? "모든 항목을 선택해 주세요"
+                : !phoneOk
+                ? "연락처를 입력해 주세요"
+                : "진단 결과 보기"}
             </button>
           </>
         ) : (

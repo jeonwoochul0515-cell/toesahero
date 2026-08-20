@@ -503,16 +503,18 @@ export async function fetchPublicReviews(): Promise<ReviewDoc[]> {
   const database = getDb();
   if (!database) return [];
   try {
+    // 보안규칙(approved+display=true만 공개 읽기 허용)과 일치하는 등호 필터 쿼리여야
+    // 비로그인 방문자도 조회할 수 있다. orderBy만 있는 쿼리는 규칙 위반으로 전체 거부됨.
     const q = query(
       collection(database, "reviews"),
-      orderBy("approvedAt", "desc"),
+      where("status", "==", "approved"),
+      where("display", "==", true),
       limit(30)
     );
-    const { getDocs } = await import("firebase/firestore");
     const snap = await getDocs(q);
     return snap.docs
       .map(snapToReview)
-      .filter((r) => r.status === "approved" && r.display !== false);
+      .sort((a, b) => (b.approvedAt?.seconds ?? 0) - (a.approvedAt?.seconds ?? 0));
   } catch (e) {
     console.warn("[firebase] fetchPublicReviews failed", e);
     return [];
