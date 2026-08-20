@@ -15,3 +15,10 @@ src/generated/
 vite.config.d.ts
 vite.config.js
 *.tsbuildinfo
+
+# 의뢰인 개인정보 문서 (계약서·내용증명·카톡 캡처 등) — 절대 커밋 금지
+docs/research/*.pdf
+docs/research/*.jpeg
+docs/research/*.jpg
+docs/research/*.png
+docs/research/내용증명*
