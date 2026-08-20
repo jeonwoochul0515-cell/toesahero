@@ -56,26 +56,38 @@ async function callAiChat(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
   userName: string | null
 ): Promise<string | null> {
-  try {
-    const resp = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ messages, userName }),
-    });
-    if (resp.status === 503) {
-      // AI not configured — fall back
+  // 일시 오류로 즉시 기계식 폴백이 나가는 것을 막기 위해 1회 재시도
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const resp = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ messages, userName }),
+      });
+      if (resp.status === 503) {
+        // AI not configured — fall back (재시도 무의미)
+        return null;
+      }
+      if (!resp.ok) {
+        console.warn("[chat] upstream error", resp.status);
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        return null;
+      }
+      const data = (await resp.json()) as { text?: string };
+      return data.text ?? null;
+    } catch (e) {
+      console.warn("[chat] network error", e);
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+        continue;
+      }
       return null;
     }
-    if (!resp.ok) {
-      console.warn("[chat] upstream error", resp.status);
-      return null;
-    }
-    const data = (await resp.json()) as { text?: string };
-    return data.text ?? null;
-  } catch (e) {
-    console.warn("[chat] network error", e);
-    return null;
   }
+  return null;
 }
 
 type Props = {

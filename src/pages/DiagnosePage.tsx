@@ -128,6 +128,19 @@ export function DiagnosePage() {
     if (!allAnswered || submitting || !phoneOk) return;
     setSubmitting(true);
     const r = recommend(answers);
+    // 같은 세션에서 같은 답변을 다시 제출하면 중복 저장·중복 문자알림을 만들지 않는다
+    const dedupKey = "toesahero_diag_" + JSON.stringify(answers) + phone.trim();
+    try {
+      const prev = sessionStorage.getItem(dedupKey);
+      if (prev) {
+        setCaseId(prev === "null" ? null : prev);
+        setResult(r);
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      // sessionStorage 불가 환경은 그냥 진행
+    }
     const pickedItems = QUESTIONS.map((q) => {
       const opt = q.options.find((o) => o.value === answers[q.key]);
       return `${q.label.replace(/^\d+\.\s*/, "")} → ${opt?.label ?? ""}`;
@@ -143,6 +156,11 @@ export function DiagnosePage() {
         ...(r.damageThreat ? { damageThreat: true } : {}),
       });
       setCaseId(id);
+      try {
+        sessionStorage.setItem(dedupKey, id ?? "null");
+      } catch {
+        // 무시
+      }
     } catch {
       // 저장 실패해도 결과는 보여준다
     }
