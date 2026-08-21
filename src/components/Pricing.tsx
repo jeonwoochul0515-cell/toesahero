@@ -54,7 +54,7 @@ const tiers: Tier[] = [
     name: "분쟁 대응",
     tag: "FULL",
     price: "790,000",
-    sub: "고소·민사 등 변호사 전속 사무",
+    sub: "괴롭힘·해고 등 분쟁 대응 (소송 수행은 별도 위임)",
     pop: false,
     perks: [
       "표준 절차 전체 포함",

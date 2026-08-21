@@ -32,7 +32,7 @@ const PACKAGES: Record<PackageInfo["id"], PackageInfo> = {
     id: "max",
     name: "분쟁 대응",
     price: 790000,
-    desc: "고소·민사 등 변호사 전속 사무",
+    desc: "괴롭힘·해고 등 분쟁 대응 (소송 수행은 별도 위임)",
   },
 };
 
