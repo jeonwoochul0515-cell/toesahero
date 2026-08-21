@@ -118,9 +118,9 @@ export function PrintDelegation() {
         </table>
 
         <p style={{ fontSize: 14.5, lineHeight: 1.9, margin: "0 0 8px" }}>
-          위임인은 위임인의 퇴직과 관련한 다음 각 사무 일체의 처리를 수임인에게
-          위임하였음을 확인하며, 이 건에 관한 연락은 수임인을 통하여 주실 것을
-          요청합니다.
+          위임인은 위임인의 노동 사안과 관련한 다음 각 사무 일체의 처리를
+          수임인에게 위임하였음을 확인하며, 이 건에 관한 연락은 수임인을 통하여
+          주실 것을 요청합니다.
         </p>
         <ol style={{ fontSize: 14, lineHeight: 1.9, margin: "0 0 24px", paddingLeft: 26 }}>
           {scope.map((s) => (
