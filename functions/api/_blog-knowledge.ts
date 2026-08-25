@@ -1,0 +1,129 @@
+// 자동 생성 파일 — 수정 금지. `node scripts/prerender-posts.mjs`(빌드 prebuild)가 생성한다.
+// 히로 챗봇이 칼럼을 경로와 함께 안내할 수 있게 하는 지식 목록(제목·경로·요지만).
+export const BLOG_KNOWLEDGE: { slug: string; title: string; excerpt: string }[] = [
+  {
+    "slug": "auto-mt6l6k8d",
+    "title": "인수인계 안 하고 퇴사하면 손해배상 책임 있나요",
+    "excerpt": "퇴사 시 인수인계를 거부하면 회사가 손해배상을 청구할 수 있는지, 그 법적 요건과 대응 방법을 정리했습니다."
+  },
+  {
+    "slug": "forced-resignation-pressure",
+    "title": "사직 강요·권고사직 압박, 어떻게 대응해야 할까",
+    "excerpt": "회사의 사직 강요와 권고사직 압박, 그 법적 의미와 부당해고 판단 기준을 정리했습니다."
+  },
+  {
+    "slug": "how-to-give-resignation-notice",
+    "title": "퇴사 통보는 언제, 어떻게 해야 하나요 — 민법 제660조",
+    "excerpt": "퇴사 통보 시기와 사직 효력 발생 시점을 민법 제660조에 근거해 설명하고 실무상 유의점을 안내합니다."
+  },
+  {
+    "slug": "severance-without-contract",
+    "title": "근로계약서 없이 일했어도 퇴직금 받을 수 있나요",
+    "excerpt": "근로계약서가 없어도 실제 근로관계가 인정되면 퇴직금을 받을 수 있습니다. 요건과 입증 방법을 안내합니다."
+  },
+  {
+    "slug": "workplace-harassment-evidence",
+    "title": "직장 내 괴롭힘, 퇴사 전 남겨야 할 증거",
+    "excerpt": "근로기준법 제76조의2를 근거로 직장 내 괴롭힘 증거를 정리하는 방법과 신고 절차상 유의점을 안내합니다."
+  },
+  {
+    "slug": "annual-leave-allowance-settlement",
+    "title": "연차수당 정산, 퇴사 전 꼭 확인해야 할 것",
+    "excerpt": "퇴사 시 미사용 연차수당은 어떻게 정산되는지, 근로기준법 근거와 함께 체크리스트를 정리했습니다."
+  },
+  {
+    "slug": "foreign-worker-resignation",
+    "title": "외국인 근로자·5인 미만 사업장도 퇴사대행 가능한가요",
+    "excerpt": "외국인 근로자와 5인 미만 사업장 근로자의 퇴사 가능 여부를 근로기준법·민법 조항을 근거로 안내합니다."
+  },
+  {
+    "slug": "workplace-harassment-punishment-cases",
+    "title": "직장 내 괴롭힘 처벌 수위와 실제 인정 사례",
+    "excerpt": "근로기준법 제76조의2에 따른 직장 내 괴롭힘의 판단 기준과 처벌 수위, 실제 인정된 사례를 살펴봅니다."
+  },
+  {
+    "slug": "free-labor-attorney-support",
+    "title": "국선노무사 제도, 조건과 한계까지 알아보기",
+    "excerpt": "부당해고 등 노동위원회 사건에서 공인노무사를 무료로 지원받는 국선노무사 제도의 신청 조건과 한계를 정리했습니다."
+  },
+  {
+    "slug": "workplace-harassment-damages-claim",
+    "title": "직장 내 괴롭힘 손해배상 청구 — 위자료 기준과 소송 절차",
+    "excerpt": "직장 내 괴롭힘 피해자가 민사소송으로 위자료를 청구하는 방법과 법원이 금액을 산정하는 기준을 정리합니다."
+  },
+  {
+    "slug": "wage-guarantee-fund",
+    "title": "회사 폐업 후 임금을 못 받았다면 — 대지급금 신청 방법",
+    "excerpt": "회사가 폐업해 임금·퇴직금을 받지 못한 근로자는 임금채권보장법에 따라 대지급금(간이대지급금)을 신청할 수 있습니다."
+  },
+  {
+    "slug": "unfair-transfer-response",
+    "title": "부당전보·보복성 발령을 받았다면 — 다투는 방법과 요건",
+    "excerpt": "근로자의 동의 없는 일방적 전보·전직이 부당한 인사처분에 해당할 수 있습니다. 근로기준법 제23조를 근거로 다투는 절차와 요건을 정리합니다."
+  },
+  {
+    "slug": "unfair-dismissal-remedy-procedure",
+    "title": "부당해고 구제신청 절차 — 노동위원회 접수부터 판정·화해까지",
+    "excerpt": "부당해고를 당한 근로자는 근로기준법 제28조에 따라 해고일로부터 3개월 이내에 노동위원회에 구제신청을 할 수 있습니다."
+  },
+  {
+    "slug": "recommended-resignation-company-disadvantage",
+    "title": "권고사직, 회사가 받는 불이익을 알면 협상이 달라집니다",
+    "excerpt": "권고사직 요구를 받았다면 회사가 감수해야 할 불이익을 먼저 파악하세요. 협상력이 달라질 수 있습니다."
+  },
+  {
+    "slug": "unpaid-wage-report-and-confirmation",
+    "title": "임금체불 노동청 신고 방법과 체불임금확인서 발급 절차",
+    "excerpt": "임금이 밀렸을 때 노동청에 진정을 제기하는 절차와 체불임금확인서 발급 방법을 단계별로 정리했습니다."
+  },
+  {
+    "slug": "recommended-resignation-severance-pay",
+    "title": "권고사직 위로금, 얼마를 어떻게 받아야 하나 — 협상 전 알아둘 것",
+    "excerpt": "권고사직 위로금은 법정 기준이 없어 협상으로 결정됩니다. 퇴직금·실업급여 수급 여부와 함께 꼼꼼히 따져야 손해를 줄일 수 있습니다."
+  },
+  {
+    "slug": "dismissal-notice-requirements",
+    "title": "해고통지서를 받았다면 — 서면 통지 요건과 해고예고수당 확인법",
+    "excerpt": "갑작스러운 해고통지서를 받았다면 서면 요건과 해고예고수당 지급 여부부터 확인하세요. 근로기준법 제26조·제27조의 핵심 내용을 정리했습니다."
+  },
+  {
+    "slug": "unpaid-severance-recovery-steps",
+    "title": "퇴직금 못 받고 퇴사했을 때 — 받아내는 절차 3단계",
+    "excerpt": "퇴사 후 퇴직금을 받지 못했다면 근로자퇴직급여 보장법 제9조에 따라 청구 절차를 밟을 수 있습니다. 단계별 방법을 정리했습니다."
+  },
+  {
+    "slug": "resignation-agency-legality",
+    "title": "퇴사대행 불법 아닌가요? 변호사 퇴사대행의 적법성",
+    "excerpt": "퇴사대행이 불법인지 궁금하신 분들을 위해 변호사가 수행하는 퇴사대행의 법적 근거와 적법성을 차분히 설명합니다."
+  },
+  {
+    "slug": "workplace-harassment-labor-office-appeal",
+    "title": "직장 내 괴롭힘 불인정 통보 후 대응 — 노동청 진정부터 재심청구까지",
+    "excerpt": "회사가 직장 내 괴롭힘을 불인정했다면 노동청 진정과 중앙노동위원회 재심 등 단계별 불복 절차를 검토할 수 있습니다."
+  },
+  {
+    "slug": "employer-refuses-resignation",
+    "title": "사장님이 사직서를 안 받아줍니다 — 그래도 퇴사할 수 있나요?",
+    "excerpt": "사용자가 사직서를 수리하지 않아도 퇴직은 가능합니다. 민법 제660조에 따른 퇴직 효력과, 통보가 막힐 때 변호사 명의 통보를 활용하는 방법을 정리합니다."
+  },
+  {
+    "slug": "resignation-agency-cost-structure",
+    "title": "퇴사대행 비용은 어떻게 정해지나요? 변호사 퇴사대행 요금 구조",
+    "excerpt": "퇴사대행 비용은 통보만 하는 단순 절차와 임금 회수·분쟁 대응 단계에 따라 달라집니다. 변호사 퇴사대행 요금이 어떻게 책정되는지 단계별로 정리합니다."
+  },
+  {
+    "slug": "voluntary-vs-recommended-resignation-unemployment-benefit",
+    "title": "권고사직과 실업급여 — 회사가 자발적 사직으로 처리하려는 경우",
+    "excerpt": "권고사직(회사 사정에 의한 이직)으로 처리되면 실업급여(고용보험 구직급여)를 받을 수 있습니다. 회사가 부담금·평판 우려로 자발적 사직으로 기재할 때의 정정 절차와 본인 사정이라도 실업급여가 가능한 9가지 사유를 정리합니다."
+  },
+  {
+    "slug": "small-business-under-5-workers-rights",
+    "title": "5인 미만 사업장 — 사장도 모르는 적용·미적용 5가지",
+    "excerpt": "\"우리 회사는 5인 미만이라 근로기준법 적용 안 된다\"는 흔한 오해를 정리합니다. 5인 미만에도 적용되는 핵심 조항(퇴직금·해고예고·주휴수당·최저임금·임금체불 진정)과 적용되지 않는  조항(연차·가산임금·부당해고 구제)을 변호사가 표로 정리합니다."
+  },
+  {
+    "slug": "lawyer-vs-nomusa-2022-supreme-court",
+    "title": "변호사 운영 퇴사대행과 노무사 운영 업체의 차이 — 2022 대법원 판결 이후",
+    "excerpt": "2022년 대법원이 노무사의 고소장 대행을 변호사법 위반으로 본 판결 이후, 퇴사대행에서 분쟁이 격화될 가능성이 있는 사안은 처음부터 변호사 직무 범위 내에서 진행하는 것이 적법하고 일관된 처리에 유리합니다"
+  }
+];

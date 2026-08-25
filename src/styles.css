@@ -355,16 +355,6 @@ body[data-mascot="false"] .mascot {
   display: none !important;
 }
 
-.floater {
-  position: fixed;
-  right: 22px;
-  bottom: 22px;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
 .floater-btn {
   background: var(--yellow);
   color: var(--ink);
@@ -394,26 +384,6 @@ body[data-mascot="false"] .mascot {
   padding: 11px 16px;
   text-decoration: none;
 }
-.floater-btn .pulse {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--orange);
-  box-shadow: 0 0 0 0 var(--orange);
-  animation: pulse 1.6s infinite;
-}
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(224, 120, 86, 0.6);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(224, 120, 86, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(224, 120, 86, 0);
-  }
-}
-
 .toast {
   background: var(--paper);
   border: 2.5px solid var(--ink);
@@ -3028,4 +2998,339 @@ body[data-mascot="false"] .mascot {
 .not-found-icon {
   font-size: 48px;
   line-height: 1;
+}
+
+
+/* ── 히로 도크 (호객꾼 캐릭터) — 방문자에게 먼저 말을 거는 위젯 ───────────────── */
+.hiro-dock {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.hiro-call {
+  text-decoration: none;
+}
+.hiro-avatar {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  padding: 0;
+  animation: hiro-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.hiro-avatar:hover {
+  background: var(--yellow-soft);
+}
+.hiro-avatar .mascot {
+  width: 104px;
+  height: 104px;
+  margin-top: -10px; /* 마스코트 도형이 viewBox 하단에 몰려 있어 원 안에서 광학 중앙으로 보정 */
+  animation: hiro-float 3.4s ease-in-out 0.6s infinite alternate;
+}
+.hiro-dot {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--green);
+  border: 2px solid var(--ink);
+}
+.hiro-bubble {
+  max-width: min(320px, calc(100vw - 36px));
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius) var(--radius) 4px var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  animation: hiro-bubble-in 0.3s ease-out both;
+}
+.hiro-bubble-name {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--muted);
+  margin: 0 0 6px;
+  letter-spacing: 0.02em;
+}
+.hiro-bubble-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  font-weight: 600;
+  white-space: pre-line;
+  min-height: 1.5em;
+}
+.hiro-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--ink);
+  vertical-align: -2px;
+  margin-left: 1px;
+  animation: hiro-caret 0.8s steps(1) infinite;
+}
+.hiro-bubble-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+.hiro-btn-talk {
+  background: var(--yellow);
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 800;
+  font-family: var(--font-kr);
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.hiro-btn-talk:hover {
+  transform: translate(-1px, -1px);
+}
+
+/* 대화창 헤더 아바타 — 마스코트가 표정을 바꾼다 */
+.modal-head .ava.ava-hiro {
+  background: var(--yellow-soft);
+  overflow: hidden;
+}
+.modal-head .ava.ava-hiro svg {
+  display: block;
+}
+
+/* 긴급 카드 — 자살·자해 등 위험 신호 감지 시 대화 안에 노출 */
+.hiro-hotlines {
+  border: 2.5px solid var(--orange);
+  background: var(--orange-soft);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 4px;
+}
+.hiro-hotlines strong {
+  font-size: 13px;
+}
+.hiro-hotlines a {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13.5px;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.hiro-hotlines a b {
+  font-size: 15px;
+}
+.hiro-hotlines a em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+/* 등장(오버슈트)·부유·깜빡임 연출 */
+@keyframes hiro-pop {
+  0% {
+    transform: scale(0) rotate(-12deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes hiro-float {
+  0% {
+    transform: translateY(0) rotate(-2.4deg);
+  }
+  100% {
+    transform: translateY(-12px) rotate(2.4deg);
+  }
+}
+@keyframes hiro-bubble-in {
+  0% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes hiro-caret {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+.mascot-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hiro-blink 4.2s infinite;
+}
+@keyframes hiro-blink {
+  0%, 91%, 100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.08);
+  }
+  97% {
+    transform: scaleY(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .hiro-dock {
+    right: 12px;
+    bottom: 12px;
+  }
+  .hiro-avatar {
+    width: 106px;
+    height: 106px;
+  }
+  .hiro-avatar .mascot {
+    width: 86px;
+    height: 86px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hiro-avatar,
+  .hiro-avatar .mascot,
+  .hiro-bubble,
+  .hiro-caret,
+  .mascot-blink {
+    animation: none !important;
+  }
+}
+
+/* 게이트 성함 칸 — 전화번호 칸과 한 줄, 좁게 */
+.chat-contact .chat-input-name {
+  flex: 0 0 84px;
+  min-width: 0;
+}
+
+/* 게이트 차단 시 입력칸 흔들기 — 전송이 무반응처럼 보이지 않게 */
+.chat-contact.nudge {
+  animation: hiro-gate-nudge 0.45s ease 2;
+}
+.chat-contact.nudge .chat-input {
+  border-color: var(--orange);
+}
+@keyframes hiro-gate-nudge {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* 히로 패널 — 가운데 모달이 아니라 지안처럼 우하단에 붙는 동행 패널 (2026-08-22 사용자 피드백) */
+.modal.hiro-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 70;
+  width: 396px;
+  max-width: calc(100vw - 24px);
+  height: min(860px, calc(100vh - 20px));
+  height: min(860px, calc(100dvh - 20px));
+  max-height: none;
+  animation: hiro-panel-rise 0.3s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+.hiro-panel .modal-head {
+  padding: 12px 16px;
+}
+.hiro-panel .modal-body {
+  padding: 16px;
+}
+.hiro-panel .quick-replies {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.hiro-panel .modal-foot {
+  padding: 12px 16px;
+}
+@keyframes hiro-panel-rise {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@media (max-width: 640px) {
+  .modal.hiro-panel {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    height: min(780px, calc(100dvh - 12px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal.hiro-panel {
+    animation: none;
+  }
+}
+
+/* 접수 동의 체크칸 — 민감정보 전달은 손님이 직접 체크해야 한다(기본 해제) */
+.chat-consent {
+  padding: 10px 16px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--paper);
+  border-top: 2px solid var(--gray-2);
+}
+.chat-consent label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.chat-consent input[type="checkbox"] {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.chat-consent a {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.chat-consent-note {
+  color: var(--muted);
+  font-weight: 700;
 }

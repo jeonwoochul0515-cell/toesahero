@@ -2,7 +2,13 @@ node_modules
 dist
 .env
 .env.local
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 .firebase
+.wrangler/
 firebase-debug.log
 *.log
 .DS_Store
@@ -21,4 +27,8 @@ docs/research/*.pdf
 docs/research/*.jpeg
 docs/research/*.jpg
 docs/research/*.png
+docs/research/*.html
 docs/research/내용증명*
+
+# 로컬 검수 중 캡처한 임시 화면
+/docs/image.png

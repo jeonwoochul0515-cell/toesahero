@@ -76,12 +76,32 @@ function writeModule(posts) {
   writeFileSync(OUT_PATH, header + data, "utf8");
 }
 
+// 히로 챗봇(functions/api/chat.ts)용 블로그 지식 모듈.
+// posts.ts를 functions에서 직접 import하면 firebase.ts(DOM 의존)까지 functions tsconfig로
+// 타입체크되어 깨지므로, 의존성 없는 자급자족 모듈(제목·경로·요지만)을 따로 떨어뜨린다.
+const KNOWLEDGE_PATH = resolve(__dirname, "../functions/api/_blog-knowledge.ts");
+
+function writeKnowledge(posts) {
+  const items = posts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+  }));
+  const src =
+    "// 자동 생성 파일 — 수정 금지. `node scripts/prerender-posts.mjs`(빌드 prebuild)가 생성한다.\n" +
+    "// 히로 챗봇이 칼럼을 경로와 함께 안내할 수 있게 하는 지식 목록(제목·경로·요지만).\n" +
+    `export const BLOG_KNOWLEDGE: { slug: string; title: string; excerpt: string }[] = ${JSON.stringify(items, null, 2)};\n`;
+  writeFileSync(KNOWLEDGE_PATH, src, "utf8");
+}
+
 try {
   const posts = await fetchPublishedPosts();
   writeModule(posts);
-  console.log(`[prerender-posts] ${posts.length}개 글 → src/generated/posts.ts`);
+  writeKnowledge(posts);
+  console.log(`[prerender-posts] ${posts.length}개 글 → src/generated/posts.ts + functions/api/_blog-knowledge.ts`);
 } catch (e) {
   // 네트워크 실패해도 빌드를 막지 않는다(고정 라우트는 프리렌더 유지). 단 기존 산출물이 없으면 빈 모듈 생성.
   console.warn(`[prerender-posts] 글 조회 실패, 빈/기존 모듈 유지: ${e.message}`);
   if (!existsSync(OUT_PATH)) writeModule([]);
+  if (!existsSync(KNOWLEDGE_PATH)) writeKnowledge([]);
 }

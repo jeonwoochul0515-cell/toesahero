@@ -35,7 +35,8 @@ service cloud.firestore {
 
     // 채팅 메시지 로그.
     match /chat_messages/{docId} {
-      allow create: if request.resource.data.keys().hasAll(['text', 'role', 'createdAt'])
+      allow create: if request.resource.data.keys().hasAll(['text', 'role', 'createdAt', 'consent'])
+                    && request.resource.data.consent == true
                     && request.resource.data.role in ['me', 'them']
                     && (
                       !('uid' in request.resource.data)

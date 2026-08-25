@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-export type MascotPose = "stand" | "wave" | "fly" | "wink" | "shock";
+export type MascotPose = "stand" | "wave" | "fly" | "wink" | "shock" | "empathy";
 
 type Props = {
   size?: number;
@@ -64,14 +64,39 @@ export function Mascot({
           <circle cx="40" cy="48" r="3" fill="#FFFBF0" />
           <circle cx="60" cy="48" r="3" fill="#FFFBF0" />
         </>
-      ) : (
+      ) : pose === "empathy" ? (
         <>
+          <path
+            d="M36 47 Q40 50 44 47"
+            stroke="#FFFBF0"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M56 47 Q60 50 64 47"
+            stroke="#FFFBF0"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </>
+      ) : (
+        <g className="mascot-blink">
           <circle cx="40" cy="48" r="2.5" fill="#FFFBF0" />
           <circle cx="60" cy="48" r="2.5" fill="#FFFBF0" />
-        </>
+        </g>
       )}
       {pose === "shock" ? (
         <ellipse cx="50" cy="60" rx="3" ry="4" fill="#0A0A0A" />
+      ) : pose === "empathy" ? (
+        <path
+          d="M45 62 Q50 59 55 62"
+          stroke="#0A0A0A"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinecap="round"
+        />
       ) : pose === "wave" || pose === "fly" ? (
         <path
           d="M44 58 Q50 64 56 58"

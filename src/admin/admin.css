@@ -1208,3 +1208,96 @@
   font-size: 11px;
   color: var(--muted);
 }
+
+/* 채팅 로그 — 대화(세션) 단위 묶음 표시 */
+.chatlog-session {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.chatlog-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.chatlog-head:hover {
+  background: var(--yellow-soft);
+}
+.chatlog-when {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.chatlog-count {
+  flex: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+.chatlog-preview {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chatlog-toggle {
+  flex: none;
+  font-size: 12px;
+  font-weight: 800;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.chatlog-body {
+  border-top: 2px dashed var(--gray-2);
+  padding: 12px 16px 16px;
+  background: var(--gray-1);
+}
+.chatlog-sid {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.chatlog-msg {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--gray-2);
+}
+.chatlog-msg:last-child {
+  border-bottom: none;
+}
+.chatlog-msg pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.chatlog-role {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 2px 0;
+}
+.chatlog-msg.role-me .chatlog-role {
+  color: var(--orange);
+}
+.chatlog-time {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}

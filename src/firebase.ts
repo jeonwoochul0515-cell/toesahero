@@ -356,27 +356,45 @@ export function watchMyCases(
   return onSnapshot(q, (snap) => cb(snap.docs.map(snapToConsultation)));
 }
 
-// 신규 상담 신청 시 변호사에게 문자 알림 (서버 /api/notify 경유). fire-and-forget — 저장 흐름을 막지 않는다.
+// 신규 상담 신청 시 변호사에게 문자 알림 (서버 /api/notify 경유).
 // name·contact를 명시적으로 보내면 서버가 중앙 접수함(lead-inbox)에도 사본을 남긴다.
-function notifyNewConsultation(
+// 접수 누락 방지: 네트워크 실패 시 1회 재시도하고, 문자가 실제로 나갔는지(boolean)를 돌려준다.
+async function notifyNewConsultation(
   type: "consultation" | "draft" | "notice",
   caseId: string,
   summary?: string,
   who?: { name?: string | null; contact?: string | null }
-): void {
-  void fetch("/api/notify", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    // 유입 경로(광고 검색어·키워드)를 함께 보내 알림 문자에서 어느 광고로 온 신청인지 판별한다
-    body: JSON.stringify({
-      type,
-      caseId,
-      summary,
-      name: who?.name ?? null,
-      contact: who?.contact ?? null,
-      attr: (window as unknown as { getAttribution?: () => unknown }).getAttribution?.() ?? null,
-    }),
-  }).catch(() => {});
+): Promise<boolean> {
+  // 유입 경로(광고 검색어·키워드)를 함께 보내 알림 문자에서 어느 광고로 온 신청인지 판별한다
+  const body = JSON.stringify({
+    type,
+    caseId,
+    summary,
+    name: who?.name ?? null,
+    contact: who?.contact ?? null,
+    attr: (window as unknown as { getAttribution?: () => unknown }).getAttribution?.() ?? null,
+  });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const resp = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+        keepalive: true,
+      });
+      if (resp.ok) {
+        const data = (await resp.json().catch(() => null)) as {
+          ok?: boolean;
+        } | null;
+        // ok=false는 서버는 받았지만 문자 발송 실패(잔액 등) — 재시도해도 같으므로 그대로 보고
+        return data?.ok === true;
+      }
+    } catch {
+      /* 네트워크 오류 — 아래에서 1회 재시도 */
+    }
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 1500));
+  }
+  return false;
 }
 
 // 표준 패키지: 내용증명 초안 저장
@@ -793,53 +811,58 @@ export type DraftSubmission = {
 export async function saveDraftConsultation(
   payload: DraftSubmission
 ): Promise<string | null> {
-  const database = getDb();
-  if (!database) {
-    console.info("[firebase] config missing — skipping draft save");
-    return null;
-  }
   const a = getAuthOrNull();
   const user = a?.currentUser ?? null;
-  try {
-    const ref = await addDoc(collection(database, "consultations"), {
-      source: "draft",
-      message: "자동 생성 통보문 초안 — 변호사 검토 대기",
-      uid: user?.uid ?? null,
-      userName: payload.userName ?? user?.displayName ?? null,
-      userEmail: user?.email ?? null,
-      contact: payload.contact ?? null,
-      conversationLog: payload.conversationLog,
-      sessionId: payload.sessionId ?? null,
-      draftLetter: payload.draftLetter,
-      draftStatus: "pending_review",
-      status: "new",
-      createdAt: serverTimestamp(),
-      userAgent:
-        typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
-      path: typeof window !== "undefined" ? window.location.pathname : "/",
-    });
-    notifyNewConsultation(
-      "draft",
-      ref.id,
-      [
-        payload.userName ? `이름 ${payload.userName}` : null,
-        payload.contact ? `연락처 ${payload.contact}` : null,
-        payload.conversationLog
-          ? `대화 내용:\n${payload.conversationLog.slice(0, 500)}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join("\n") || undefined,
-      {
-        name: payload.userName ?? user?.displayName ?? null,
+  // 접수 누락 방지(2026-08-22): 문자 알림은 DB 저장 성공 여부와 독립적으로 나간다.
+  let id: string | null = null;
+  const database = getDb();
+  if (database) {
+    try {
+      const ref = await addDoc(collection(database, "consultations"), {
+        source: "draft",
+        message: "자동 생성 통보문 초안 — 변호사 검토 대기",
+        uid: user?.uid ?? null,
+        userName: payload.userName ?? user?.displayName ?? null,
+        userEmail: user?.email ?? null,
         contact: payload.contact ?? null,
-      }
-    );
-    return ref.id;
-  } catch (e) {
-    console.warn("[firebase] saveDraftConsultation failed", e);
-    return null;
+        conversationLog: payload.conversationLog,
+        sessionId: payload.sessionId ?? null,
+        draftLetter: payload.draftLetter,
+        draftStatus: "pending_review",
+        status: "new",
+        createdAt: serverTimestamp(),
+        userAgent:
+          typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        path: typeof window !== "undefined" ? window.location.pathname : "/",
+      });
+      id = ref.id;
+    } catch (e) {
+      console.warn("[firebase] saveDraftConsultation failed", e);
+    }
+  } else {
+    console.info("[firebase] config missing — draft: 문자 알림만 발송");
   }
+  void notifyNewConsultation(
+    "draft",
+    id ?? "",
+    [
+      id
+        ? null
+        : "[주의] DB 저장 실패 — 어드민에 기록이 없습니다. 이 문자가 유일한 기록입니다.",
+      payload.userName ? `이름 ${payload.userName}` : null,
+      payload.contact ? `연락처 ${payload.contact}` : null,
+      payload.conversationLog
+        ? `대화 내용:\n${payload.conversationLog.slice(0, 500)}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n") || undefined,
+    {
+      name: payload.userName ?? user?.displayName ?? null,
+      contact: payload.contact ?? null,
+    }
+  );
+  return id;
 }
 
 export type ConsultationPayload = {
@@ -887,56 +910,76 @@ function shouldNotifyConsultation(payload: ConsultationPayload): boolean {
   return true;
 }
 
-export async function saveConsultation(payload: ConsultationPayload) {
-  const database = getDb();
-  if (!database) {
-    console.info("[firebase] config missing — skipping save", payload);
-    return null;
-  }
+export type SaveConsultationResult = { id: string | null; notified: boolean };
+
+// 접수 누락 방지 원칙(2026-08-22): DB 저장과 문자 알림은 서로 독립적인 경로다.
+// DB가 죽어도(광고차단·일시 장애) 문자·중앙 접수함으로 접수가 살아남고,
+// 호출부는 두 경로의 성패를 모두 받아 손님에게 거짓 성공을 말하지 않을 수 있다.
+export async function saveConsultationDetailed(
+  payload: ConsultationPayload
+): Promise<SaveConsultationResult> {
   const a = getAuthOrNull();
   const user = a?.currentUser ?? null;
-  try {
-    const ref = await addDoc(collection(database, "consultations"), {
-      ...payload,
-      uid: user?.uid ?? null,
-      userName: payload.userName ?? user?.displayName ?? null,
-      userEmail: user?.email ?? null,
-      createdAt: serverTimestamp(),
-      userAgent:
-        typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
-      path: typeof window !== "undefined" ? window.location.pathname : "/",
-    });
-    // 어떤 형태의 상담이든 변호사에게 문자 알림 (놓치는 상담 방지).
-    // 예외 ① 가격·상품 카드 클릭은 상담이 아닌 탐색 이벤트라 제외 (클릭 후 채팅하면 그때 알림).
-    // 예외 ② 채팅은 대화(sessionId)당 첫 메시지만 — 메시지마다 울리면 문자 폭주.
-    //        단 연락처 제출·손배협박 감지 메시지는 같은 대화여도 다시 알린다.
-    if (shouldNotifyConsultation(payload)) {
-      notifyNewConsultation(
-        "consultation",
-        ref.id,
-        [
-          // 이모지(⚠ 등)는 EUC-KR에 없어 문자 발송에서 깨질 수 있다 — 텍스트로 표기.
-          payload.damageThreat ? "[긴급] 손배·위약금 협박 감지" : null,
-          payload.userName ? `이름 ${payload.userName}` : null,
-          payload.contact ? `연락처 ${payload.contact}` : null,
-          payload.message?.slice(0, 600) ?? null,
-          payload.pickedItems?.length
-            ? `선택 항목: ${payload.pickedItems.join(", ")}`
-            : null,
-          typeof payload.estimatedAmount === "number"
-            ? `예상 청구액 ${payload.estimatedAmount.toLocaleString("ko-KR")}원`
-            : null,
-        ]
-          .filter(Boolean)
-          .join("\n") || undefined,
-        { name: payload.userName ?? user?.displayName ?? null, contact: payload.contact ?? null }
-      );
+  // 어떤 형태의 상담이든 변호사에게 문자 알림 (놓치는 상담 방지).
+  // 예외 ① 가격·상품 카드 클릭은 상담이 아닌 탐색 이벤트라 제외 (클릭 후 채팅하면 그때 알림).
+  // 예외 ② 채팅은 대화(sessionId)당 첫 메시지만 — 메시지마다 울리면 문자 폭주.
+  //        단 연락처 제출·손배협박 감지 메시지는 같은 대화여도 다시 알린다.
+  const wantNotify = shouldNotifyConsultation(payload);
+
+  let id: string | null = null;
+  const database = getDb();
+  if (database) {
+    try {
+      const ref = await addDoc(collection(database, "consultations"), {
+        ...payload,
+        uid: user?.uid ?? null,
+        userName: payload.userName ?? user?.displayName ?? null,
+        userEmail: user?.email ?? null,
+        createdAt: serverTimestamp(),
+        userAgent:
+          typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        path: typeof window !== "undefined" ? window.location.pathname : "/",
+      });
+      id = ref.id;
+    } catch (e) {
+      console.warn("[firebase] saveConsultation failed", e);
     }
-    return ref.id;
-  } catch (e) {
-    console.warn("[firebase] saveConsultation failed", e);
-    return null;
+  } else {
+    console.info("[firebase] config missing — 상담을 문자 알림으로만 전달");
   }
+
+  let notified = false;
+  if (wantNotify) {
+    notified = await notifyNewConsultation(
+      "consultation",
+      id ?? "",
+      [
+        // 이모지(⚠ 등)는 EUC-KR에 없어 문자 발송에서 깨질 수 있다 — 텍스트로 표기.
+        id
+          ? null
+          : "[주의] DB 저장 실패 — 어드민에 기록이 없습니다. 이 문자가 유일한 기록입니다.",
+        payload.damageThreat ? "[긴급] 손배·위약금 협박 감지" : null,
+        payload.userName ? `이름 ${payload.userName}` : null,
+        payload.contact ? `연락처 ${payload.contact}` : null,
+        payload.message?.slice(0, 600) ?? null,
+        payload.pickedItems?.length
+          ? `선택 항목: ${payload.pickedItems.join(", ")}`
+          : null,
+        typeof payload.estimatedAmount === "number"
+          ? `예상 청구액 ${payload.estimatedAmount.toLocaleString("ko-KR")}원`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n") || undefined,
+      { name: payload.userName ?? user?.displayName ?? null, contact: payload.contact ?? null }
+    );
+  }
+  return { id, notified };
+}
+
+export async function saveConsultation(payload: ConsultationPayload) {
+  const { id } = await saveConsultationDetailed(payload);
+  return id;
 }
 
 export async function logChatMessage(
@@ -945,18 +988,33 @@ export async function logChatMessage(
   sessionId: string | null = null
 ) {
   const database = getDb();
-  if (!database) return;
-  const a = getAuthOrNull();
-  const uid = a?.currentUser?.uid ?? null;
+  if (database) {
+    const a = getAuthOrNull();
+    const uid = a?.currentUser?.uid ?? null;
+    try {
+      await addDoc(collection(database, "chat_messages"), {
+        text,
+        role,
+        uid,
+        sessionId,
+        consent: true,
+        createdAt: serverTimestamp(),
+      });
+      return;
+    } catch (e) {
+      console.warn("[firebase] logChatMessage failed", e);
+    }
+  }
+  // 실시간 채팅 유실 방지(2026-08-22): 클라이언트 Firestore 경로가 막히면(광고차단·장애)
+  // 같은 도메인 서버 경로로 기록한다. 이것마저 실패하면 대화록 문자·sessionStorage가 방어선.
   try {
-    await addDoc(collection(database, "chat_messages"), {
-      text,
-      role,
-      uid,
-      sessionId,
-      createdAt: serverTimestamp(),
+    await fetch("/api/chat-log", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text, role, sessionId, consent: true }),
+      keepalive: true,
     });
-  } catch (e) {
-    console.warn("[firebase] logChatMessage failed", e);
+  } catch {
+    /* 최후 방어선은 대화록 문자 보고 */
   }
 }

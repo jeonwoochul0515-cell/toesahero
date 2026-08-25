@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Nav } from "./components/Nav";
 import { usePageMeta } from "./hooks/usePageMeta";
 import { useReveal } from "./hooks/useReveal";
@@ -17,12 +16,8 @@ import { Assurance } from "./components/Assurance";
 import { Pricing } from "./components/Pricing";
 import { Reviews } from "./components/Reviews";
 import { Footer } from "./components/Footer";
-import { ChatModal } from "./components/ChatModal";
-import { FloatingButton } from "./components/FloatingButton";
 
 export function Home() {
-  const [chatOpen, setChatOpen] = useState(false);
-
   const seo = usePageMeta({
     title: "퇴사대행(퇴직대행) 변호사 — 퇴사히어로",
     description:
@@ -53,13 +48,8 @@ export function Home() {
 
   useReveal();
 
-  useEffect(() => {
-    const handler = () => setChatOpen(true);
-    window.addEventListener("open-chat", handler);
-    return () => window.removeEventListener("open-chat", handler);
-  }, []);
-
-  const openChat = () => setChatOpen(true);
+  // 대화창(히로)은 App 루트에 전역 마운트되어 있다 — 여기서는 열기 이벤트만 쏜다
+  const openChat = () => window.dispatchEvent(new CustomEvent("open-chat"));
 
   return (
     <>
@@ -80,8 +70,6 @@ export function Home() {
       <Pricing openChat={openChat} />
       <Reviews />
       <Footer openChat={openChat} />
-      <FloatingButton openChat={openChat} />
-      <ChatModal open={chatOpen} onClose={() => setChatOpen(false)} />
     </>
   );
 }

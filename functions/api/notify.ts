@@ -10,15 +10,19 @@ interface Env extends NotifyEnv {
 }
 
 type RequestBody = {
-  type: "consultation" | "draft" | "notice";
+  type: "consultation" | "draft" | "notice" | "chatlog";
   caseId?: string;
   summary?: string;
   name?: string | null;
   contact?: string | null;
   attr?: unknown;
+  // chatlog(접수 후 대화 전문 보고) 전용
+  sessionId?: string;
+  transcript?: string;
+  consent?: boolean;
 };
 
-const LABEL: Record<RequestBody["type"], string> = {
+const LABEL: Record<Exclude<RequestBody["type"], "chatlog">, string> = {
   consultation: "신규 상담 신청",
   draft: "AI 통보문 초안 신청",
   notice: "내용증명(표준) 신청",
@@ -51,6 +55,91 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
+// 대화록(chatlog) 보고는 별도 버킷 — 상담 접수 알림 한도와 경합해 대화록이 유실되지 않게 한다.
+const logHits = new Map<string, number[]>();
+function chatlogLimited(ip: string): boolean {
+  const now = Date.now();
+  const arr = (logHits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
+  if (arr.length >= 4) {
+    logHits.set(ip, arr);
+    return true;
+  }
+  arr.push(now);
+  logHits.set(ip, arr);
+  return false;
+}
+
+// 접수 누락 방지(2026-08-22): 연락처가 담긴 접수는 일반 한도(5회/10분)와 분리된 넉넉한 버킷.
+// 정상 사용자가 닿을 수 없는 상한(20회/10분)만 남겨 폭주 봇의 문자 비용만 막는다.
+const contactHits = new Map<string, number[]>();
+function contactLimited(ip: string): boolean {
+  const now = Date.now();
+  const arr = (contactHits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
+  if (arr.length >= 20) {
+    contactHits.set(ip, arr);
+    return true;
+  }
+  arr.push(now);
+  contactHits.set(ip, arr);
+  return false;
+}
+
+// 접수 후 대화 보고 (2026-08-24 개정 — "문자로는 간단한 것만").
+// 전문은 중앙 접수함(lead-inbox)에 빠짐없이 저장하고, 문자는 간단 알림 한 통만 보낸다.
+// 손님이 "대화 전달" 동의 칸을 체크한 접수에서만 호출된다(클라이언트가 게이트).
+// 보고는 항상 누적 전문이므로, 접수함의 최신 행이 그 대화의 완본이다.
+async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
+  if (body.consent !== true) {
+    return json({ ok: false, reason: "consent_required" }, 400);
+  }
+  const transcript =
+    typeof body.transcript === "string" ? body.transcript.trim().slice(0, 18000) : "";
+  if (!transcript) return json({ ok: false, reason: "empty_transcript" }, 200);
+  const sid = typeof body.sessionId === "string" ? body.sessionId.slice(0, 8) : "";
+  const name = String(body.name ?? "").trim().slice(0, 30) || "미입력";
+  const phone = String(body.contact ?? "").replace(/[^0-9]/g, "");
+  const source = summarizeAttr(body.attr);
+
+  // ① 전문 — 중앙 접수함에 저장(완본 보관처). 실패해도 문자는 나간다.
+  let inboxOk = false;
+  if (env.LEAD_INBOX_TOKEN && /^01[016789][0-9]{7,8}$/.test(phone)) {
+    try {
+      const resp = await fetch("https://lead-inbox.jeonwoochul0515.workers.dev/api/lead", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-ingest-token": env.LEAD_INBOX_TOKEN,
+        },
+        body: JSON.stringify({
+          site: "퇴사히어로",
+          name,
+          phone,
+          detail: `[히로 대화 전문 · 전달 동의함]${sid ? ` #${sid}` : ""}\n${transcript}`,
+          source,
+          link: "https://toesahero.com/admin/consultations",
+        }),
+      });
+      inboxOk = resp.ok;
+    } catch {
+      /* 접수함 실패 — 아래 문자로 알린다 */
+    }
+  }
+
+  // ② 문자 — 간단 알림 한 통. 전문은 접수함에서 본다.
+  const lines = [
+    `[퇴사히어로] 히로 대화 접수${sid ? ` #${sid}` : ""}`,
+    `${name} · ${body.contact ?? ""}`.trim(),
+    `유입경로: ${source}`,
+    inboxOk
+      ? "대화 전문은 중앙 접수함에서 확인해 주세요."
+      : "[주의] 접수함 저장 실패 — 어드민 > 상담 요청에서 확인해 주세요.",
+  ].filter(Boolean);
+  const sms = await sendSms(env, lines.join("\n"));
+
+  // 두 채널 중 하나라도 성공하면 보고 성공(정본 원칙: 전부 실패했을 때만 실패)
+  return json({ ok: inboxOk || sms.ok, inboxOk, smsOk: sms.ok }, 200);
+}
+
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 외부 스크립트의 직접 호출 차단
   const origin = request.headers.get("origin") || request.headers.get("referer") || "";
@@ -59,9 +148,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
-  if (rateLimited(ip)) {
-    return json({ ok: false, reason: "too_many_requests" }, 429);
-  }
 
   let body: RequestBody;
   try {
@@ -70,12 +156,27 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return json({ ok: false, reason: "invalid_json" }, 200);
   }
 
+  // 접수 후 대화 전문 보고 — 별도 레이트리밋 버킷으로만 세고 여기서 끝낸다
+  // (기본 알림 한도 5회/10분을 소모하면 정작 상담 접수 문자가 유실될 수 있다)
+  if (body.type === "chatlog") {
+    if (chatlogLimited(ip)) {
+      return json({ ok: false, reason: "too_many_requests" }, 429);
+    }
+    return handleChatLog(env, body);
+  }
+
+  // 연락처가 담긴 접수는 절대 유실 금지 — 일반 한도 대신 넉넉한 전용 버킷만 적용한다.
+  const hasContact = String(body.contact ?? "").trim().length >= 4;
+  if (hasContact ? contactLimited(ip) : rateLimited(ip)) {
+    return json({ ok: false, reason: "too_many_requests" }, 429);
+  }
+
   // 외부 입력이므로 타입을 실제로 검증한다 — "constructor" 같은 프로토타입 키가
   // LABEL[type]에서 함수로 풀려 문자에 실리거나, 문자열 아닌 caseId가 500을 내지 않게.
   const type =
     typeof body.type === "string" &&
     Object.prototype.hasOwnProperty.call(LABEL, body.type)
-      ? (body.type as RequestBody["type"])
+      ? (body.type as Exclude<RequestBody["type"], "chatlog">)
       : null;
   if (!type) {
     return json({ ok: false, reason: "unknown_type" }, 200);
@@ -95,9 +196,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 연락처가 있는 접수는 중앙 접수함(lead-inbox)에도 사본을 남긴다 — 전 사이트 통합 현황판.
   // 상세 처리는 자체 어드민 링크로 이동해 진행한다.
   const phone = String(body.contact ?? "").replace(/[^0-9]/g, "");
+  let inboxOk = false;
   if (env.LEAD_INBOX_TOKEN && /^01[016789][0-9]{7,8}$/.test(phone)) {
     try {
-      await fetch("https://lead-inbox.jeonwoochul0515.workers.dev/api/lead", {
+      const resp = await fetch("https://lead-inbox.jeonwoochul0515.workers.dev/api/lead", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -107,18 +209,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           site: "퇴사히어로",
           name: String(body.name ?? "").trim() || "미입력",
           phone,
-          detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 1500),
+          // 상담 대화·초안이 실려 오므로 넉넉히 — 접수함 상한(2만 자) 안에서 자른다.
+          detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 12000),
+          source: summarizeAttr(body.attr),
           link: caseId
             ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
             : "https://toesahero.com/admin/consultations",
         }),
       });
+      inboxOk = resp.ok;
     } catch {
-      /* 접수함 전송 실패는 무시 — Firestore·문자가 1차 기록 */
+      /* 접수함 전송 실패 — 문자·Firestore가 남은 기록 */
     }
   }
 
-  return json({ ok: r.ok, reason: r.reason }, 200);
+  // 전달 채널이 전부 실패했을 때만 실패로 응답한다(가짜 성공 금지 원칙의 이면 —
+  // 문자만 실패하고 접수함이 살아 있으면 접수는 유실되지 않았으므로 성공이다).
+  return json({ ok: r.ok || inboxOk, reason: r.ok ? undefined : r.reason }, 200);
 };
 
 function json(body: unknown, status = 200) {

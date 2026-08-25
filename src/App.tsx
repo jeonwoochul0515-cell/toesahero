@@ -3,6 +3,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
+import { HiroChat } from "./components/HiroChat";
 import { CalcPage } from "./pages/CalcPage";
 import { UnemploymentCalcPage } from "./pages/UnemploymentCalcPage";
 import { ResignationLetterPage } from "./pages/ResignationLetterPage";
@@ -83,11 +84,13 @@ const BlogAdmin = lazy(() =>
   import("./admin/BlogAdmin").then((m) => ({ default: m.BlogAdmin }))
 );
 
-// 모든 라우트를 감싸는 루트 레이아웃 — lazy chunk 로딩 경계
+// 모든 라우트를 감싸는 루트 레이아웃 — lazy chunk 로딩 경계.
+// 히로(호객꾼 캐릭터)는 전 화면에서 먼저 말을 걸어야 하므로 여기에 전역 마운트한다(마운트 후에만 렌더 — 프리렌더 HTML에 흔적 없음).
 function RootLayout() {
   return (
     <Suspense fallback={null}>
       <Outlet />
+      <HiroChat />
     </Suspense>
   );
 }
