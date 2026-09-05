@@ -140,11 +140,6 @@ const fallbackResponses: Record<string, string> = {
 const FALLBACK_DEFAULT =
   "메시지 확인했습니다. 정확한 답변을 위해 카카오톡 채널 또는 1660-4452로 변호사와 직접 연결드리겠습니다.";
 
-// 익명 상담 차단 안내 — 연락처 없이 채팅만 하고 떠나면 변호사가 연락할 방법이 없다.
-// 연락처는 전화번호로 통일(2026-08-22 사용자 확정) — 회신이 문자·전화로 가기 때문. 성함도 함께 받는다.
-const CONTACT_GATE_MSG =
-  "상담을 시작하려면 성함과 회신받을 전화번호를 먼저 남겨 주세요.\n남겨주신 정보는 변호사 회신 용도로만 사용되며, 변호사 비밀유지 의무가 적용됩니다.";
-
 const PHONE_INVALID_MSG =
   "회신은 문자나 전화로 드리기 때문에 전화번호가 꼭 필요해요. 01로 시작하는 휴대폰 번호를 숫자로 입력해 주세요.";
 
@@ -164,7 +159,7 @@ type AiReply = {
   phoneDetected?: boolean;
 };
 
-// 대화창에 적힌 번호는 접수되지 않는다 — 감지해 접수칸에 옮겨 담기 위해 숫자만 뽑는다.
+// 대화창에 적힌 회신 번호를 감지한다 — 유효한 번호가 남으면 그대로 자동 접수한다.
 function extractPhone(text: string): string {
   const m = text.match(/(^|\D)(01[016789][-.\s]?\d{3,4}[-.\s]?\d{4})(?=\D|$)/);
   if (!m) return "";
@@ -172,12 +167,18 @@ function extractPhone(text: string): string {
   return /^01[016789][0-9]{7,8}$/.test(digits) ? digits : "";
 }
 
+// 자동 접수 성공 — 회신 목적 고지와 다음 단계(성함)까지 한 번에 안내한다.
+const PHONE_AUTO_ACCEPTED_MSG =
+  "남겨주신 번호를 변호사 회신용으로 접수했어요! 김창희 변호사님이 영업시간 중 확인 후 연락드립니다. 성함도 알려주시면 준비가 더 정확해져요.";
+
+// 자동 접수 실패(저장·알림 모두 불발) — 거짓 성공 대신 접수칸 경로를 안내한다.
 const PHONE_IN_CHAT_MSG =
-  "잠깐만요, 대화창에 적어주신 번호는 접수되지 않아요. 아래 접수칸에 미리 채워 뒀으니 성함만 더해 \"연락처 남기기\"를 눌러 주시면 변호사님께 정식으로 전달돼요.";
+  "지금 접수 전달에 문제가 생겨 대화창의 번호가 아직 접수되지 못했어요. 아래 접수칸에 번호를 채워 뒀으니 성함과 함께 \"연락처 남기기\"를 눌러 주세요. 급하시면 전화 1660-4452로 연락 부탁드려요.";
 
 async function callAiChat(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
-  userName: string | null
+  userName: string | null,
+  contactSaved: boolean
 ): Promise<AiReply | null> {
   // 일시 오류로 즉시 기계식 폴백이 나가는 것을 막기 위해 1회 재시도
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -188,6 +189,8 @@ async function callAiChat(
         body: JSON.stringify({
           messages,
           userName,
+          // 게이트 통과 여부 — 이걸 안 알려주면 히로가 접수 완료 손님에게 연락처를 또 요청한다
+          contactSaved,
           page: window.location.pathname,
           officeOpen: isOfficeOpen(),
         }),
@@ -252,7 +255,6 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   const [shareChat, setShareChat] = useState(() => loadStoredContact().shareChat);
   // 개인정보 수집·이용 동의(필수) — 체크 전에는 접수가 전송되지 않는다.
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
-  const [gateNudge, setGateNudge] = useState(false); // 게이트 차단 시 입력칸 흔들기 — 무반응으로 보이지 않게
   const bodyRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
@@ -262,16 +264,13 @@ export function ChatModal({ open, onClose, greeting }: Props) {
 
   useEffect(() => watchAuth(setUser), []);
 
-  // 첫 대화 시작 — 히로의 상황 맞춤 인사 + 연락처 게이트 안내로 연다
+  // 첫 대화는 바로 시작한다. 연락처는 답변을 받은 뒤 회신을 원하는 분만 남긴다.
   useEffect(() => {
     if (!open) return;
     setMessages((m) =>
       m.length > 0
         ? m
-        : [
-            { who: "them", text: greeting || DEFAULT_GREETING },
-            { who: "them", text: CONTACT_GATE_MSG },
-          ]
+        : [{ who: "them", text: greeting || DEFAULT_GREETING }]
     );
   }, [open, greeting]);
 
@@ -585,27 +584,41 @@ export function ChatModal({ open, onClose, greeting }: Props) {
 
   const send = async (text: string) => {
     if (!text.trim()) return;
-    // 익명 채팅 차단 — 연락처를 남기기 전에는 메시지를 보낼 수 없다.
-    // (입력창 내용은 지우지 않아, 연락처 저장 후 다시 보내기만 누르면 된다.)
+    // 대화는 연락처 없이도 시작할 수 있다. 다만 대화 중 회신 번호를 남기면 즉시
+    // 접수해, 진성 문의의 이탈·누락을 막는다.
+    let preMsgs = messages;
+    let nowSaved = contactSaved;
+    let autoAcceptedPhone = "";
+    let autoContactDeliveryFailed = false;
     if (!contactSaved) {
-      // 유실 방지: 막힌 메시지에 번호가 적혀 있으면 그 번호를 접수칸으로 옮겨 담는다.
-      // 이 경로는 서버에 닿지 않으므로 여기서 잡지 않으면 번호가 영영 사라진다.
       const typedPhone = extractPhone(text);
-      if (typedPhone && !contact.trim()) {
-        setContact(typedPhone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3"));
-        hiroSay(PHONE_IN_CHAT_MSG);
-        nameInputRef.current?.focus();
-      } else {
-        hiroSay(CONTACT_GATE_MSG);
-        (contactName.trim() ? contactInputRef : nameInputRef).current?.focus();
+      if (typedPhone) {
+        // 대화에 회신 번호를 남기면 버튼 없이 그대로 접수한다.
+        const formatted = typedPhone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+        autoAcceptedPhone = formatted;
+        setContact(formatted);
+        const { id, notified } = await saveConsultationDetailed({
+          source: "chat",
+          message: "[대화창 연락처] 대화 중 회신 번호를 남겨 자동 접수했습니다.",
+          userName: contactName.trim() || undefined,
+          contact: formatted,
+          sessionId: sessionIdRef.current,
+        });
+        if (!id && !notified) {
+          // 접수 실패도 대화를 막지는 않는다. 안내 후 계속 상담할 수 있게 한다.
+          autoContactDeliveryFailed = true;
+        } else {
+          setContactSaved(true);
+          nowSaved = true;
+          preMsgs = [
+            ...messages,
+            { who: "them", text: PHONE_AUTO_ACCEPTED_MSG, expression: "cheer" },
+          ];
+        }
       }
-      // 안내가 이미 떠 있어도 무반응처럼 보이지 않게 — 입력칸을 흔들어 채울 곳을 보여준다
-      setGateNudge(true);
-      window.setTimeout(() => setGateNudge(false), 1200);
-      return;
     }
     const userMsg: Msg = { who: "me", text };
-    const nextMsgs = [...messages, userMsg];
+    const nextMsgs = [...preMsgs, userMsg];
     setMessages(nextMsgs);
     setInput("");
     setTyping(true);
@@ -639,7 +652,8 @@ export function ChatModal({ open, onClose, greeting }: Props) {
       );
     const ai = await callAiChat(
       aiHistory,
-      contactName.trim() || user?.displayName || null
+      contactName.trim() || user?.displayName || null,
+      nowSaved
     );
 
     setTyping(false);
@@ -651,11 +665,19 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     setMessages((m) => [...m, reply]);
     if (shareChat) void logChatMessage(reply.text, "them", sessionIdRef.current);
 
+    if (autoContactDeliveryFailed) {
+      setMessages((m) => [
+        ...m,
+        { who: "them", text: PHONE_IN_CHAT_MSG, expression: "calm" },
+      ]);
+    }
+
     // 접수 후 대화에 새 번호가 등장하면(회신처 변경) 그대로 두면 옛 번호로 연락이 간다.
-    // 별도 접수로 남겨 변호사가 최신 번호를 보게 한다 — 대화창 번호는 접수되지 않기 때문.
+    // 별도 접수로 남겨 변호사가 최신 번호를 보게 한다. 회신 번호는 대화 전달 동의(shareChat)와
+    // 무관하게 접수한다 — 대화 내용이 아니라 회신용 연락처이기 때문(2026-08-31 사용자 지시).
     const inChat = extractPhone(text) || (ai?.phoneDetected ? extractPhone(text) : "");
-    const current = contact.replace(/[^0-9]/g, "");
-    if (shareChat && inChat && inChat !== current) {
+    const current = (autoAcceptedPhone || contact).replace(/[^0-9]/g, "");
+    if (inChat && inChat !== current) {
       const formatted = inChat.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
       void saveConsultation({
         source: "chat",
@@ -681,7 +703,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   // 성함 + 회신 전화번호 제출 — 이때만 변호사에게 문자 알림이 발송된다.
   // 연락처는 전화번호로 통일(카톡 ID 불가), 성함까지 받는 것이 히로의 역할(2026-08-22 사용자 확정).
   // 접수 누락 방지: DB 저장·문자 알림이 각각 독립적으로 시도되고, 둘 다 실패하면
-  // 거짓 성공 대신 전화·재시도를 안내한다(게이트는 유지 — 전달 안 된 연락처로 대화를 열지 않는다).
+  // 거짓 성공 대신 전화·재시도를 안내한다. 대화 자체는 계속할 수 있다.
   const submitContact = async () => {
     if (contactSaved || contactSending) return;
     const name = contactName.trim();
@@ -737,6 +759,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
       | Expression
       | undefined) || "base";
   const urgentNow = messages.some((m) => m.urgent);
+  const hasStartedConversation = messages.some((m) => m.who === "me");
 
   // 가운데 모달이 아니라 지안처럼 우하단에 붙는 동행 패널 — 백드롭 없이 사이트를 계속
   // 둘러볼 수 있고, 열린 채 화면을 이동하면 히로가 대화 안에서 그 화면을 안내한다.
@@ -811,7 +834,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
                 고용노동부 상담센터 <b>1350</b> <em>평일 9~18시</em>
               </a>
               <a href="tel:1660-4452">
-                법률사무소 청송 <b>1660-4452</b> <em>변호사 상담</em>
+                법률사무소 청송law <b>1660-4452</b> <em>변호사 상담</em>
               </a>
             </div>
           )}
@@ -833,8 +856,11 @@ export function ChatModal({ open, onClose, greeting }: Props) {
               </span>
             )}
           </div>
-        ) : (
+        ) : hasStartedConversation ? (
           <>
+          <div style={{ fontSize: 12, lineHeight: 1.5, color: "var(--muted)", margin: "8px 0 4px" }}>
+            답변을 이어받고 싶으시면 아래에 연락처를 남겨 주세요. 입력하지 않아도 대화는 계속할 수 있습니다.
+          </div>
           <div className="chat-consent">
             <label>
               <input
@@ -864,7 +890,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
               </span>
             </label>
           </div>
-          <div className={`chat-contact${gateNudge ? " nudge" : ""}`}>
+          <div className="chat-contact">
             <input
               type="text"
               className="chat-input chat-input-name"
@@ -896,7 +922,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
             </button>
           </div>
           </>
-        )}
+        ) : null}
         <div className="modal-foot">
           <input
             type="text"
