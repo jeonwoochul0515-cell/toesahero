@@ -92,19 +92,9 @@ const laborTiers: LaborProduct[] = [
     ],
     to: "/unpaid-wages",
   },
-  {
-    id: "harassment-response",
-    name: "직장 내 괴롭힘 대응",
-    price: "660,000",
-    sub: "신고·전략·조사 대응 (정액)",
-    perks: [
-      "증거 정리·신고 전략 수립",
-      "사내 신고서·진정서 작성 자문",
-      "조사 절차 대응",
-      "회사 역공(명예훼손 등) 방어 자문",
-    ],
-    to: "/harassment",
-  },
+  // 괴롭힘 전용 상품(66만원)은 없앴다 — 분쟁 대응(79만원) 하나로 통일(2026-09-06 사용자 확정).
+  // 두 상품이 모두 괴롭힘을 다뤄 손님이 무엇을 사야 할지 알 수 없었다.
+  // /harassment 랜딩은 그대로 두고 가격만 79만원으로 맞췄다.
   {
     id: "dismissal-response",
     name: "부당해고 대응 (자문)",
@@ -292,6 +282,13 @@ export function Pricing({ openChat }: Props) {
             이미 해고당했거나, 임금·퇴직금을 못 받았거나, 괴롭힘을 겪고 있다면.
             <br />
             <strong>정액 · 성공보수 0원</strong>으로 변호사가 대신 다툽니다.
+          </p>
+          {/* 괴롭힘 전용 상품을 없앴으므로 괴롭힘으로 오신 분이 갈 곳을 여기서 이어준다.
+              설명에 괴롭힘을 적어 두고 카드가 없으면 그대로 막다른 안내가 된다. */}
+          <p className="labor-harassment-note">
+            직장 내 괴롭힘은 위 <strong>분쟁 대응(79만원)</strong> 패키지에서 함께
+            다룹니다.{" "}
+            <a href="/harassment">괴롭힘 대응 자세히 보기 →</a>
           </p>
         </div>
 

@@ -48,7 +48,9 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/harassment",
     breadcrumbName: "직장 내 괴롭힘",
-    price: "직장 내 괴롭힘 대응 · 66만원 (정액)",
+    // 괴롭힘 전용 66만원 상품을 없애고 분쟁 대응 하나로 통일했다(2026-09-06 사용자 확정).
+    // 66만원 카드와 79만원 패키지가 둘 다 괴롭힘을 다뤄 손님이 무엇을 사야 할지 헷갈렸다.
+    price: "분쟁 대응 · 79만원 (정액)",
     priceNote: "손해배상 소송으로 이어질 경우 착수금은 상담 후 견적입니다.",
     relatedPosts: [
       {
