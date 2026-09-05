@@ -244,7 +244,6 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   const [typing, setTyping] = useState(false);
   const [user, setUser] = useState<AppUser | null>(null);
   const [signingIn, setSigningIn] = useState(false);
-  const [draftLetter, setDraftLetter] = useState<string | null>(null);
   const [draftLoading, setDraftLoading] = useState(false);
   const [draftSubmitted, setDraftSubmitted] = useState(false);
   const [contactName, setContactName] = useState(() => loadStoredContact().name); // 성함 — 접수·호칭에 쓴다
@@ -255,6 +254,12 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   const [shareChat, setShareChat] = useState(() => loadStoredContact().shareChat);
   // 개인정보 수집·이용 동의(필수) — 체크 전에는 접수가 전송되지 않는다.
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
+  // 연락처 시트 — 평소엔 접혀 있고 필요한 순간에만 대화 위로 올라온다(2026-09-06).
+  // 예전엔 첫 마디 직후부터 폼이 상시 노출돼 대화 영역이 화면의 14%밖에 남지 않았다.
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
+  const sheetAutoShownRef = useRef(false); // 3턴 자동 펼침은 1회만
+  const closeAskedRef = useRef(false); // 닫기 때 붙잡기도 1회만
+  const pendingDraftRef = useRef(false); // 연락처를 받고 이어서 통보문 요청할지
   const bodyRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
@@ -428,6 +433,17 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   }, [draftSubmitted]);
 
   const handleClose = () => {
+    // 연락처 없이 나가려 하면 딱 한 번만 붙잡는다. 두 번째 닫기는 무조건 닫힌다 —
+    // 빠져나갈 길이 없는 안내를 만들지 않는다.
+    if (
+      !contactSaved &&
+      !closeAskedRef.current &&
+      messages.some((m) => m.who === "me")
+    ) {
+      closeAskedRef.current = true;
+      setContactSheetOpen(true);
+      return;
+    }
     reportChatLog(false);
     onClose();
   };
@@ -446,11 +462,41 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   );
   const showDraftButton =
     !draftSubmitted &&
-    !draftLetter &&
     userTurnCount >= 2 &&
     userTotalChars >= 30;
 
-  const requestDraft = async () => {
+  // 대화가 세 마디쯤 쌓이면 연락처 시트를 한 번 올린다. 첫 마디부터 폼을 들이밀면
+  // "상담하러 왔더니 영업 폼"으로 읽혀 이탈한다 — 상황을 주고받은 뒤가 수락률이 높다.
+  useEffect(() => {
+    if (contactSaved || sheetAutoShownRef.current) return;
+    if (userTurnCount >= 3) {
+      sheetAutoShownRef.current = true;
+      setContactSheetOpen(true);
+    }
+  }, [userTurnCount, contactSaved]);
+
+  // 통보문 작성 요청 — 손님에게 초안을 보여주지 않는다(2026-09-06 개정).
+  //
+  // ⚠ 변협 「변호사 광고에 관한 규정」 관련. 예전에는 손님이 버튼을 눌러 초안을 받고
+  //   전문을 화면에서 읽는 구조였는데, 이는 "소비자가 AI 프로그램을 직접 사용하게 하는"
+  //   광고 양태에 해당할 소지가 있다. 그래서 초안은 접수함에만 저장하고 손님에게는
+  //   "요청이 접수되었다"만 알린다. 결과물은 김창희 변호사가 검토해 발송한다.
+  //   ⇒ 이 흐름을 되돌려 손님 화면에 초안을 다시 노출하지 말 것.
+  const requestLetter = async (
+    // 연락처를 막 받은 직후 이어서 부를 때는 state 반영을 기다리지 않고 값을 직접 받는다
+    justSaved?: { name: string; phone: string }
+  ) => {
+    if (draftSubmitted || draftLoading) return;
+    // 통보문을 보낼 곳이 없으면 시작하지 않는다. 연락처가 필요한 이유가
+    // 스스로 설명되는 자리라 여기서 시트를 연다.
+    if (!contactSaved && !justSaved) {
+      pendingDraftRef.current = true;
+      setContactSheetOpen(true);
+      hiroSay(
+        "통보문을 보내드릴 곳이 필요해요. 아래에 성함과 연락처를 남겨 주시면 그대로 이어서 접수해 드릴게요."
+      );
+      return;
+    }
     setDraftLoading(true);
     try {
       const conversation = messages
@@ -469,68 +515,60 @@ export function ChatModal({ open, onClose, greeting }: Props) {
           userName: user?.displayName ?? null,
         }),
       });
-      if (!resp.ok) {
-        setMessages((m) => [
-          ...m,
-          {
-            who: "them",
-            text: "통보문 초안 생성에 일시적인 오류가 있습니다. 잠시 후 다시 시도하시거나 카카오톡 채널로 문의해 주세요.",
-          },
-        ]);
+      const draft = resp.ok
+        ? ((await resp.json()) as { text?: string }).text ?? ""
+        : "";
+      if (!draft) {
+        hiroSay(
+          "지금 요청 접수에 일시적인 문제가 있어요. 잠시 후 다시 눌러 주시고, 급하시면 전화 1660-4452 또는 카카오톡 채널로 연락 부탁드려요."
+        );
         return;
       }
-      const data = (await resp.json()) as { text?: string };
-      const draft = data.text ?? "";
-      if (!draft) return;
-      setDraftLetter(draft);
+      // 초안은 화면에 띄우지 않고 접수함에만 저장한다 — 변호사가 검토·수정해 발송한다.
+      // 선택 동의가 없으면 대화 전문을 섞지 않아 "성함·연락처만 전달" 약속을 지킨다.
+      const conversationLog = shareChat
+        ? messages
+            .filter((m) => m.who === "me" || m.who === "them")
+            .map((m) => `${m.who === "me" ? "[의뢰인]" : "[히로]"} ${m.text}`)
+            .join("\n")
+        : "";
+      const id = await saveDraftConsultation({
+        conversationLog,
+        draftLetter: draft,
+        userName:
+          justSaved?.name || contactName.trim() || user?.displayName || null,
+        // 이 대화에서 연락처를 이미 남겼다면 접수에도 실어 변호사가 바로 회신할 수 있게 한다.
+        contact: justSaved?.phone ?? (contactSaved ? contact.trim() : null),
+        sessionId: sessionIdRef.current,
+      });
+      if (!id) {
+        hiroSay(
+          "요청 저장에 실패했어요. 카카오톡 채널이나 전화 1660-4452로 직접 문의해 주시면 바로 도와드리겠습니다."
+        );
+        return;
+      }
+      setDraftSubmitted(true);
       setMessages((m) => [
         ...m,
         {
           who: "them",
-          text: "변호사 명의 공식 통보문 1차 초안이 생성되었습니다. 아래에서 내용을 확인하세요. 변호사가 검토·수정 후 발송합니다.",
+          text: `통보문 작성 요청이 접수되었습니다. (접수번호: ${id.slice(
+            0,
+            8
+          )})\n변호사 ${REVIEWING_LAWYER}가 직접 작성·검토해 ${
+            justSaved?.phone || contact.trim() || "남겨주신 연락처"
+          } 로 안내드리겠습니다.`,
           expression: "cheer",
         },
       ]);
     } catch (e) {
       console.error("[draft]", e);
+      hiroSay(
+        "요청을 보내는 중 문제가 생겼어요. 잠시 후 다시 눌러 주시거나 전화 1660-4452로 연락 부탁드려요."
+      );
     } finally {
       setDraftLoading(false);
     }
-  };
-
-  const submitDraftForReview = async () => {
-    if (!draftLetter) return;
-    // 검토 신청 자체는 초안만으로 가능하다. 선택 동의가 없으면 대화 전문을
-    // 초안 접수 문서에 섞지 않아 "성함·연락처만 전달" 약속을 지킨다.
-    const conversationLog = shareChat
-      ? messages
-          .filter((m) => m.who === "me" || m.who === "them")
-          .map((m) => `${m.who === "me" ? "[의뢰인]" : "[히로]"} ${m.text}`)
-          .join("\n")
-      : "";
-    const id = await saveDraftConsultation({
-      conversationLog,
-      draftLetter,
-      userName: contactName.trim() || user?.displayName || null,
-      // 이 대화에서 연락처를 이미 남겼다면 초안 접수에도 실어 변호사가 바로 회신할 수 있게 한다.
-      contact: contactSaved ? contact.trim() : null,
-      sessionId: sessionIdRef.current,
-    });
-    setDraftSubmitted(true);
-    setMessages((m) => [
-      ...m,
-      {
-        who: "them",
-        text: id
-          ? `위임 검토 신청이 접수되었습니다. (접수번호: ${id.slice(
-              0,
-              8
-            )})\n변호사 ${REVIEWING_LAWYER}가 통보문을 검토 후 ${
-              user?.email ?? "카카오톡"
-            }으로 안내드립니다.`
-          : "검토 신청 저장에 실패했습니다. 카카오톡 채널로 직접 문의해 주세요.",
-      },
-    ]);
   };
 
   const handleKakaoLogin = async () => {
@@ -742,6 +780,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     }
     setContact(phone);
     setContactSaved(true);
+    setContactSheetOpen(false);
     setMessages((m) => [
       ...m,
       {
@@ -750,6 +789,11 @@ export function ChatModal({ open, onClose, greeting }: Props) {
         expression: "cheer",
       },
     ]);
+    // 검토 요청을 하려다 연락처를 남긴 경우 — 버튼을 다시 찾게 만들지 않고 이어서 접수한다
+    if (pendingDraftRef.current) {
+      pendingDraftRef.current = false;
+      void requestLetter({ name, phone });
+    }
   };
 
   if (!open) return null;
@@ -807,6 +851,8 @@ export function ChatModal({ open, onClose, greeting }: Props) {
             </button>
           </div>
         )}
+        {/* 대화 무대 — 연락처 시트가 이 안에서만 겹쳐 올라온다. 입력줄은 계속 쓸 수 있다. */}
+        <div className="hiro-stage">
         <div className="modal-body" ref={bodyRef}>
           {messages.map((m, i) => (
             <div
@@ -839,7 +885,96 @@ export function ChatModal({ open, onClose, greeting }: Props) {
             </div>
           )}
         </div>
-        <div className="quick-replies">
+        {!contactSaved && contactSheetOpen && (
+          <div className="contact-sheet" role="group" aria-label="연락처 남기기">
+            <div className="contact-sheet-head">
+              <strong>답변 이어받기</strong>
+              <button
+                className="contact-sheet-close"
+                onClick={() => setContactSheetOpen(false)}
+                aria-label="연락처 입력창 닫기"
+              >
+                ×
+              </button>
+            </div>
+            <p className="contact-sheet-lead">
+              성함과 연락처를 남기시면 변호사 {REVIEWING_LAWYER}가 직접 연락드립니다.
+              남기지 않으셔도 대화는 계속하실 수 있어요.
+            </p>
+            <div className="chat-consent">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                />
+                <span>
+                  <strong>(필수)</strong> 상담 회신을 위해 성함·연락처를
+                  수집·이용하는 데 동의합니다.{" "}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer">
+                    개인정보처리방침
+                  </a>
+                </span>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={shareChat}
+                  onChange={(e) => setShareChat(e.target.checked)}
+                />
+                <span>
+                  <strong>(선택)</strong> 나눈 대화 내용도 변호사에게 함께
+                  전달합니다.
+                </span>
+              </label>
+              {/* 전문은 접어 둔다 — 고지 내용은 그대로 두되 폼이 5줄을 먹지 않게 */}
+              <details className="chat-consent-more">
+                <summary>무엇이 전달되나요?</summary>
+                <p>
+                  히로와 나눈 대화 내용(이후 이어지는 대화 포함)이 함께
+                  전달됩니다. 변호사가 미리 읽고 연락드려{" "}
+                  <strong>처음부터 다시 설명하지 않으셔도 됩니다.</strong>{" "}
+                  체크하지 않으시면 성함·연락처만 전달됩니다.
+                </p>
+              </details>
+            </div>
+            <div className="chat-contact">
+              <input
+                type="text"
+                className="chat-input chat-input-name"
+                placeholder="성함"
+                ref={nameInputRef}
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") contactInputRef.current?.focus();
+                }}
+              />
+              <input
+                type="tel"
+                className="chat-input"
+                placeholder="회신받을 전화번호"
+                ref={contactInputRef}
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void submitContact();
+                }}
+              />
+              <button
+                className="btn primary"
+                onClick={() => void submitContact()}
+                disabled={contactSending}
+              >
+                {contactSending ? "전달 중..." : "연락처 남기기"}
+              </button>
+            </div>
+          </div>
+        )}
+        </div>
+        <div
+          className={`quick-replies${hasStartedConversation ? " compact" : ""}`}
+        >
           {replies.map((r) => (
             <button key={r} className="qr" onClick={() => void send(r)}>
               {r}
@@ -857,71 +992,22 @@ export function ChatModal({ open, onClose, greeting }: Props) {
             )}
           </div>
         ) : hasStartedConversation ? (
-          <>
-          <div style={{ fontSize: 12, lineHeight: 1.5, color: "var(--muted)", margin: "8px 0 4px" }}>
-            답변을 이어받고 싶으시면 아래에 연락처를 남겨 주세요. 입력하지 않아도 대화는 계속할 수 있습니다.
-          </div>
-          <div className="chat-consent">
-            <label>
-              <input
-                type="checkbox"
-                checked={privacyAgreed}
-                onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              />
-              <span>
-                <strong>(필수)</strong> 상담 회신을 위해 성함·연락처를 수집·이용하는
-                데 동의합니다.{" "}
-                <a href="/privacy" target="_blank" rel="noopener noreferrer">
-                  개인정보처리방침
-                </a>
-              </span>
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={shareChat}
-                onChange={(e) => setShareChat(e.target.checked)}
-              />
-              <span>
-                <strong>(선택)</strong> 히로와 나눈 대화 내용(이후 이어지는 대화
-                포함)을 변호사에게 함께 전달합니다. 미리 읽고 연락드려서{" "}
-                <strong>처음부터 다시 설명하지 않으셔도 됩니다.</strong> 체크하지
-                않으시면 성함·연락처만 전달됩니다.
-              </span>
-            </label>
-          </div>
-          <div className="chat-contact">
-            <input
-              type="text"
-              className="chat-input chat-input-name"
-              placeholder="성함"
-              ref={nameInputRef}
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") contactInputRef.current?.focus();
-              }}
-            />
-            <input
-              type="tel"
-              className="chat-input"
-              placeholder="회신받을 전화번호 — 필수"
-              ref={contactInputRef}
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void submitContact();
-              }}
-            />
-            <button
-              className="btn"
-              onClick={() => void submitContact()}
-              disabled={contactSending}
-            >
-              {contactSending ? "전달 중..." : "연락처 남기기"}
-            </button>
-          </div>
-          </>
+          /* 평소엔 한 줄 띠만 둔다 — 폼이 대화 자리를 영구히 차지하지 않게.
+             시트가 열려 있을 때도 자리는 남겨 둔다 — 없애면 대화 높이가 52px 튄다. */
+          <button
+            className={`contact-strip${contactSheetOpen ? " is-hidden" : ""}`}
+            onClick={() => setContactSheetOpen(true)}
+            aria-hidden={contactSheetOpen}
+            tabIndex={contactSheetOpen ? -1 : undefined}
+          >
+            <span className="contact-strip-text">
+              <strong>연락처 남기고 답변 이어받기</strong>
+              <span>변호사 {REVIEWING_LAWYER}가 직접 연락드립니다</span>
+            </span>
+            <span className="contact-strip-arrow" aria-hidden="true">
+              ›
+            </span>
+          </button>
         ) : null}
         <div className="modal-foot">
           <input
@@ -939,60 +1025,31 @@ export function ChatModal({ open, onClose, greeting }: Props) {
           </button>
         </div>
         {showDraftButton && (
+          /* 결과물을 손님에게 보여주지 않는다 — 위 requestLetter의 규정 주석 참조 */
           <div className="draft-cta">
             <p className="draft-cta-text">
-              지금까지 정보로 <strong>변호사 명의 통보문 1차 초안</strong>을 자동
-              생성해드릴 수 있습니다.
+              통보문이 필요하시면{" "}
+              <strong>{REVIEWING_LAWYER} 변호사가 직접 작성</strong>해
+              보내드립니다.
               <br />
               <span className="draft-cta-note">
-                (변호사 검토·수정 후 발송됩니다 · 베이직 199,000원 패키지)
+                (베이직 199,000원 패키지 · 발송 전 변호사가 검토합니다)
               </span>
             </p>
             <button
               className="btn primary"
-              onClick={() => void requestDraft()}
+              onClick={() => void requestLetter()}
               disabled={draftLoading}
               style={{ width: "100%" }}
             >
               {draftLoading ? (
-                "초안 작성 중..."
+                "요청 접수 중..."
               ) : (
                 <>
-                  <Icon name="doc" size={16} /> 통보문 초안 생성하기
+                  <Icon name="doc" size={16} /> 변호사에게 통보문 작성 요청
                 </>
               )}
             </button>
-          </div>
-        )}
-
-        {draftLetter && !draftSubmitted && (
-          <div className="draft-preview">
-            <div className="draft-preview-head">
-              <strong>{REVIEWING_LAWYER} 변호사 명의 통보문 — 자동 1차 초안</strong>
-              <span className="draft-tag">검토 대기</span>
-            </div>
-            <pre className="draft-preview-body">{draftLetter}</pre>
-            <p className="draft-preview-note">
-              [대괄호] 부분은 의뢰인이 알려주지 않은 정보로, 변호사 검토 시
-              채워집니다. 위 내용을 {REVIEWING_LAWYER} 변호사가 직접 검토
-              후 발송합니다. 검토 요청하시겠습니까?
-            </p>
-            <div className="draft-preview-actions">
-              <button
-                className="btn primary"
-                onClick={() => void submitDraftForReview()}
-                style={{ flex: 1 }}
-              >
-                ✓ 변호사 검토 요청
-              </button>
-              <button
-                className="btn"
-                onClick={() => setDraftLetter(null)}
-                style={{ flex: 0 }}
-              >
-                취소
-              </button>
-            </div>
           </div>
         )}
 

@@ -1736,10 +1736,16 @@ body[data-mascot="false"] .mascot {
 }
 .chat-contact {
   display: flex;
+  /* wrap이 없으면 좁은 폭에서 제출 버튼이 밀려 나가 잘린다(.modal이 overflow:hidden).
+     실제로 「연락처 남기기」 버튼이 화면 밖으로 사라져 있었다 — 2026-09-06 수정 */
+  flex-wrap: wrap;
   gap: 10px;
   padding: 12px 22px;
   border-top: 2px solid var(--gray-2);
   background: var(--yellow-soft, var(--paper));
+}
+.chat-contact .chat-input {
+  min-width: 0;
 }
 .chat-contact .btn {
   white-space: nowrap;
@@ -1784,54 +1790,6 @@ body[data-mascot="false"] .mascot {
   color: var(--muted);
 }
 
-.draft-preview {
-  padding: 16px 22px;
-  background: var(--paper);
-  border-top: 2px solid var(--ink);
-}
-.draft-preview-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.draft-preview-head strong {
-  font-size: 13px;
-}
-.draft-tag {
-  background: var(--orange);
-  color: var(--cream);
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1.5px solid var(--ink);
-  letter-spacing: 0.04em;
-}
-.draft-preview-body {
-  background: var(--gray-1);
-  border: 2px solid var(--ink);
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 12px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: inherit;
-  margin: 0 0 10px;
-  max-height: 240px;
-  overflow-y: auto;
-}
-.draft-preview-note {
-  font-size: 11.5px;
-  color: var(--muted);
-  margin: 0 0 10px;
-  line-height: 1.5;
-}
-.draft-preview-actions {
-  display: flex;
-  gap: 8px;
-}
 
 .auth-bar {
   display: flex;
@@ -3333,4 +3291,207 @@ body[data-mascot="false"] .mascot {
 .chat-consent-note {
   color: var(--muted);
   font-weight: 700;
+}
+
+/* ── 히로 대화창 레이아웃 개편 (2026-09-06) ────────────────────────────────
+   대화가 화면의 14%(117px)밖에 안 되던 문제를 고친다. 연락처 폼을 세로로 쌓지 않고
+   대화 위에 겹쳐 올렸다가 닫으면 대화가 그대로 복귀하게 한다.                     */
+
+/* 대화 무대 — 시트가 이 안에서만 겹친다. 아래 입력줄·빠른질문은 계속 쓸 수 있다. */
+.hiro-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.hiro-stage .modal-body {
+  min-height: 0;
+}
+
+/* 연락처 시트 — 대화 위로 올라왔다가 닫으면 사라진다 */
+.contact-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 12px 16px 14px;
+  background: var(--paper);
+  border-top: 2.5px solid var(--ink);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -10px 28px rgba(10, 10, 10, 0.16);
+  animation: contact-sheet-rise 0.24s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+@keyframes contact-sheet-rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.contact-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.contact-sheet-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.contact-sheet-lead {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.contact-sheet .chat-consent {
+  padding: 8px 0 0;
+  border-top: none;
+  gap: 6px;
+}
+/* 시트 안에서는 성함·전화번호가 한 줄, 제출 버튼은 그 아래 전체 폭 */
+.contact-sheet .chat-contact {
+  padding: 10px 0 0;
+  border-top: none;
+  background: transparent;
+}
+.contact-sheet .chat-contact .chat-input-name {
+  flex: 0 0 92px;
+}
+.contact-sheet .chat-contact .chat-input:not(.chat-input-name) {
+  flex: 1 1 130px;
+}
+.contact-sheet .chat-contact .btn {
+  flex: 1 0 100%;
+}
+
+/* 선택 동의 상세 — 고지 내용은 그대로 두되 접어서 폼 높이를 줄인다 */
+.chat-consent-more {
+  font-size: 12px;
+  color: var(--muted);
+  padding-left: 24px;
+}
+.chat-consent-more summary {
+  cursor: pointer;
+  text-decoration: underline;
+}
+.chat-consent-more p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+/* 평소 노출되는 한 줄 띠 — 폼 대신 여기만 자리를 차지한다 */
+.contact-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-top: 2px solid var(--gray-2);
+  background: var(--yellow-soft, var(--paper));
+  font-family: var(--font-kr);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.contact-strip:hover {
+  background: var(--yellow);
+}
+.contact-strip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.contact-strip-text strong {
+  font-size: 13px;
+}
+.contact-strip-text span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.contact-strip-arrow {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  flex: none;
+}
+
+/* 대화가 시작되면 빠른질문은 한 줄로 접는다 (3줄 143px → 1줄 48px).
+   첫 화면에서는 그대로 펼쳐 둔다 — 거기서는 대화를 여는 손잡이다. */
+.quick-replies.compact {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: none;
+}
+.quick-replies.compact::-webkit-scrollbar {
+  display: none;
+}
+.quick-replies.compact .qr {
+  flex: none;
+}
+
+/* 하단 여백 정리 — 고지 문구는 변호사법 §23상 필수라 내용은 그대로 두고 크기만 줄인다 */
+.hiro-panel .modal-kakao-link {
+  padding: 0 16px 10px;
+}
+.hiro-panel .chat-foot-note {
+  padding: 8px 16px 10px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-sheet {
+    animation: none;
+  }
+}
+
+/* 통보문 초안 CTA — 히로 패널에서는 설명이 2줄이라 150px를 먹는다.
+   문구는 그대로 두고 여백만 조여 대화 자리를 돌려준다(2026-09-06). */
+.hiro-panel .draft-cta {
+  padding: 10px 16px;
+}
+.hiro-panel .draft-cta-text {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0 0 8px;
+}
+.hiro-panel .draft-cta .btn {
+  padding: 10px 14px;
+}
+/* 시트가 열려 있는 동안 띠는 자리만 지킨다 — 없애면 대화 높이가 52px 튄다 */
+.contact-strip.is-hidden {
+  visibility: hidden;
+}
+
+/* 괴롭힘 전용 상품을 없앤 뒤, 괴롭힘으로 오신 분을 분쟁 대응으로 이어주는 안내 (2026-09-06) */
+.labor-harassment-note {
+  margin: 14px auto 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.labor-harassment-note a {
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: underline;
+  white-space: nowrap;
 }
