@@ -90,6 +90,16 @@ function RootLayout() {
   return (
     <Suspense fallback={null}>
       <Outlet />
+      {/* 한 문장 정의 — "이 사이트가 무엇인가"를 전 화면 공통으로 밝힌다.
+          검색엔진·답변엔진이 사이트를 하나의 대상으로 인식하는 근거가 된다.
+          홈 푸터에만 두면 나머지 43개 화면에서는 읽히지 않는다(2026-09-06). */}
+      <footer className="site-define-foot">
+      <p className="site-define">
+        퇴사히어로는 회사와 직접 부딪히기 어려운 근로자를 대신해 변호사가 퇴사
+        통보부터 임금체불·퇴직금·부당해고·직장 내 괴롭힘 대응까지 맡는
+        서비스입니다. 법률사무소 청송law 담당변호사 김창희.
+      </p>
+      </footer>
       <HiroChat />
     </Suspense>
   );

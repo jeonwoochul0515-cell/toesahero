@@ -3579,3 +3579,38 @@ body[data-mascot="false"] .mascot {
   font-weight: 700;
   color: var(--yellow, #f7c948);
 }
+
+/* 한 문장 정의 — 푸터에서 "이 사이트가 무엇인지"를 한 줄로 밝힌다 (2026-09-06) */
+.foot-define {
+  display: block;
+  max-width: 62ch;
+  line-height: 1.6;
+}
+.foot-define strong {
+  color: var(--yellow, #f7c948);
+}
+
+/* 한 문장 정의 — 화면 맨 아래 한 줄. 사람에게도 읽히고 검색·답변엔진의 근거가 된다 */
+.site-define {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 18px 20px 26px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* 칼럼 두괄식 요약 — 본문 앞에 답부터 보여준다 (2026-09-06) */
+.lead-box {
+  margin: 0 0 22px;
+  padding: 16px 18px;
+  background: var(--yellow-soft, #fff8e1);
+  border: 2px solid var(--ink, #141414);
+  border-left-width: 8px;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.7;
+  font-weight: 700;
+  color: var(--ink, #141414);
+}

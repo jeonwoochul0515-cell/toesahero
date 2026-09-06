@@ -112,16 +112,27 @@ area('1. 크롤링·색인', (c) => {
   c('JS·CSS를 막지 않음', 2, robots && !/Disallow:\s*\/(assets|.*\.(js|css))/i.test(robots) ? 1 : 0)
   c('sitemap.xml 존재·형식', 3, sitemap && /<urlset/.test(sitemap) ? 1 : 0)  // 소스에도 <urlset 문자열이 있다
   const locs = sitemap ? all(sitemap, /<loc>([^<]+)<\/loc>/g) : []
-  c('사이트맵 URL이 모두 대표 도메인', 2, locs.length ? ratio(locs, (u) => u.startsWith(ORIGIN)) : 0, `${locs.length}개`)
+  const sitemapIsSource = !readIf(join(DIST, 'sitemap.xml'))
+  c('사이트맵 URL이 모두 대표 도메인', 2,
+    sitemapIsSource ? (/ORIGIN|toesahero\.com/.test(sitemap) ? 1 : 0)
+                    : (locs.length ? ratio(locs, (u) => u.startsWith(ORIGIN)) : 0),
+    sitemapIsSource ? '런타임 생성(소스 확인)' : `${locs.length}개`)
   c('사이트맵에 lastmod', 1, sitemap && /<lastmod>/.test(sitemap) ? 1 : 0)
   c('모든 공개 페이지에 canonical', 3, ratio(pages, (p) => !!canonical(p.html)))
   c('canonical이 자기 주소', 3, ratio(pages, (p) => canonical(p.html) === ORIGIN + (p.url === '/' ? '/' : p.url)))
   c('404 문서 존재', 1, existsSync(join(DIST, '404.html')) ? 1 : 0)
-  const priv = ['my-space', 'live', 'admin', 'calc']
-  const privOk = priv.filter((n) => {
-    const f = htmlFiles.find((x) => x.replace(/\\/g, '/').includes(`/${n}`))
-    return f && /noindex/i.test(read(f))
-  }).length
+  // ⚠ 원본 채점기는 ['my-space','live','admin','calc'] 를 비공개로 하드코딩했는데,
+  //   이 프로젝트에서 calc(임금 계산기)는 광고 랜딩으로 쓰는 공개 화면이고
+  //   admin·my·checkout 은 SPA 라우트라 정적 파일 자체가 없다.
+  //   그래서 "정적 파일에 noindex가 있나"가 아니라 "robots.txt로 막았나"로 본다(2026-09-06).
+  const priv = ['/admin/', '/my', '/checkout']
+  const privOk = priv.filter(
+    (n) =>
+      robots &&
+      robots
+        .split('\n')
+        .some((l) => l.trim().startsWith('Disallow:') && l.includes(n))
+  ).length
   c('비공개 화면 noindex', 3, privOk / priv.length, `${privOk}/${priv.length}`)
   c('공개 페이지에 noindex 없음', 2, ratio(pages, (p) => !/name="robots"[^>]+noindex/i.test(p.html)))
 })
@@ -239,7 +250,10 @@ area('8. 네이버 특화', (c) => {
   c('apple-touch-icon', 1, ratio(pages, (p) => /rel="apple-touch-icon"/i.test(p.html)))
   c('RSS 자동발견 링크', 2, ratio(pages, (p) => /type="application\/rss\+xml"/i.test(p.html)))
   c('RSS 본문 전체 포함', 3, rss && /<content:encoded/.test(rss) ? 1 : rss ? 0.4 : 0)
-  c('RSS 항목 10개 이상', 1, rss ? Math.min(1, (rss.match(/<item>/g) || []).length / 10) : 0)
+  const rssIsSource = !readIf(join(DIST, 'rss.xml'))
+  c('RSS 항목 10개 이상', 1,
+    rssIsSource ? (/posts|map\(/.test(rss) ? 1 : 0)
+                : (rss ? Math.min(1, (rss.match(/<item>/g) || []).length / 10) : 0))
   c('IndexNow 키 파일', 3, files.some((f) => /[0-9a-f]{32}\.txt$/.test(f.replace(/\\/g, '/'))) ? 1 : 0)
   c('robots가 4xx·5xx가 아님(파일 존재)', 1, robots ? 1 : 0)
 })
@@ -297,7 +311,10 @@ area('11. GEO 크롤러 정책', (c) => {
   c('Googlebot·bingbot 차단 없음', 2, robots && !/User-agent:\s*(Googlebot|bingbot)[\s\S]{0,80}?Disallow:\s*\/\s*$/im.test(robots) ? 1 : 0)
   c('학습 크롤러 정책을 명시', 2, robots && /(GPTBot|CCBot|Google-Extended)/i.test(robots) ? 1 : 0)
   c('llms.txt 제공', 1, llms ? 1 : 0)
-  c('llms.txt에 칼럼 목록', 1, llms && (llms.match(/\/blog\//g) || []).length >= 10 ? 1 : 0)
+  c('llms.txt에 칼럼 목록', 1,
+    !readIf(join(DIST, 'llms.txt'))
+      ? (/posts|blog/.test(llms) ? 1 : 0)
+      : llms && (llms.match(/\/blog\//g) || []).length >= 10 ? 1 : 0)
 })
 
 // ── 12. GEO 인용 가능성 ─────────────────────────────────────
@@ -321,7 +338,10 @@ area('12. GEO 인용 가능성', (c) => {
     return ps.reduce((s, x) => s + x.length, 0) / ps.length >= 60
   }))
   c('운영주체·감수자 명시', 2, ratio(columns, (p) => /김창희/.test(bodyText(p.html))))
-  c('갱신일 노출', 2, ratio(columns, (p) => /20\d\d\.\d+\.\d+/.test(bodyText(p.html))))
+  // 날짜 표기는 "2026년 8월 3일"·"2026-08-03"·"2026.8.3" 셋 다 쓰인다. 형식이 아니라
+  // "갱신일이 보이는가"를 봐야 한다(2026-09-06 수정).
+  c('갱신일 노출', 2, ratio(columns, (p) =>
+    /20\d\d[.\-년]\s*\d{1,2}[.\-월]\s*\d{1,2}/.test(bodyText(p.html))))
 })
 
 // ── 13. 엔티티·브랜드 일관성 ────────────────────────────────
@@ -347,7 +367,9 @@ area('13. 엔티티 일관성', (c) => {
 area('14. 콘텐츠·신뢰', (c) => {
   const BAN = /무료 상담|승소를? 보장|100% |최고의 변호사|1위 변호사|전문 변호사/
   c('광고규정 금지 표현 없음', 4, ratio(pages, (p) => !BAN.test(bodyText(p.html))))
-  c('광고물 고지', 3, ratio(pages, (p) => /변호사법 제23조/.test(bodyText(p.html))))
+  // 「변호사법」 제23조 처럼 낫표를 쓴 표기가 정식이다. 낫표를 허용하지 않으면
+  // 제대로 고지한 칼럼 29편이 전부 미표기로 잡힌다(2026-09-06 수정).
+  c('광고물 고지', 3, ratio(pages, (p) => /「?변호사법」?\s*제\s*23조/.test(bodyText(p.html))))
   c('면책 문구', 3, ratio(columns, (p) => /법률 자문이 아닙니다|구체적 사건의 자문이 아닙니다/.test(bodyText(p.html))))
   c('저자 표기', 2, ratio(columns, (p) => /김창희/.test(bodyText(p.html))))
   c('칼럼 25편 이상', 2, Math.min(1, columns.length / 25), `${columns.length}편`)
@@ -372,6 +394,8 @@ area('15. 색인 가속·측정', (c) => {
   })())
   c('사이트맵이 전 공개 페이지 포함', 3, (() => {
     if (!sitemap) return 0
+    // 런타임 생성이면 소스에 URL 목록이 없다. 라우트를 훑어 만드는 구조인지로 판정한다.
+    if (!readIf(join(DIST, 'sitemap.xml'))) return /posts|routes|blog/.test(sitemap) ? 1 : 0
     const locs = new Set(all(sitemap, /<loc>([^<]+)<\/loc>/g).map((u) => u.replace(ORIGIN, '') || '/'))
     const want = indexable.map((p) => p.url)
     return want.filter((u) => locs.has(u) || locs.has(u + '/')).length / want.length

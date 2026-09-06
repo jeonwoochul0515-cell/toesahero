@@ -10,6 +10,7 @@ import {
   breadcrumbJsonLd,
 } from "../hooks/usePageMeta";
 import { Icon } from "../components/Icon";
+import { linkLawArticles } from "../lib/lawLinks";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
   if (!ts) return "";
@@ -49,7 +50,7 @@ export function BlogPost() {
 
   const seo = usePageMeta({
     title: post?.title ?? "법률 칼럼",
-    description: post?.excerpt ?? "법률사무소 청송 김창희 변호사 법률 칼럼",
+    description: post?.excerpt ?? "법률사무소 청송law 김창희 변호사 법률 칼럼",
     canonical: `/blog/${slug ?? ""}`,
     keywords: post?.tags ?? ["법률 칼럼", "노동법", "변호사", "김창희"],
     ogType: post ? "article" : "website",
@@ -119,6 +120,7 @@ export function BlogPost() {
         <Link to="/blog" className="my-back">← 칼럼 목록</Link>
       </header>
 
+      <main className="blog-post-main">
       <article className="blog-post">
         <div className="blog-post-emoji">{post.coverEmoji ?? "⚖️"}</div>
         <div className="blog-post-tags">
@@ -139,9 +141,14 @@ export function BlogPost() {
             )}
         </div>
 
+        {/* 두괄식 요약 — 글 전체를 읽기 전에 답부터 준다.
+            사람은 답을 빨리 찾고, 답변엔진은 이 문단을 인용한다. */}
+        {post.excerpt && <div className="lead-box">{post.excerpt}</div>}
+
         <div className="blog-post-body">
+          {/* 본문의 법령 조문을 법제처 원문 링크로 바꿔 근거를 확인할 수 있게 한다 */}
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {post.body}
+            {linkLawArticles(post.body)}
           </ReactMarkdown>
         </div>
 
@@ -178,9 +185,13 @@ export function BlogPost() {
           </div>
         </footer>
       </article>
+      </main>
 
       <div className="page-static-foot">
-        본 사이트는 「변호사법」 제23조에 따른 광고물입니다. 법률사무소 청송 ·
+        이 글은 일반적인 법률 정보이며 구체적 사건의 자문이 아닙니다. 개별 사안은
+        사실관계에 따라 결론이 달라질 수 있으니 변호사 상담을 통해 확인하시기 바랍니다.
+        <br />
+        본 사이트는 「변호사법」 제23조에 따른 광고물입니다. 법률사무소 청송law ·
         변호사 김창희 · 대한변호사협회 등록.
       </div>
     </div>

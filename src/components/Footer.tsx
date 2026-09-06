@@ -132,12 +132,12 @@ export function Footer({ openChat }: Props) {
               <a href="#lawyer">변호사 소개</a>
             </div>
             <div>
-              <strong className="foot-h">법률사무소 청송</strong>
+              <strong className="foot-h">법률사무소 청송law</strong>
               <a
                 href="https://chang-hee.kim"
                 target="_blank"
                 rel="me noopener noreferrer"
-                title="법률사무소 청송 김창희 변호사 공식 홈페이지"
+                title="법률사무소 청송law 김창희 변호사 공식 홈페이지"
               >
                 공식 홈페이지 (chang-hee.kim) ↗
               </a>
@@ -175,11 +175,18 @@ export function Footer({ openChat }: Props) {
             </div>
           </div>
           <div className="foot-bottom">
-            <span>
-              © 2026 법률사무소 청송. 변호사 김창희. 대한변호사협회 등록.
+            {/* 한 문장 정의 — 검색엔진과 답변엔진이 "이 사이트가 무엇인지"를
+                한 번에 읽게 한다. 전 페이지 공통으로 노출된다. */}
+            <span className="foot-define">
+              <strong>퇴사히어로는</strong> 회사와 직접 부딪히기 어려운 근로자를
+              대신해 변호사가 퇴사 통보부터 임금체불·퇴직금·부당해고·직장 내
+              괴롭힘 대응까지 맡는 서비스입니다.
             </span>
             <span>
-              본 서비스는 법률사무소 청송(
+              © 2026 법률사무소 청송law. 변호사 김창희. 대한변호사협회 등록.
+            </span>
+            <span>
+              본 서비스는 법률사무소 청송law(
               <a
                 href="https://chang-hee.kim"
                 target="_blank"

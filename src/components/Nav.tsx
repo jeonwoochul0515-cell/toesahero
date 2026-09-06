@@ -7,6 +7,7 @@ type Props = {
 
 export function Nav({ openChat }: Props) {
   return (
+    <header>
     <nav className="top">
       <div className="inner">
         <a
@@ -35,5 +36,6 @@ export function Nav({ openChat }: Props) {
         </button>
       </div>
     </nav>
+    </header>
   );
 }

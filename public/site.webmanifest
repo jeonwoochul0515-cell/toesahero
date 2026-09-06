@@ -1,0 +1,15 @@
+{
+  "name": "퇴사히어로 — 변호사 퇴사 대행",
+  "short_name": "퇴사히어로",
+  "description": "회사와 직접 부딪히지 않아도 되도록, 변호사가 퇴사 통보부터 임금체불·부당해고까지 대응합니다.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "lang": "ko",
+  "background_color": "#FFF8E1",
+  "theme_color": "#FFD60A",
+  "icons": [
+    { "src": "/apple-touch-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
