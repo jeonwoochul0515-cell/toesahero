@@ -74,6 +74,19 @@ export function getAuthOrNull(): Auth | null {
   return auth;
 }
 
+// 실시간 구독(onSnapshot)의 에러 핸들러. 이걸 빼먹으면 권한 규칙·인덱스 문제로
+// 조회가 실패해도 화면이 "0건"과 똑같이 보여, 데이터가 사라진 줄 알고 헤매게 된다
+// (2026-09-06 후기함에서 실제로 진단에 시간을 썼다). 반드시 붙일 것.
+function snapshotError(
+  where: string,
+  onError?: (message: string) => void
+): (e: Error) => void {
+  return (e: Error) => {
+    console.error(`[firebase] ${where} 구독 실패`, e);
+    onError?.(e.message || String(e));
+  };
+}
+
 function getStorageOrNull(): FirebaseStorage | null {
   const a = getApp();
   if (!a) return null;
@@ -273,8 +286,16 @@ export function watchOrders(
     orderBy("createdAt", "desc"),
     limit(max)
   );
-  return onSnapshot(q, (snap) =>
-    cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<OrderDoc, "id">) })))
+  return onSnapshot(
+    q,
+    (snap) =>
+      cb(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<OrderDoc, "id">),
+        }))
+      ),
+    snapshotError("orders")
   );
 }
 
@@ -292,7 +313,11 @@ export function watchConsultations(
     orderBy("createdAt", "desc"),
     limit(max)
   );
-  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToConsultation)));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToConsultation)),
+    snapshotError("consultations")
+  );
 }
 
 export function watchChatMessages(
@@ -309,7 +334,11 @@ export function watchChatMessages(
     orderBy("createdAt", "desc"),
     limit(max)
   );
-  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToChatMessage)));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToChatMessage)),
+    snapshotError("chat_messages")
+  );
 }
 
 // 의뢰인 본인 사건 조회 (마이페이지용)
@@ -501,11 +530,14 @@ function snapToReview(s: QueryDocumentSnapshot<DocumentData>): ReviewDoc {
 
 export function watchReviewsAdmin(
   cb: (rows: ReviewDoc[]) => void,
-  max = 200
+  max = 200,
+  // 조회 실패를 화면이 알 수 있게 넘겨준다. 이게 없으면 "실패"와 "0건"이 똑같이 보인다.
+  onError?: (message: string) => void
 ): () => void {
   const database = getDb();
   if (!database) {
     cb([]);
+    onError?.("Firebase가 초기화되지 않았습니다. 환경변수를 확인해 주세요.");
     return () => {};
   }
   const q = query(
@@ -513,7 +545,11 @@ export function watchReviewsAdmin(
     orderBy("createdAt", "desc"),
     limit(max)
   );
-  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToReview)));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToReview)),
+    snapshotError("reviews", onError)
+  );
 }
 
 // 사이트(공개) 후기 — approved + display=true 만 일회성 조회
@@ -616,7 +652,11 @@ export function watchPostsAdmin(
     orderBy("createdAt", "desc"),
     limit(max)
   );
-  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToPost)));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToPost)),
+    snapshotError("posts")
+  );
 }
 
 export async function fetchPublishedPosts(): Promise<PostDoc[]> {
@@ -775,11 +815,10 @@ export function watchMyCaseFiles(
     return () => {};
   }
   const q = query(collection(database, "case_files"), where("uid", "==", uid), limit(200));
-  return onSnapshot(
-    q,
-    (snap) => cb(snap.docs.map(snapToCaseFile)),
-    () => cb([])
-  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToCaseFile)), (e) => {
+    snapshotError("case_files(uid)")(e);
+    cb([]);
+  });
 }
 
 // 특정 사건 파일 구독 (어드민 — caseId 단일 조건).
@@ -793,11 +832,10 @@ export function watchCaseFiles(
     return () => {};
   }
   const q = query(collection(database, "case_files"), where("caseId", "==", caseId), limit(200));
-  return onSnapshot(
-    q,
-    (snap) => cb(snap.docs.map(snapToCaseFile)),
-    () => cb([])
-  );
+  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToCaseFile)), (e) => {
+    snapshotError("case_files(caseId)")(e);
+    cb([]);
+  });
 }
 
 export type DraftSubmission = {

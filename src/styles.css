@@ -3495,3 +3495,21 @@ body[data-mascot="false"] .mascot {
   text-decoration: underline;
   white-space: nowrap;
 }
+
+/* 어드민 조회 실패 안내 — "0건"과 시각적으로 구분한다 (2026-09-06) */
+.admin-empty.admin-error {
+  color: var(--ink);
+  background: var(--yellow-soft, #fff8e1);
+  border: 2px solid var(--orange, #e07a3f);
+  border-radius: 10px;
+  padding: 14px 16px;
+  line-height: 1.7;
+  font-style: normal;
+}
+.admin-empty.admin-error code {
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  word-break: break-all;
+}

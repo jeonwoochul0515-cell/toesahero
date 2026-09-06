@@ -17,6 +17,8 @@ export function ReviewsAdmin() {
   const [rows, setRows] = useState<ReviewDoc[]>([]);
   const [filter, setFilter] = useState<ReviewDoc["status"] | "all">("all");
   const [busy, setBusy] = useState<string | null>(null);
+  // 조회 실패와 "후기 0건"을 화면에서 구분한다 — 예전엔 둘 다 "후기가 없습니다"로 보였다
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // form
   const [title, setTitle] = useState("");
@@ -26,7 +28,18 @@ export function ReviewsAdmin() {
   const [consentNote, setConsentNote] = useState("");
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => watchReviewsAdmin(setRows, 200), []);
+  useEffect(
+    () =>
+      watchReviewsAdmin(
+        (rows) => {
+          setLoadError(null);
+          setRows(rows);
+        },
+        200,
+        setLoadError
+      ),
+    []
+  );
 
   const filtered = rows.filter((r) => filter === "all" || r.status === filter);
 
@@ -165,7 +178,16 @@ export function ReviewsAdmin() {
       </div>
 
       <div className="reviews-admin-grid">
-        {filtered.length === 0 ? (
+        {loadError ? (
+          <p className="admin-empty admin-error">
+            후기를 불러오지 못했습니다 — 목록이 비어 보이는 것은 후기가 없어서가
+            아닙니다.
+            <br />
+            <code>{loadError}</code>
+            <br />
+            로그인 상태와 Firestore 권한 규칙을 확인해 주세요.
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="admin-empty">후기가 없습니다.</p>
         ) : (
           filtered.map((r) => (
