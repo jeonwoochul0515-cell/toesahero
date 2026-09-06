@@ -30,7 +30,26 @@ npm run dev      # http://localhost:5173
    ```
 6. **Save and Deploy** — 약 1~2분 후 `https://<repo-name>.pages.dev` 발급
 
-이후 `git push` 할 때마다 Cloudflare Pages 가 자동 빌드/배포합니다.
+> ⚠️ **이 프로젝트는 Git 연동 배포가 아닙니다 (2026-09-06 확인).**
+> 위 5·6단계는 Git 연동으로 새로 만들 때의 절차이고, 실제 `toesahero` 프로젝트는
+> **직접 업로드(wrangler) 방식**으로 운영 중입니다. **`git push` 만으로는 사이트가 바뀌지 않습니다.**
+>
+> 배포는 아래 한 줄로 합니다. 빌드 → 업로드 → 색인 통지까지 이어집니다.
+> ```bash
+> export CLOUDFLARE_API_TOKEN=$(tr -d ' \r\n' < ~/.cf-token)
+> export CLOUDFLARE_ACCOUNT_ID=da5ae1edf94b850d8ab9e6042d7236b3
+> npm run deploy
+> ```
+> - 토큰이 필요한 이유: wrangler OAuth 로그인이 만료돼 있습니다(전역 CLAUDE.md §15-1).
+>   값은 `C:\Users\jeonw\.cf-token` 에 있고 저장소에 커밋하지 않습니다.
+> - `--branch main` 이 중요합니다. 이 프로젝트의 production 브랜치는 `main` 이고,
+>   다른 값을 주면 **에러 없이 preview 로 올라가 실서비스에 반영되지 않습니다.**
+> - 배포 후 확인 — 아래가 `production` 이어야 실제로 반영된 것입니다.
+>   ```bash
+>   curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+>     "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/toesahero" \
+>    | python -c "import sys,json;d=json.load(sys.stdin)['result'].get('latest_deployment') or {};print(d.get('environment'))"
+>   ```
 
 ## 3. 도메인 연결
 
