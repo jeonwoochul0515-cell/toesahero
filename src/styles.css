@@ -3513,3 +3513,69 @@ body[data-mascot="false"] .mascot {
   border-radius: 4px;
   word-break: break-all;
 }
+
+/* 실업급여 계산기 — 회사가 적은 사유 때문에 막힌 분을 골라내는 자리 (2026-09-06).
+   광고로 들어온 실업급여 검색자 중 실제 의뢰인이 되는 분들이 여기서 갈린다. */
+.calc-blocks {
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 2px solid var(--orange, #e07a3f);
+  border-radius: 12px;
+}
+.calc-blocks-head {
+  display: block;
+  font-size: 15px;
+  color: var(--cream, #fff8e1);
+}
+.calc-blocks-lead {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.72);
+}
+.calc-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: var(--font-kr);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--cream, #fff8e1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9px;
+  cursor: pointer;
+}
+.calc-block:hover {
+  background: rgba(255, 255, 255, 0.13);
+}
+.calc-block.on {
+  background: var(--yellow, #f7c948);
+  border-color: var(--ink, #141414);
+  color: var(--ink, #141414);
+  font-weight: 800;
+}
+.calc-block-mark {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+}
+.calc-blocks-hit {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 700;
+  color: var(--yellow, #f7c948);
+}

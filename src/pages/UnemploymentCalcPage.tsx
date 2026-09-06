@@ -25,6 +25,16 @@ const FAQ_ITEMS = [
   },
 ];
 
+// 실업급여를 못 받게 되는 원인은 대개 "내 퇴사 사유"가 아니라 "회사가 적은 사유"다.
+// 광고(실업급여 검색)로 들어온 분 중 실제 의뢰인이 되는 분들이 여기 걸린다 — 2026-09-06 추가.
+const COMPANY_BLOCKS = [
+  { id: "self", label: "회사가 자진퇴사(개인사정)로 처리했다" },
+  { id: "paper", label: "이직확인서를 안 주거나 계속 미룬다" },
+  { id: "sick", label: "아파서 그만두는데 회사가 협조하지 않는다" },
+  { id: "recommend", label: "권고사직인데 자발적 퇴사로 적었다" },
+  { id: "bully", label: "괴롭힘 때문에 나왔는데 개인사정이라고 한다" },
+];
+
 const fmt = new Intl.NumberFormat("ko-KR").format;
 
 // 2026년 기준 (고용노동부 고시) — 매년 최저임금 변동에 따라 바뀌므로 다음 시즌 갱신 필요
@@ -121,7 +131,7 @@ export function UnemploymentCalcPage() {
       "실업급여 신청방법",
       "권고사직 실업급여",
       "퇴사대행",
-      "법률사무소 청송",
+      "법률사무소 청송law",
     ],
     jsonLd: [
       breadcrumbJsonLd([
@@ -144,6 +154,10 @@ export function UnemploymentCalcPage() {
   // 변호사가 회신할 연락처 — 미수집 시 신청이 들어와도 연락할 방법이 없어 필수로 받는다.
   const [applicantName, setApplicantName] = useState("");
   const [applicantPhone, setApplicantPhone] = useState("");
+  // 회사 쪽 사정으로 막힌 항목 — 하나라도 있으면 다툴 여지가 있어 상담으로 잇는다
+  const [blocks, setBlocks] = useState<string[]>([]);
+  const toggleBlock = (id: string) =>
+    setBlocks((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
 
   const result = useMemo(() => calc(inputs), [inputs]);
 
@@ -170,7 +184,15 @@ export function UnemploymentCalcPage() {
         contact: phone,
         message: `실업급여 계산기 결과: 1일 ${fmt(result.dailyBenefit)}원 × ${result.days}일 = 약 ${fmt(result.total)}원 예상 (퇴사 사유: ${
           { voluntary: "자발적 퇴사", boss_pressure: "권고사직", bullying: "직장 내 괴롭힘", layoff: "정리해고/계약만료", no_pay: "임금 체불" }[inputs.reason]
-        })`,
+        })${
+          blocks.length
+            ? "\n[회사 쪽 사정] " +
+              blocks
+                .map((b) => COMPANY_BLOCKS.find((x) => x.id === b)?.label)
+                .filter(Boolean)
+                .join(" / ")
+            : ""
+        }`,
         estimatedAmount: result.total,
         meta: {
           tool: "unemployment-calc",
@@ -178,6 +200,7 @@ export function UnemploymentCalcPage() {
           age: inputs.age,
           insuredMonths: result.totalMonths,
           reason: inputs.reason,
+          companyBlocks: blocks,
         },
       });
       if (id) {
@@ -321,6 +344,38 @@ export function UnemploymentCalcPage() {
                   <strong> 퇴사하기 전에 확인하는 것이 가장 유리합니다.</strong>
                 </div>
               )}
+
+              {/* 회사가 적은 사유 때문에 막힌 분을 여기서 골라낸다.
+                  광고로 들어온 실업급여 검색자 중 실제 의뢰인이 되는 분들이다. */}
+              <div className="calc-blocks">
+                <strong className="calc-blocks-head">
+                  회사 때문에 못 받게 되셨나요?
+                </strong>
+                <p className="calc-blocks-lead">
+                  해당하는 것을 눌러 주세요. 이직확인서에 적힌 사유는 나중에 정정을
+                  다툴 여지가 있습니다.
+                </p>
+                {COMPANY_BLOCKS.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`calc-block${blocks.includes(b.id) ? " on" : ""}`}
+                    onClick={() => toggleBlock(b.id)}
+                    aria-pressed={blocks.includes(b.id)}
+                  >
+                    <span className="calc-block-mark" aria-hidden="true">
+                      {blocks.includes(b.id) ? "✓" : ""}
+                    </span>
+                    {b.label}
+                  </button>
+                ))}
+                {blocks.length > 0 && (
+                  <p className="calc-blocks-hit">
+                    선택하신 내용은 아래 상담 신청에 함께 전달됩니다. 변호사
+                    김창희가 이직확인서 사유부터 확인해 드립니다.
+                  </p>
+                )}
+              </div>
 
               <div className="calc-fields" style={{ marginTop: 18 }}>
                 <label className="full" style={{ color: "var(--cream)" }}>
