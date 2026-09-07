@@ -93,7 +93,7 @@ export function FAQPage() {
       "외국인 노동자",
       "직장 내 괴롭힘",
       "퇴사대행 비용",
-      "법률사무소 청송",
+      "법률사무소 청송law",
     ],
     jsonLd: [
       faqJsonLd(FAQ),
@@ -158,7 +158,7 @@ export function FAQPage() {
 
       <footer className="page-static-foot">
         본 페이지는 일반적 정보 제공을 위한 것이며, 구체적 사안에 대한 법률 자문이 아닙니다.
-        본 사이트는 「변호사법」 제23조에 따른 광고물입니다. 법률사무소 청송 · 변호사 김창희.
+        본 사이트는 「변호사법」 제23조에 따른 광고물입니다. 법률사무소 청송law · 변호사 김창희.
       </footer>
     </div>
   );

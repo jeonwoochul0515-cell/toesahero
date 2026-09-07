@@ -11,6 +11,9 @@ import {
 } from "../hooks/usePageMeta";
 import { Icon } from "../components/Icon";
 import { linkLawArticles } from "../lib/lawLinks";
+import { extractFaqs, faqPageJsonLd } from "../lib/postFaq";
+import { splitPostBody, stripWebtoon } from "../lib/postWebtoon";
+import { WebtoonStrip } from "../components/WebtoonStrip";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
   if (!ts) return "";
@@ -53,6 +56,9 @@ export function BlogPost() {
     description: post?.excerpt ?? "법률사무소 청송law 김창희 변호사 법률 칼럼",
     canonical: `/blog/${slug ?? ""}`,
     keywords: post?.tags ?? ["법률 칼럼", "노동법", "변호사", "김창희"],
+    // 칼럼마다 고유 공유 이미지. 카톡으로 보냈을 때 어느 글인지 보이게 한다.
+    // scripts/make-og.mjs 가 웹툰 컷 위에 제목을 얹어 public/og/<slug>.jpg 로 만든다.
+    ogImage: post ? `https://toesahero.com/og/${post.slug}.jpg` : undefined,
     ogType: post ? "article" : "website",
     jsonLd: post
       ? [
@@ -69,6 +75,10 @@ export function BlogPost() {
             { name: "법률 칼럼", url: "/blog" },
             { name: post.title, url: `/blog/${post.slug}` },
           ]),
+          // 본문의 「자주 묻는 질문」을 그대로 구조화한다 — 화면과 스키마가 항상 일치한다
+          ...(faqPageJsonLd(extractFaqs(stripWebtoon(post.body)))
+            ? [faqPageJsonLd(extractFaqs(stripWebtoon(post.body)))!]
+            : []),
         ]
       : undefined,
   });
@@ -146,10 +156,22 @@ export function BlogPost() {
         {post.excerpt && <div className="lead-box">{post.excerpt}</div>}
 
         <div className="blog-post-body">
-          {/* 본문의 법령 조문을 법제처 원문 링크로 바꿔 근거를 확인할 수 있게 한다 */}
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {linkLawArticles(post.body)}
-          </ReactMarkdown>
+          {/* 본문을 글과 웹툰 컷으로 나눠 순서대로 그린다.
+              법령 조문은 법제처 원문 링크로 바꿔 근거를 확인할 수 있게 한다. */}
+          {splitPostBody(post.body).map((chunk, i) =>
+            chunk.kind === "webtoon" ? (
+              <WebtoonStrip
+                key={i}
+                panels={chunk.block.panels}
+                caption={chunk.block.caption}
+                image={chunk.block.image}
+              />
+            ) : (
+              <ReactMarkdown key={i} remarkPlugins={[remarkGfm]}>
+                {linkLawArticles(chunk.text)}
+              </ReactMarkdown>
+            )
+          )}
         </div>
 
         <footer className="blog-post-foot">

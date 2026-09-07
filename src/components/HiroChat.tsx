@@ -1,10 +1,14 @@
 // 히로 도크 — 방문자에게 먼저 말을 거는 호객꾼 캐릭터. 화면마다 안내하고 대화(ChatModal)로 잇는다.
 // 능동성 최우선 원칙(2026-08-22): 끄기 버튼 없음, 억제는 "같은 화면 2분 쿨다운" 하나뿐.
 // 프리렌더 주의: 반드시 마운트 후에만 렌더한다(정적 HTML에 위젯 흔적 0).
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Mascot } from "./Mascot";
-import { ChatModal } from "./ChatModal";
+// 대화창은 Firestore SDK를 끌고 온다(370KB). 첫 화면에서는 필요 없으므로
+// 손님이 히로를 눌러 대화를 열 때 받아 온다.
+const ChatModal = lazy(() =>
+  import("./ChatModal").then((m) => ({ default: m.ChatModal }))
+);
 import { Icon } from "./Icon";
 import { getEntry } from "../lib/entry";
 import { greetingFor, pageIntro, sectionIntro } from "../lib/hiroSpeech";
@@ -245,11 +249,15 @@ export function HiroChat() {
           </button>
         </div>
       )}
-      <ChatModal
-        open={open}
-        onClose={() => setOpen(false)}
-        greeting={greeting.current}
-      />
+      {open && (
+        <Suspense fallback={null}>
+          <ChatModal
+            open={open}
+            onClose={() => setOpen(false)}
+            greeting={greeting.current}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

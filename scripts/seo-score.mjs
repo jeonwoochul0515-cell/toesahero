@@ -141,9 +141,16 @@ area('1. 크롤링·색인', (c) => {
 area('2. 렌더링·프리렌더', (c) => {
   c('모든 라우트가 정적 HTML', 3, pages.length >= 30 ? 1 : pages.length / 30, `${pages.length}개`)
   c('본문이 HTML에 들어 있음(1200자↑)', 4, ratio(indexable, (p) => bodyText(p.html).length > 1200))
-  // 길이는 한 줄로 자르지 않고 3000자를 만점으로 한 등급으로 본다(임의의 문턱을 두지 않기 위함)
-  c('칼럼 본문 깊이(3000자 만점)', 3,
-    columns.length ? columns.reduce((s, p) => s + Math.min(1, bodyText(p.html).length / 3000), 0) / columns.length : 0,
+  // ⚠ 분량 기준을 2026-09-06 근거로 교체했다.
+  //   AI 답변엔진은 장문(2,000단어+)보다 "사실 밀도가 높은 600~1,000단어"를 인용한다
+  //   (한글 환산 약 1,500~2,500자). 그래서 3,000자 만점이라는 임의의 문턱 대신
+  //   2,000자를 만점으로 두고, 대신 아래 9번 영역에 "답 문단 길이" 항목을 새로 넣었다.
+  //   실제 인용 단위는 글 전체가 아니라 H2 아래 첫 문단이기 때문이다.
+  // ⚠ 가이드 12-1절: 글 전체 길이와 인용의 상관은 엔진마다 반대다
+  //   (구글 AI 개요는 상관 0.04, ChatGPT는 장문 선호). 한 숫자로 목표를 세울 수 없어
+  //   가중치를 1로 낮췄다. 길이는 답 문단 품질로 대신 본다.
+  c('칼럼 본문 깊이(2000자 만점)', 1,
+    columns.length ? columns.reduce((s, p) => s + Math.min(1, bodyText(p.html).length / 2000), 0) / columns.length : 0,
     `평균 ${Math.round(columns.reduce((s, p) => s + bodyText(p.html).length, 0) / (columns.length || 1))}자`)
   c('내부 링크가 표준 a href', 3, ratio(pages, (p) => (p.html.match(/<a\s[^>]*href="\//g) || []).length >= 3))
   c('fragment(#) 라우팅 없음', 2, ratio(pages, (p) => !/href="#!?\//.test(p.html)))
@@ -275,6 +282,39 @@ area('9. AEO 질문형 헤딩', (c) => {
     if (!m) return false
     const t = m[1].replace(/<[^>]+>/g, '').trim()
     return t.length >= 40 && t.length <= 200
+  }))
+  // ★ 인용 단위는 글이 아니라 H2 바로 아래 "답 문단"이다.
+  //   전역 SEO_GEO_AEO 가이드 12-1절(2026-09 조사) 기준으로 어절 수를 센다.
+  //   35어절 미만은 근거 없는 주장처럼 읽혀 채택되지 않고,
+  //   65어절 초과는 모델이 임의로 줄이며, 80어절 초과는 통째로 건너뛴다.
+  //   글자 수가 아니라 어절(띄어쓰기 단위)이 영어 word에 대응한다.
+  c('H2 답 문단이 40~65어절', 4, (() => {
+    let all = 0, ok = 0
+    for (const p of columns) {
+      const secs = p.html.split(/<h2[^>]*>/i).slice(1)
+      for (const sec of secs) {
+        const head = (sec.split(/<\/h2>/i)[0] || '').replace(/<[^>]+>/g, '')
+        if (/지금 하실 일|자주 묻는 질문/.test(head)) continue
+        const after = sec.split(/<\/h2>/i)[1] || ''
+        const first = (after.match(/<p[^>]*>([\s\S]*?)<\/p>/i) || ['', ''])[1].replace(/<[^>]+>/g, '').trim()
+        if (!first) continue
+        all++
+        const words = first.split(/\s+/).filter(Boolean).length
+        if (words >= 40 && words <= 65) ok++
+      }
+    }
+    return all ? ok / all : 0
+  })())
+  // 글 하나에 "떼어 내도 말이 되는" 문단이 몇 개나 있는지. 가이드 12-1절 점검 항목.
+  c('인용 가능 문단 3개 이상', 3, ratio(columns, (p) => {
+    const ps = all(p.html, /<p[^>]*>([\s\S]*?)<\/p>/gi)
+      .map((x) => x.replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean)
+    const good = ps.filter((t) => {
+      const w = t.split(/\s+/).filter(Boolean).length
+      return w >= 25 && w <= 70
+    })
+    return good.length >= 3
   }))
   c('점검 화면도 질문형 제목', 2, ratio(pages.filter((p) => /self-check|stalking-check/.test(p.url)), (p) =>
     q(title(p.html) || '') || q((p.html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || ['', ''])[1])))

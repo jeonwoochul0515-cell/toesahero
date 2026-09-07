@@ -39,7 +39,7 @@ export function AdminLogin() {
           <span>어드민 로그인</span>
         </h1>
         <p className="admin-login-sub">
-          법률사무소 청송 어드민 전용. 의뢰인 카카오 로그인이 아닙니다.
+          법률사무소 청송law 어드민 전용. 의뢰인 카카오 로그인이 아닙니다.
         </p>
         <form onSubmit={onSubmit}>
           <label className="admin-label">

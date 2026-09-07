@@ -47,3 +47,35 @@
 - [ ] JS 총량 1378KB (900KB 목표)
 
 이 항목들을 다 하면 98점대에 도달한다. 다만 **글을 실제로 개선하는 작업**이라 별도 세션이 맞다.
+
+---
+
+## 웹툰 컷 도입 (2026-09-06, 사용자 지시)
+
+긴 글을 읽다 지치지 않게 칼럼 중간과 끝에 그림을 넣었다.
+
+- **그림**: Google Flow(구글 AI Pro 구독)로 만든 한국 웹툰풍 일러스트. `public/webtoon/*.jpg`
+  ⚠ 이 프로젝트는 원래 de-AI 방침(`context-notes-hogaekkun.md`)이었으나 **2026-09-06 사용자 지시로 AI 생성 이미지를 도입**했다.
+  변협 광고규정상 "AI를 쓴다"고 광고하지는 않으므로 화면 어디에도 AI 생성 사실을 표기하지 않는다.
+- **대사**: 그림 위에 얹지 않고 아래 말풍선으로 둔다. 컷마다 인물 위치가 달라 얼굴을 가리기 때문.
+- **표기법**: 본문 마크다운에 아래처럼 적으면 `WebtoonStrip`이 그린다.
+  ```
+  :::웹툰
+  캡션 문구 @이미지이름
+  손님: 대사
+  히로|calm: 대사
+  :::
+  ```
+  포즈는 stand·wave·fly·wink·shock·empathy 중 하나.
+- **관련 파일**: `src/components/WebtoonStrip.tsx`, `src/lib/postWebtoon.ts`, `public/webtoon/`
+
+### 만든 그림 9장
+resign-refused(사직서 거부) · resign-handover(사직서 제출) · resign-pressure(회의실 압박) ·
+harassment-evidence(늦은 밤 증거 수집) · wage-unpaid(빈 통장) · severance-unpaid(명세서·계산기) ·
+unfair-dismissal(짐 상자) · unemployment-blocked(고용센터 반려) · lawyer-consult(상담실, 밝은 톤)
+
+마지막 컷은 `lawyer-consult`로 통일해 "무겁게 시작해 안심으로 끝나는" 흐름을 만든다.
+
+### 남은 것
+- [ ] 그림 11장 추가 (수습·계약직·외국인·5인미만·질병휴직·전직금지·인수인계·이직확인서·따돌림·산재·위로금)
+- [ ] 칼럼 18편 다시 쓰기 + 삽화 배치

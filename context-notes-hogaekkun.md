@@ -72,3 +72,36 @@
 - 프리뷰 환경엔 ANTHROPIC_API_KEY 시크릿이 없을 수 있다(프로덕션만 확인됨). 검증은 로컬 wrangler pages dev(.env의 키 사용) + 프로덕션 스모크로 진행.
 - 한글 테스트는 반드시 Python UTF-8로(PowerShell CP949 함정 — 기존 메모리 참고).
 - 배포는 git push가 아니라 wrangler 직접 업로드(project toesahero).
+
+
+---
+
+## Cloudflare에서 Anthropic 403 — Workers AI 폴백 (2026-08-28)
+
+**증상.** 챗봇이 계속 "지금 대화 연결이 잠깐 원활하지 않네요"만 답했다.
+어제 실제 손님(권고사직 상담)이 가장 중요한 말을 꺼낸 직후 이 문구를 받고 이탈했다.
+
+**원인.** Anthropic이 `{"error":{"type":"forbidden","message":"Request not allowed"}}` 403을 돌려준다.
+- 같은 키로 **로컬(집 IP)에서는 200**, **Cloudflare에서 나가면 403**
+- 키를 hakjum 것으로 바꿔도 동일 → **키 문제 아님**
+- hakjum이 멀쩡해 보였던 건 이미 `engine:"cf"`(Workers AI)로 폴백 중이었기 때문.
+  즉 **두 사이트 모두 Anthropic이 막혀 있었다.**
+- 크레딧 소진이면 400 `credit balance is too low`가 오므로, 이건 키 비활성화·조직 차단 쪽.
+  → **Anthropic 콘솔에서 IP 허용목록·지역 제한·워크스페이스 설정 확인 필요(미해결)**
+
+**조치.** hakjum의 엔진 전환 구조를 이식했다. Claude가 던지면 Workers AI로 넘어가 대화를 잇는다.
+- Pages에 AI 바인딩 추가(`ai_bindings: {AI:{}}`) — 원래 없었다
+- 모델 `@cf/openai/gpt-oss-120b`
+- **폴백 모드에서는 법률 안내를 금지**한다(`CF_FALLBACK_NOTE`). 공감 → 상황 질문 → 연락처 유도까지만.
+  품질이 Claude보다 낮은 엔진이 법리를 말하면 안 하느니만 못하다.
+- 응답에 `engine` 필드를 실어 어느 엔진이 답했는지 운영에서 보이게 했다
+
+**함정 둘 (실제로 겪음).**
+1. **gpt-oss는 output에 reasoning과 message를 함께 싣는다.** 앞에서부터 첫 text를 집으면
+   `"We need to respond as per rules..."` 같은 영어 사고문이 그대로 손님에게 나간다.
+   → `type === "message"`인 항목만 취할 것. sanitize에도 2차 필터를 뒀다.
+2. **사고 과정이 max_output_tokens를 함께 먹는다.** 500이면 답변이 중간에 잘린다.
+   → 1500 + `reasoning:{effort:'low'}`. 응답도 13초 → 2~4초로 빨라졌다.
+
+**남은 일.** 콘솔에서 403 원인이 풀리면 Claude로 되돌아간다(코드 수정 불필요, 자동).
+근본 대안은 미국 리전(Firebase Functions us-central1) 경유 — 품질 저하 없이 우회 가능.

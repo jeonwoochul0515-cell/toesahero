@@ -32,7 +32,7 @@
 ```bash
 # 사용자가 알려주시면 제가 등록 가능 (CF 대시보드 또는 wrangler):
 echo "re_..." | npx wrangler pages secret put RESEND_API_KEY --project-name=toesahero
-echo "법률사무소 청송 <noreply@chungsong.law>" | npx wrangler pages secret put RESEND_FROM_EMAIL --project-name=toesahero
+echo "법률사무소 청송law <noreply@chungsong.law>" | npx wrangler pages secret put RESEND_FROM_EMAIL --project-name=toesahero
 echo "lawchungsong@daum.net" | npx wrangler pages secret put RESEND_BCC_EMAIL --project-name=toesahero
 ```
 
@@ -55,9 +55,9 @@ echo "lawchungsong@daum.net" | npx wrangler pages secret put RESEND_BCC_EMAIL --
 ### 2-1. 가맹 신청 (2~3주 심사)
 
 1. https://www.tosspayments.com 접속 → **시작하기**
-2. 사업자 유형: **법인** (법률사무소 청송)
+2. 사업자 유형: **법인** (법률사무소 청송law)
 3. 필수 서류:
-   - 사업자등록증 (법률사무소 청송)
+   - 사업자등록증 (법률사무소 청송law)
    - 통장사본 (법인 명의)
    - 대표자 신분증
    - 변호사 자격증 사본 (참고용)
@@ -142,7 +142,7 @@ Firestore consultations.paymentStatus = 'paid', paymentApprovedAt 기록
 ```
 [퇴사히어로] 의뢰가 정상 접수되었습니다.
 
-#{고객명}님, 법률사무소 청송에 의뢰해 주셔서 감사합니다.
+#{고객명}님, 법률사무소 청송law에 의뢰해 주셔서 감사합니다.
 
 ▶ 접수번호: #{접수번호}
 ▶ 변호사 김창희가 영업일 기준 검토 후 회신드립니다.

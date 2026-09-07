@@ -71,7 +71,7 @@ export function PrintLetter() {
 
       <article className="print-letter">
         <header className="print-letter-header">
-          <div className="print-firm-name">법률사무소 청송</div>
+          <div className="print-firm-name">법률사무소 청송law</div>
           <div className="print-firm-sub">
             대표 변호사 김창희 · 부산광역시 연제구 법원남로15번길 10, 202호
             <br />

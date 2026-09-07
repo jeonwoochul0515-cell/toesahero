@@ -99,7 +99,7 @@ toesahero 프로젝트에서 GEO를 위해 두 가지를 해줘.
 toesahero 프로젝트에 GEO용 llms.txt를 만들어줘.
 - 정적이면 public/llms.txt, 블로그까지 자동 반영하려면 functions/llms.txt.ts(Firestore posts 읽기) 중
   더 적합한 쪽으로(블로그 글이 늘어나니 함수 권장).
-- 내용(마크다운): 서비스 한줄 정의(변호사 직접 운영 합법 퇴사대행), 운영 주체(법률사무소 청송 김창희 변호사),
+- 내용(마크다운): 서비스 한줄 정의(변호사 직접 운영 합법 퇴사대행), 운영 주체(법률사무소 청송law 김창희 변호사),
   핵심 페이지 링크(/ /faq /calc /blog), 대표 FAQ 5개를 "질문: / 답: " 형식으로,
   연락처(1660-4452). 할인/무료/환불/승소보장 등 변협 금지 표현은 절대 넣지 말 것.
 - text/plain 또는 text/markdown으로 응답. npm run build 검증.

@@ -158,9 +158,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     <title>퇴사히어로 — 법률 칼럼</title>
     <link>${SITE_HOST}/blog</link>
     <atom:link href="${SITE_HOST}/rss.xml" rel="self" type="application/rss+xml" />
-    <description>법률사무소 청송 김창희 변호사가 직접 작성하는 노동법·퇴사 절차 관련 정보성 칼럼 RSS 피드.</description>
+    <description>법률사무소 청송law 김창희 변호사가 직접 작성하는 노동법·퇴사 절차 관련 정보성 칼럼 RSS 피드.</description>
     <language>ko-KR</language>
-    <copyright>© 법률사무소 청송 · 변호사 김창희</copyright>
+    <copyright>© 법률사무소 청송law · 변호사 김창희</copyright>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <generator>Cloudflare Pages Functions</generator>
     <managingEditor>lawchungsong@daum.net (김창희 변호사)</managingEditor>

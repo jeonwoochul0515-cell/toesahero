@@ -14,7 +14,8 @@
     "deploy:cf": "wrangler pages deploy dist --project-name toesahero --branch main",
     "deploy:indexnow": "node ../../../tools/indexnow/indexnow.mjs toesahero.com || echo '[indexnow] 통지 실패 - 배포는 정상입니다.'",
     "blog:seed": "node scripts/seed-posts.mjs",
-    "blog:publish-daily": "node scripts/auto-publish-daily.mjs"
+    "blog:publish-daily": "node scripts/auto-publish-daily.mjs",
+    "og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "@fontsource-variable/space-grotesk": "^5.2.10",

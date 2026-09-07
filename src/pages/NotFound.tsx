@@ -74,7 +74,7 @@ export function NotFound() {
       </main>
 
       <footer className="page-static-foot">
-        본 사이트는 「변호사법」 제23조에 따른 광고물입니다. 법률사무소 청송 ·
+        본 사이트는 「변호사법」 제23조에 따른 광고물입니다. 법률사무소 청송law ·
         변호사 김창희.
       </footer>
     </div>

@@ -13,21 +13,21 @@ const variants: Record<
   { eyebrow: string; h1a: string; h1b: string; h1c: string; sub: string }
 > = {
   boss: {
-    eyebrow: "법률사무소 청송 · 변호사 직접 운영",
+    eyebrow: "법률사무소 청송law · 변호사 직접 운영",
     h1a: "퇴사, 혼자",
     h1b: "결정하지 마세요",
     h1c: "변호사가 옆에서 같이 갑니다",
     sub: "10년간 1,000건. 겁내지 않아도 되는 이유를\n차근차근 알려드릴게요. 퇴사 통보부터 임금체불·부당해고까지 대신 다툽니다.",
   },
   soft: {
-    eyebrow: "법률사무소 청송 · 변호사 직접 운영",
+    eyebrow: "법률사무소 청송law · 변호사 직접 운영",
     h1a: "퇴사 말 꺼내기,",
     h1b: "많이 망설이셨죠",
     h1c: "이제 변호사와 함께.",
     sub: "받을 권리 하나도 놓치지 않게, 깔끔하게 마무리해드릴게요.\n퇴사부터 임금·연차수당·분쟁 대응까지 한 곳에서 이어갑니다.",
   },
   legal: {
-    eyebrow: "법률사무소 청송 · 변호사 직접 운영",
+    eyebrow: "법률사무소 청송law · 변호사 직접 운영",
     h1a: "퇴사도 협상입니다.",
     h1b: "협상은",
     h1c: "변호사가 맡을게요.",
@@ -121,7 +121,7 @@ export function Hero({ heroCopy = "boss", openChat }: Props) {
                 </div>
                 <div className="msg me">
                   <div className="msg-bub me-bub">
-                    <span style={{ fontWeight: 900 }}>[법률사무소 청송]</span>
+                    <span style={{ fontWeight: 900 }}>[법률사무소 청송law]</span>
                     <br />
                     의뢰인의 퇴사 의사를 통보드립니다.
                     <br />이후 연락은 본 사무소로 부탁드립니다.

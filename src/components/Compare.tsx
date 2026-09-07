@@ -80,7 +80,7 @@ export function Compare() {
             <div className="cmp-col-head">혼자 진행</div>
             <div className="cmp-col-head">노무사 · 일반 대행업체</div>
             <div className="cmp-col-head cmp-col-pop">
-              법률사무소 청송
+              법률사무소 청송law
               <span>변호사 직접</span>
             </div>
           </div>

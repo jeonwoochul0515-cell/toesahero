@@ -2,7 +2,7 @@ import { Mascot } from "./Mascot";
 import { Icon } from "./Icon";
 
 const credentials = [
-  "법률사무소 청송 대표 변호사",
+  "법률사무소 청송law 대표 변호사",
   "가맹거래사 (이중 자격)",
   "동아대학교 법학전문대학원 겸임교수",
   "前 부산지방고용노동청 전문위원회 위원",
@@ -22,7 +22,7 @@ export function Lawyer() {
               <div className="portrait-photo">
                 <img
                   src="/lawyer-changhee.webp"
-                  alt="법률사무소 청송 김창희 변호사"
+                  alt="법률사무소 청송law 김창희 변호사"
                   width={480}
                   height={600}
                   loading="eager"

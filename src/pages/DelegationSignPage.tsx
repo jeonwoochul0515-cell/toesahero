@@ -17,7 +17,7 @@ const SCOPE_ITEMS = [
 export function DelegationSignPage() {
   const seo = usePageMeta({
     title: "위임장 전자서명 — 퇴사히어로",
-    description: "법률사무소 청송 위임장 전자서명 제출 페이지",
+    description: "법률사무소 청송law 위임장 전자서명 제출 페이지",
     canonical: "/delegation",
     noIndex: true,
   });
@@ -149,7 +149,7 @@ export function DelegationSignPage() {
         <div className="checkout-terms">
           <h3>위임장</h3>
           <p style={{ fontSize: 14, lineHeight: 1.7 }}>
-            본인(위임인)은 <strong>법률사무소 청송 변호사 김창희</strong>(부산광역시
+            본인(위임인)은 <strong>법률사무소 청송law 변호사 김창희</strong>(부산광역시
             연제구 법원남로15번길 10, 202호 · ☎ 1660-4452)에게, 본인의 노동
             사안(퇴직·직장 내 괴롭힘·임금 등)과 관련한 아래 사무의 처리를
             위임하였음을 확인하며, 이 건에 관한 연락은 수임인을 통하여 주실

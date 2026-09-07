@@ -82,7 +82,7 @@ Resend에서 발송 도메인 (예: chungsong.law 또는 toesahero.kr) 을 검�
 
 ### 받은 정보로 등록
 ```bash
-echo "법률사무소 청송 <noreply@chungsong.law>" | npx wrangler pages secret put RESEND_FROM_EMAIL --project-name=toesahero
+echo "법률사무소 청송law <noreply@chungsong.law>" | npx wrangler pages secret put RESEND_FROM_EMAIL --project-name=toesahero
 echo "lawchungsong@daum.net" | npx wrangler pages secret put RESEND_BCC_EMAIL --project-name=toesahero
 ```
 
@@ -96,7 +96,7 @@ echo "lawchungsong@daum.net" | npx wrangler pages secret put RESEND_BCC_EMAIL --
 토스페이먼츠 (https://www.tosspayments.com) 가맹점 신청을 도와주세요.
 
 본인 정보:
-- 사업자명: 법률사무소 청송
+- 사업자명: 법률사무소 청송law
 - 대표자: 김창희 변호사
 - 업종: 법률 서비스 (변호사 사무소)
 - 사업자등록번호: (본인 직접 입력)
@@ -105,7 +105,7 @@ echo "lawchungsong@daum.net" | npx wrangler pages secret put RESEND_BCC_EMAIL --
 1. https://www.tosspayments.com → "시작하기" 또는 "가맹 신청" 클릭
 2. 약관 동의 → 사업자 유형: 법인 또는 개인사업자 (사무소 운영 형태에 따라)
 3. 다음 정보 입력:
-   - 사업자명: 법률사무소 청송
+   - 사업자명: 법률사무소 청송law
    - 대표자명: 김창희
    - 업종 분류: 법률·회계 서비스 (또는 전문 서비스)
    - 사업장 주소: 부산광역시 연제구 법원남로15번길 10, 202호
@@ -159,7 +159,7 @@ echo "test_sk_..." | npx wrangler pages secret put TOSS_SECRET_KEY --project-nam
    - 신청 방법 (이메일 / 우편)
    - 회신 기간 (보통 2~4주)
 4. 신청 양식 다운로드 → 다음 항목 채워야 함:
-   - 사무소명: 법률사무소 청송
+   - 사무소명: 법률사무소 청송law
    - 변호사명: 김창희
    - 자문 대상 광고: 사이트 URL + 핵심 화면 캡처
    - 자문 사항 (구체적 질문)
@@ -209,7 +209,7 @@ echo "test_sk_..." | npx wrangler pages secret put TOSS_SECRET_KEY --project-nam
 - 주소: 부산광역시 연제구 법원남로15 (변호사회관)
 
 전화로 직접 다음 사항 문의해도 됩니다:
-"법률사무소 청송 김창희 변호사 사무실입니다. 퇴사대행 서비스 사이트(https://toesahero.pages.dev)를 운영하려고 하는데, AI 챗봇 사용·통보문 자동 초안 생성·후기 게재가 변협 2025년 2월 개정 광고규정상 적합한지 사전 자문을 받고 싶습니다. 절차와 필요 서류를 안내해 주실 수 있을까요?"
+"법률사무소 청송law 김창희 변호사 사무실입니다. 퇴사대행 서비스 사이트(https://toesahero.pages.dev)를 운영하려고 하는데, AI 챗봇 사용·통보문 자동 초안 생성·후기 게재가 변협 2025년 2월 개정 광고규정상 적합한지 사전 자문을 받고 싶습니다. 절차와 필요 서류를 안내해 주실 수 있을까요?"
 
 전화 후 안내받은 절차를 알려주세요.
 ```
@@ -324,7 +324,7 @@ NHN Cloud (https://www.toast.com) 가입 후 Bizmessage(알림톡) 서비스를 
 본문:
 [퇴사히어로] 의뢰가 정상 접수되었습니다.
 
-#{고객명}님, 법률사무소 청송에 의뢰해 주셔서 감사합니다.
+#{고객명}님, 법률사무소 청송law에 의뢰해 주셔서 감사합니다.
 
 ▶ 접수번호: #{접수번호}
 ▶ 변호사 김창희가 영업일 기준 검토 후 회신드립니다.

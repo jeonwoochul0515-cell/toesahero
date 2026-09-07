@@ -102,7 +102,7 @@ export function ResignationLetterPage() {
       "권고사직서 양식",
       "권고사직",
       "퇴사대행",
-      "법률사무소 청송",
+      "법률사무소 청송law",
     ],
     jsonLd: breadcrumbJsonLd([
       { name: "홈", url: "/" },

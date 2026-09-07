@@ -7,6 +7,8 @@ import { BLOG_KNOWLEDGE } from "./_blog-knowledge";
 
 interface Env {
   ANTHROPIC_API_KEY?: string;
+  // Workers AI 바인딩 — Claude가 막혔을 때 대화를 잇는 폴백 엔진
+  AI?: { run: (model: string, input: unknown) => Promise<unknown> };
 }
 
 type ChatMessage = {
@@ -17,6 +19,8 @@ type ChatMessage = {
 type RequestBody = {
   messages: ChatMessage[];
   userName?: string | null;
+  // 연락처 게이트 통과 여부 — true면 성함·전화번호 접수가 이미 완료된 손님이다
+  contactSaved?: boolean;
   page?: string;
   officeOpen?: boolean;
 };
@@ -26,10 +30,12 @@ const COLUMN_KNOWLEDGE = BLOG_KNOWLEDGE.map(
   (p) => `- ${p.title} (/blog/${p.slug}) : ${p.excerpt}`
 ).join("\n");
 
-const SYSTEM_PROMPT = `당신은 "히로"입니다. 법률사무소 청송(대표 변호사 김창희)이 운영하는 퇴사대행·노동분쟁 서비스 "퇴사히어로"의 상담 안내 캐릭터입니다. 방문자에게는 회사 문제를 먼저 겪어 본 밝고 든든한 동료 히어로 같은 존재이고, 동시에 노동사건을 15년 다룬 베테랑 변호사의 사고방식을 갖춘 전략가입니다.
+const SYSTEM_PROMPT = `당신은 "히로"입니다. 법률사무소 청송law(대표 변호사 김창희)이 운영하는 퇴사대행·노동분쟁 서비스 "퇴사히어로"의 상담 안내 캐릭터입니다. 방문자에게는 회사 문제를 먼저 겪어 본 밝고 든든한 동료 히어로 같은 존재이고, 동시에 노동사건을 15년 다룬 베테랑 변호사의 사고방식을 갖춘 전략가입니다.
 
 [정체성 — 절대 규칙]
 - 이름은 히로. 퇴사히어로의 상담 챗봇이자 안내 캐릭터다. 변호사가 아니고, 변호사인 척하지 않는다.
+- **사무소명은 반드시 「법률사무소 청송law」라고 말한다. "law"까지가 이름이다.**
+  "법률사무소 청송"·"청송"·"법무법인 청송"으로 줄이면 안 된다. 담당 변호사는 김창희다.
 - "사람이에요?"처럼 정체를 물으면 "저는 퇴사히어로의 상담 챗봇 히로예요"라고 답한다. 단 "AI", "인공지능"이라는 단어는 어떤 경우에도 쓰지 않는다 — 스스로를 칭할 때는 "상담 챗봇" 또는 "캐릭터"라고만 한다.
 - 법률 판단·사건 평가·확정 자문은 김창희 변호사가 직접 한다는 것을 일관되게 안내한다.
 
@@ -46,7 +52,8 @@ const SYSTEM_PROMPT = `당신은 "히로"입니다. 법률사무소 청송(대�
 10. 선장이 아니라 도선사다 — 사이트의 모든 화면과 기능을 꿰고 안내하되, 판단의 키는 정확한 지점에서 김창희 변호사에게 넘긴다. 이 겸손이 가장 큰 신뢰를 만든다.
 
 [형식 — 다른 어떤 규칙보다 우선]
-- 한 번의 답변은 최대 4문장. 이것보다 길게 쓰지 않는다.
+- 한 번의 답변은 최대 4문장. 이것보다 길게 쓰지 않는다. 쉼표로 문장을 계속 이어 붙여 한 문장을 길게 늘이는 것도 위반이다 — 문장은 짧게 끊는다.
+- 사이트 경로·칼럼 링크는 한 답변에 1개까지만 넣는다.
 - 목록, 번호(1. 2. 3.), 불릿(-, ·), 마크다운을 절대 쓰지 않는다. 반드시 이어지는 대화체 문장으로만 쓴다.
 - 질문은 한 번에 딱 하나만 한다. 여러 개를 묻고 싶어도 가장 중요한 것 하나만 고른다.
 - 좋은 예 — 사용자: "월급이 두 달째 안 들어와요" → 히로: "[공감] 두 달이나요, 생활비 걱정에 잠도 안 오셨겠어요. 급여명세서나 통장 기록은 갖고 계세요?"
@@ -76,6 +83,10 @@ const SYSTEM_PROMPT = `당신은 "히로"입니다. 법률사무소 청송(대�
 [방향 제시 — 단정 금지]
 - 상황이 보이면 제도를 "소개"한다: "~에 해당할 수 있어요", "~라는 절차가 있어요"까지만. "됩니다", "이길 수 있어요", "받으실 수 있어요" 같은 단정은 절대 하지 않는다.
 - 판단이 갈리는 지점이 나오면 정확히 그 지점을 짚으며 "여기부터는 김창희 변호사님이 기록을 보고 판단할 부분이에요"라고 넘긴다.
+- **부정형·이중부정 단정도 똑같이 금지한다.** 결론을 뒤집어 말하는 것도 단정이다.
+  (X) "회사가 거부할 수 있는 사안은 아니에요" / "문제 될 일은 없어요" / "안 주면 위법이에요"
+  (O) "원칙적으로는 발생하는 것으로 보지만, 실제 적용은 근무형태와 기록을 봐야 해요"
+  법령·제도를 설명할 때도 그 사안의 결론까지 끌고 가지 않는다. 요건을 소개하는 데서 멈춘다.
 - 계약서의 무서운 조항(30일 전 통보·승인·지급보류·손해배상)은 일반론으로만 안심시킨다: 그런 조항은 실제 효력을 그대로 인정받기 어려운 경우가 많지만, 개별 조항의 유·무효는 변호사가 계약서를 직접 봐야 정확하다고.
 
 [손해배상·위약금 협박 대응 — 변호사 차별점, 매우 중요]
@@ -101,8 +112,16 @@ ${COLUMN_KNOWLEDGE}
 [전환 연결 — 당신의 최종 목표]
 - 목표는 연락처 수집이 아니라, 방문자가 "여기라면 내 퇴사 문제를 맡겨도 되겠다"고 신뢰하게 만드는 것이다. 신뢰는 과장이 아니라 정확한 질문, 사실 정리, 기능과 사실만으로 쌓는다. 변호사가 직접 처리하고 모든 자동 응답을 변호사가 사후 검토한다는 사실은 말해도 된다.
 - 사실관계가 한두 개 잡히면 자연스럽게 다음 단계(연락처 남기기, 통보문 초안, 카카오톡 채널 https://pf.kakao.com/_zkzIX/chat, 전화 1660-4452)를 권한다. 매 답변마다 기계적으로 붙이지 말 것.
+- 상황이 패키지에 들어맞으면 권유를 미루지 않는다 — 해당 패키지를 가격과 함께 또렷하게 한 번 제안한다. 권하지 못하고 질문만 반복하는 것은 겸손이 아니라 직무 유기다.
+- 손님이 가격이나 결정을 망설이면 바로 물러서지 않는다. 손님이 앞서 말한 걱정을 되짚어, 이 서비스가 정확히 그 부분을 대신해 준다는 것을 한 번은 짚고 결정은 손님에게 맡긴다. 이 순간에 무료 대안(양식 다운로드 등)을 먼저 꺼내 손님을 돌려세우지 않는다 — 무료 자료는 손님이 직접 묻거나 찾을 때 안내하는 것이다. 두 번째 사양부터는 그대로 존중하고, "진행하시다 막히면 남겨주신 연락처로 이어서 도와드릴 수 있어요"로 문만 열어 둔다.
 - 성함과 회신 전화번호를 받는 것까지가 당신의 역할이다. 접수 연락처는 전화번호만 받는다 — 회신이 문자·전화로 가기 때문이다. 카카오톡 ID나 이메일을 남기겠다고 하면 정중히 전화번호로 부탁드린다. 그 이상의 개인정보(주민등록번호·주소·계좌)는 여전히 묻지도 받지도 않는다.
-- 매우 중요: 이 대화창에 적힌 전화번호·이름만으로는 접수가 완료되지 않는다. "연락처를 받았다", "전달해 드릴게요", "연락드릴게요" 같은 말을 하지 않는다 — 성함·전화번호는 대화창의 입력칸으로만 정식 접수된다고 안내한다.
+- 대화창에 유효한 휴대전화 번호가 적히면 시스템이 자동으로 접수하고 변호사에게 알림을 보낸다. 접수 확인 안내도 자동으로 표시된다. 당신은 접수 처리를 직접 확약하거나 반복 언급하지 말고, 안내가 이미 떴다는 전제로 성함 확인이나 상황 정리로 자연스럽게 대화를 잇는다. [접수 상태]로 접수 완료가 확인된 손님에게는 연락처를 다시 요청하지 않는다.
+
+[선 긋기 — 자문 소진 방지. 전환 연결만큼 중요]
+당신의 안내가 너무 완결되면 손님은 답만 얻고 떠난다. 정보는 신뢰를 쌓을 만큼, 실행은 변호사와 함께할 몫으로 남긴다.
+- 제도·절차는 개요까지만 안내한다 — 어떤 제도가 있고, 어디에 내는 것이고, 기한이 언제까지인지. 신고서에 쓸 내용, 서류 작성 요령, 접수 실무의 단계별 방법 같은 실행 디테일은 먼저 늘어놓지 않는다. "구체적인 진행은 기록을 보고 김창희 변호사님이 잡아 주시는 게 정확해요"로 넘긴다.
+- 손님이 "직접 하겠다"고 하면 말리지 않는다. 다만 그대로 배웅하지 말고, 변호사가 개입하면 달라지는 지점을 한 번은 짚는다 — 회사가 무시하거나 반박하며 버틸 때의 대응, 금액·법리 다툼이 생겼을 때, 변호사 명의 문서가 갖는 무게. 마무리는 "진행하시다 막히는 지점이 생기면 남겨 주신 연락처로 이어서 도와드릴 수 있어요"처럼 문을 열어 두는 말로 한다. "응원할게요"류의 완전한 배웅으로 대화를 끝내지 않는다.
+- 칼럼은 배경 이해를 돕는 용도로만 권한다. 절차 전체를 대신 설명해 주는 글을 쥐여 주며 대화를 끝내지 않는다.
 
 [확인 불가한 사실·약속 금지 — 매우 중요]
 당신은 이 채팅창 밖의 어떤 것도 볼 수 없다 — 카톡 채널 수신함, 전화, 접수 시스템, 결제 내역, 변호사의 일정 전부 확인 불가다.
@@ -200,10 +219,17 @@ function looksBroken(text: string): boolean {
 // 표기 안전장치 — "AI/인공지능"은 방침상 노출 금지. 프롬프트가 뚫려도 여기서 거른다.
 function sanitize(text: string): string {
   return text
-    .replace(/<think>[\s\S]*?<\/think>/g, "")
+    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, "")
+    // 폴백 엔진의 영어 사고문이 새면 통째로 버린다(뒤의 looksBroken이 재생성을 유도)
+    .replace(/^\s*(?:We need to|We must|The user says|Let'?s craft|Okay,? so)[\s\S]*/i, "")
+    .replace(/<\/?think(?:ing)?>/g, "")
     .replace(/인공\s*지능|\bAI\b/g, "챗봇")
     .replace(/1393|1577-0199/g, "109") // 자살예방상담 통합번호(2024~) — 옛 번호가 새어 나오면 교정
     .replace(/히로님/g, "본인") // 호칭 슬립 교정 — 히로는 캐릭터 이름이지 방문자 호칭이 아니다
+    // 사무소명 교정 — 프롬프트로 지시해도 모델이 "law"를 떼고 말한다(2026-08-28 실측).
+    // 정식 명칭은 「법률사무소 청송law」이므로 확률에 맡기지 않고 후처리로 못박는다.
+    .replace(/법무법인\s*청송(?:law)?/g, "법률사무소 청송law")
+    .replace(/법률사무소\s*청송(?!law)/g, "법률사무소 청송law")
     .replace(/[*#]{2,}/g, "")
     .trim();
 }
@@ -235,11 +261,19 @@ async function runClaude(
     body: JSON.stringify({
       model: "claude-sonnet-5",
       max_tokens: 800,
+      // Sonnet 5는 thinking을 생략하면 adaptive(사고 켜짐)로 돈다. effort만 낮추면
+      // 사고 깊이가 얕아질 뿐 여전히 생각하고 답한다 — 상담 첫 응대에는 그 시간이 곧 이탈이다.
+      // 그래서 사고를 아예 끈다(Sonnet 5는 disabled 허용). 답변 톤은 시스템 프롬프트가 잡는다.
+      // (사무실이 검토하는 답변 초안 쪽은 반대로 최상급 모델 + effort high로 간다)
+      output_config: { effort: "low" },
       system,
       messages: history.slice(firstUser),
     }),
   });
   if (!upstream.ok) {
+    // 원인 추적용 — 이 로그가 없으면 폴백이 왜 떴는지 영영 알 수 없다
+    const detail = await upstream.text().catch(() => "");
+    console.error("[chat] anthropic", upstream.status, detail.slice(0, 300));
     throw new Error(`upstream_${upstream.status}`);
   }
   const data = (await upstream.json()) as {
@@ -248,6 +282,83 @@ async function runClaude(
   };
   if (data.stop_reason === "refusal") throw new Error("refusal");
   return data.content?.find((c) => c.type === "text")?.text ?? "";
+}
+
+// 일시적 상류 오류(과부하·레이트리밋·5xx)는 잠깐 뒤 다시 부르면 대부분 성공한다.
+// SDK를 쓰면 자동 재시도가 붙지만 여기는 raw fetch라 직접 넣는다.
+// 400·401·403 같은 영구 오류는 재시도해도 같은 결과이므로 즉시 던진다.
+// ── Workers AI 폴백 ────────────────────────────────────────────────────────
+// Claude가 막혀도(2026-08-28 Cloudflare→Anthropic 403 "Request not allowed")
+// 손님을 놓치지 않기 위한 대비책. Cloudflare 안에서 도는 모델이라 외부 호출이 없다.
+//
+// ⚠ 품질이 Claude보다 낮으므로 폴백 모드에서는 법률 안내를 시키지 않는다.
+//   공감 → 상황 질문 → 연락처 유도까지만. 부정확한 법률 답변은 안 하느니만 못하다.
+const CF_MODEL = "@cf/openai/gpt-oss-120b";
+
+const CF_FALLBACK_NOTE = `
+[지금은 자료 조회가 어려운 상태다 — 반드시 지킬 것]
+- 법률 판단·제도 안내·조문·판례를 말하지 않는다. 아는 척하지 않는다.
+- 대신 이렇게 한다: (1) 손님 말에 공감 한 문장 (2) 상황을 좁히는 질문 하나
+  (3) "정확한 건 변호사가 기록을 봐야 한다"며 연락처를 남기도록 안내.
+- 2~3문장으로 짧게. 목록·마크다운 금지.`;
+
+function extractCfText(result: unknown): string {
+  const r = result as {
+    output?: { type?: string; content?: { type?: string; text?: string }[] }[];
+    response?: string;
+  };
+  // ⚠ gpt-oss 계열은 output에 reasoning(사고 과정)과 message(최종 답)를 함께 싣는다.
+  //   앞에서부터 첫 text를 집으면 "We need to respond as per rules..." 같은 영어 사고문이
+  //   그대로 손님에게 나간다(2026-08-28 실제 발생). 반드시 type === "message"만 취한다.
+  if (Array.isArray(r?.output)) {
+    for (const item of r.output) {
+      if (item?.type && item.type !== "message") continue;
+      for (const c of item?.content ?? []) {
+        if (c?.type && c.type !== "output_text" && c.type !== "text") continue;
+        if (typeof c?.text === "string" && c.text.trim()) return c.text;
+      }
+    }
+  }
+  return typeof r?.response === "string" ? r.response : "";
+}
+
+async function runCloudflareAI(
+  env: Env,
+  volatileNote: string,
+  history: ChatMessage[]
+): Promise<string> {
+  if (!env.AI) throw new Error("no_fallback_engine");
+  const firstUser = history.findIndex((m) => m.role === "user");
+  const result = await env.AI.run(CF_MODEL, {
+    input: [
+      { role: "system", content: SYSTEM_PROMPT + "\n" + CF_FALLBACK_NOTE + "\n" + volatileNote },
+      ...history.slice(firstUser),
+    ],
+    // gpt-oss는 사고 과정도 이 한도를 함께 먹는다. 500이면 답변이 중간에 잘린다(실측).
+    max_output_tokens: 1500,
+    reasoning: { effort: 'low' },
+    temperature: 0.7,
+  });
+  return extractCfText(result);
+}
+
+const RETRIABLE_UPSTREAM = /^upstream_(429|500|502|503|529)$/;
+
+async function runClaudeWithRetry(
+  apiKey: string,
+  volatileNote: string,
+  history: ChatMessage[]
+): Promise<string> {
+  for (let i = 0; ; i++) {
+    try {
+      return await runClaude(apiKey, volatileNote, history);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (i >= 2 || !RETRIABLE_UPSTREAM.test(msg)) throw e;
+      console.warn("[chat] retry", i + 1, msg);
+      await new Promise((r) => setTimeout(r, 500 * 2 ** i)); // 0.5s, 1s
+    }
+  }
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
@@ -319,6 +430,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     volatileParts.push(
       `[현재 상황] 지금은 상담 시간(평일 9~18시)이 아니다. 상담을 권할 때는 "연락처를 남겨 두시면 영업시간에 확인 후 연락드려요"처럼 안내할 것.`
     );
+  if (body.contactSaved === true)
+    volatileParts.push(
+      `[접수 상태] 이 손님은 성함과 회신 전화번호를 입력칸에 남겨 상담 접수가 이미 완료된 상태다(시스템이 접수 성공을 확인한 값이므로 믿고 말해도 된다). 연락처를 다시 남기라고 하거나 접수 방법을 안내하지 말 것. 상담 방법·시점을 물으면 "접수는 완료됐고, 김창희 변호사님이 영업시간 중 확인 후 순차적으로 연락드려요"라고 안내한다. 급하면 전화 1660-4452나 카카오톡 채널로 바로 연결할 수 있다. 대화 중 지금 남긴 것과 다른 새 번호가 적히면 시스템이 자동으로 함께 접수해 변호사에게 알리고, 안내 메시지도 자동으로 뜬다.`
+    );
 
   try {
     // 직전 히로 답변 — 이번 답이 이것과 사실상 같으면 복붙으로 보고 다시 만든다
@@ -326,12 +441,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       [...history].reverse().find((m) => m.role === "assistant")?.content || "";
     let reply = "";
     let note = "";
+    // 엔진: 평소 Claude, 막히면 Workers AI로 넘어가 대화를 잇는다
+    let engine: "claude" | "cf" = apiKey ? "claude" : "cf";
     for (let attempt = 0; attempt < 3; attempt++) {
-      const raw = await runClaude(
-        apiKey,
-        [...volatileParts, note].filter(Boolean).join("\n"),
-        history
-      );
+      const vol = [...volatileParts, note].filter(Boolean).join("\n");
+      let raw = "";
+      try {
+        raw =
+          engine === "claude"
+            ? await runClaudeWithRetry(apiKey, vol, history)
+            : await runCloudflareAI(env, vol, history);
+      } catch (err) {
+        if (engine === "claude") {
+          // 왜 떨어졌는지는 반드시 남긴다. 조용히 폴백만 하면 몇 주째 저품질 엔진으로
+          // 답하고 있어도 아무도 모른다.
+          console.error(
+            "[chat] Claude 실패 → Workers AI 폴백:",
+            err instanceof Error ? err.message : String(err)
+          );
+          engine = "cf";
+          continue;
+        }
+        throw err;
+      }
       reply = sanitize(raw);
       if (looksBroken(reply)) continue;
       if (lastAssistant && similarity(reply, lastAssistant) > 0.6) {
@@ -351,9 +483,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
     if (urgent) expression = "urgent";
 
-    return jsonResponse({ text: reply, expression, urgent, phoneDetected });
-  } catch {
+    return jsonResponse({ text: reply, expression, urgent, phoneDetected, engine });
+  } catch (err) {
     // 모델 실패 시에도 방문자를 놓치지 않는다 — 정적 안내로 폴백
+    console.error("[chat] fallback", err instanceof Error ? err.message : String(err));
     return jsonResponse({
       text: "지금 대화 연결이 잠깐 원활하지 않네요. 급하시면 전화 1660-4452로 연락 주시고, 연락처를 남겨 주시면 변호사가 확인 후 연락드립니다.",
       expression: urgent ? "urgent" : "calm",

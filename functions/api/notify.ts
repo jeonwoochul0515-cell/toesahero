@@ -1,9 +1,9 @@
 // Cloudflare Pages Function: POST /api/notify
-// 신규 상담 신청 등 클라이언트 이벤트 발생 시 변호사에게 문자로 알린다.
+// 신규 상담 신청 등 클라이언트 이벤트 발생 시 변호사에게 알림톡(실패 시 문자 대체)으로 알린다.
 // 클라이언트가 Firestore 저장 성공 후 fire-and-forget 으로 호출한다.
 // 시크릿은 서버 env(_notify)에 있으므로 본 엔드포인트가 SOLAPI 키를 노출하지 않는다.
 
-import { sendSms, type NotifyEnv } from "./_notify";
+import { sendAlimtalk, KAKAO_TPL, type NotifyEnv } from "./_notify";
 
 interface Env extends NotifyEnv {
   LEAD_INBOX_TOKEN?: string; // 중앙 접수함(lead-inbox) 전송 토큰
@@ -125,7 +125,7 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
     }
   }
 
-  // ② 문자 — 간단 알림 한 통. 전문은 접수함에서 본다.
+  // ② 알림톡 — 간단 알림 한 통. 전문은 접수함에서 본다. (전문 문구는 문자 대체용 fallback)
   const lines = [
     `[퇴사히어로] 히로 대화 접수${sid ? ` #${sid}` : ""}`,
     `${name} · ${body.contact ?? ""}`.trim(),
@@ -134,7 +134,17 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
       ? "대화 전문은 중앙 접수함에서 확인해 주세요."
       : "[주의] 접수함 저장 실패 — 어드민 > 상담 요청에서 확인해 주세요.",
   ].filter(Boolean);
-  const sms = await sendSms(env, lines.join("\n"));
+  const sms = await sendAlimtalk(
+    env,
+    KAKAO_TPL.chatlog,
+    {
+      "#{접수}": sid,
+      "#{신청인}": `${name} · ${body.contact ?? ""}`.trim(),
+      "#{경로}": source,
+      "#{보관처}": inboxOk ? "중앙 접수함" : "어드민 > 상담 요청(접수함 저장 실패)",
+    },
+    lines.join("\n")
+  );
 
   // 두 채널 중 하나라도 성공하면 보고 성공(정본 원칙: 전부 실패했을 때만 실패)
   return json({ ok: inboxOk || sms.ok, inboxOk, smsOk: sms.ok }, 200);
@@ -185,13 +195,24 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   const caseId = typeof body.caseId === "string" ? body.caseId : "";
   const ref = caseId ? `#${caseId.slice(0, 8)}` : "";
-  // LMS(2,000바이트)로 나가므로 신청 내용을 최대한 담는다. 최종 길이는 sendSms가 바이트 기준으로 자른다.
+  // 대체 문자는 LMS(2,000바이트)로 나가므로 신청 내용을 최대한 담는다. 최종 길이는 발송부가 바이트 기준으로 자른다.
   const summary = typeof body.summary === "string" ? body.summary.slice(0, 1200) : "";
+  const source = summarizeAttr(body.attr);
   const text = `[퇴사히어로] ${label}${ref ? `\n사건 ${ref}` : ""}${
     summary ? `\n${summary}` : ""
-  }\n유입경로: ${summarizeAttr(body.attr)}\n어드민에서 확인해 주세요.`;
+  }\n유입경로: ${source}\n어드민에서 확인해 주세요.`;
 
-  const r = await sendSms(env, text);
+  const r = await sendAlimtalk(
+    env,
+    KAKAO_TPL.intake,
+    {
+      "#{유형}": label,
+      "#{사건}": ref,
+      "#{경로}": source,
+      "#{내용}": summary,
+    },
+    text
+  );
 
   // 연락처가 있는 접수는 중앙 접수함(lead-inbox)에도 사본을 남긴다 — 전 사이트 통합 현황판.
   // 상세 처리는 자체 어드민 링크로 이동해 진행한다.
@@ -211,7 +232,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           phone,
           // 상담 대화·초안이 실려 오므로 넉넉히 — 접수함 상한(2만 자) 안에서 자른다.
           detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 12000),
-          source: summarizeAttr(body.attr),
+          source,
           link: caseId
             ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
             : "https://toesahero.com/admin/consultations",

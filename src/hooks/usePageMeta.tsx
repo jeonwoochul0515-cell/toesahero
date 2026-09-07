@@ -107,13 +107,13 @@ export const articleJsonLd = (params: {
     sameAs: ["https://chang-hee.kim/attorney.html", "https://chang-hee.kim", "https://blog.naver.com/lawchungsong", "https://pf.kakao.com/_zkzIX"],
     worksFor: {
       "@type": "LegalService",
-      name: "법률사무소 청송",
+      name: "법률사무소 청송law",
       url: "https://chang-hee.kim",
     },
   },
   publisher: {
     "@type": "Organization",
-    name: "법률사무소 청송",
+    name: "법률사무소 청송law",
     url: SITE_HOST,
     sameAs: ["https://chang-hee.kim", "https://chang-hee.kim/attorney.html"],
     logo: {

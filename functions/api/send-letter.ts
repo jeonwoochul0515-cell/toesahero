@@ -25,12 +25,12 @@ type RequestBody = {
   clientName?: string;
 };
 
-const DEFAULT_FROM = "법률사무소 청송 <onboarding@resend.dev>";
+const DEFAULT_FROM = "법률사무소 청송law <onboarding@resend.dev>";
 const DEFAULT_REPLY_TO = "lawchungsong@daum.net";
 
 const SUBJECT_BY_KIND: Record<LetterKind, string> = {
-  draft: "[법률사무소 청송] 의뢰인 퇴직 의사 통보 및 후속 절차 안내",
-  notice: "[법률사무소 청송] 미지급 임금 등 청구 내용증명",
+  draft: "[법률사무소 청송law] 의뢰인 퇴직 의사 통보 및 후속 절차 안내",
+  notice: "[법률사무소 청송law] 미지급 임금 등 청구 내용증명",
 };
 
 function escapeHtml(s: string): string {
@@ -52,7 +52,7 @@ function buildHtml(letterText: string, kind: LetterKind, clientName?: string): s
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>${heading} — 법률사무소 청송</title>
+<title>${heading} — 법률사무소 청송law</title>
 </head>
 <body style="margin:0;padding:0;background:#f4f1e8;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:32px 16px;">
@@ -61,7 +61,7 @@ function buildHtml(letterText: string, kind: LetterKind, clientName?: string): s
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border:3px double #111;border-radius:8px;padding:40px 36px;">
           <tr>
             <td>
-              <h1 style="margin:0 0 4px;font-size:22px;color:#0a0a0a;letter-spacing:-0.02em;font-weight:900;">법률사무소 청송</h1>
+              <h1 style="margin:0 0 4px;font-size:22px;color:#0a0a0a;letter-spacing:-0.02em;font-weight:900;">법률사무소 청송law</h1>
               <p style="margin:0;font-size:12px;color:#444;line-height:1.5;">
                 대표 변호사 김창희 · 부산광역시 연제구 법원남로15번길 10, 202호<br />
                 ☎ 1660-4452 · lawchungsong@daum.net
@@ -79,7 +79,7 @@ function buildHtml(letterText: string, kind: LetterKind, clientName?: string): s
             </td>
           </tr>
         </table>
-        <p style="margin-top:14px;font-size:11px;color:#888;">© 법률사무소 청송 · 변호사 김창희 · 대한변호사협회 등록</p>
+        <p style="margin-top:14px;font-size:11px;color:#888;">© 법률사무소 청송law · 변호사 김창희 · 대한변호사협회 등록</p>
       </td>
     </tr>
   </table>

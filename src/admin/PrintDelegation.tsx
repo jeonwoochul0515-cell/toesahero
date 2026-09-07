@@ -111,7 +111,7 @@ export function PrintDelegation() {
             <tr>
               <th style={th}>수임인</th>
               <td style={td} colSpan={3}>
-                법률사무소 청송 변호사 김창희 — 부산광역시 연제구 법원남로15번길 10, 202호 (☎ 1660-4452)
+                법률사무소 청송law 변호사 김창희 — 부산광역시 연제구 법원남로15번길 10, 202호 (☎ 1660-4452)
               </td>
             </tr>
           </tbody>

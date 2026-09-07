@@ -21,7 +21,7 @@ export function BlogList() {
   const seo = usePageMeta({
     title: "퇴사대행 법률 칼럼 — 노동법·퇴직금 정보",
     description:
-      "법률사무소 청송 김창희 변호사가 직접 쓰는 노동법·퇴사 절차·퇴직금 칼럼. 변협 광고규정을 따르는 일반 정보 제공 콘텐츠입니다.",
+      "법률사무소 청송law 김창희 변호사가 직접 쓰는 노동법·퇴사 절차·퇴직금 칼럼. 변협 광고규정을 따르는 일반 정보 제공 콘텐츠입니다.",
     canonical: "/blog",
     keywords: [
       "법률 칼럼",
@@ -36,7 +36,7 @@ export function BlogList() {
       "권고사직",
       "부당해고",
       "김창희 변호사",
-      "법률사무소 청송",
+      "법률사무소 청송law",
     ],
     jsonLd: breadcrumbJsonLd([
       { name: "홈", url: "/" },

@@ -171,7 +171,7 @@ export function CalcPage() {
       "권고사직 실업급여",
       "퇴사대행",
       "변호사 검토",
-      "법률사무소 청송",
+      "법률사무소 청송law",
     ],
     jsonLd: [
       breadcrumbJsonLd([

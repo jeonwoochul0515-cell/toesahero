@@ -82,7 +82,7 @@ Firestore consultations 에 source='draft' + draftLetter + draftStatus='pending_
 ### 표준 통보문 양식 (자동 생성됨)
 
 ```
-[발신] 법률사무소 청송
+[발신] 법률사무소 청송law
        부산광역시 연제구 법원남로15번길 10, 202호
        대표 변호사 김창희 (☎ 1660-4452)
 
@@ -102,7 +102,7 @@ Firestore consultations 에 source='draft' + draftLetter + draftStatus='pending_
 [관계 법령] 근로기준법 제7조, 민법 제660조, 변호사법 제3조
 
 [작성일] [YYYY년 MM월 DD일]
-[작성자] 법률사무소 청송 대표 변호사 김창희 (인)
+[작성자] 법률사무소 청송law 대표 변호사 김창희 (인)
 
 ※ 본 통보문은 AI가 생성한 1차 초안이며, 변호사 김창희가 검토·수정 후 최종 발송합니다.
 ```
