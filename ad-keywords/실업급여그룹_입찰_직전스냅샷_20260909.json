@@ -1,0 +1,688 @@
+[
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201053",
+  "keyword": "2024실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201054",
+  "keyword": "2024실업급여계산",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201055",
+  "keyword": "2024실업급여계산기",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201056",
+  "keyword": "2024실업급여금액",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201057",
+  "keyword": "2024실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201058",
+  "keyword": "2024실업급여조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201059",
+  "keyword": "고용24실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201060",
+  "keyword": "고용노동부실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201061",
+  "keyword": "고용노동부실업급여신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201062",
+  "keyword": "고용부실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201063",
+  "keyword": "구직급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201064",
+  "keyword": "구직급여계산",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201065",
+  "keyword": "구직급여신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201066",
+  "keyword": "실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201067",
+  "keyword": "실업급여1차신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201068",
+  "keyword": "실업급여계산",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201069",
+  "keyword": "실업급여계산기",
+  "bidAmt": 120,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201070",
+  "keyword": "실업급여계산방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201071",
+  "keyword": "실업급여교육시간",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201072",
+  "keyword": "실업급여구직활동인정방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201073",
+  "keyword": "실업급여날짜확인",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201074",
+  "keyword": "실업급여당일지급",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201075",
+  "keyword": "실업급여대기기간",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201076",
+  "keyword": "실업급여대상",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201077",
+  "keyword": "실업급여대상자",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201078",
+  "keyword": "실업급여대상확인",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201079",
+  "keyword": "실업급여동영상교육",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201080",
+  "keyword": "실업급여모바일",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201081",
+  "keyword": "실업급여모바일신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201082",
+  "keyword": "실업급여모의계산",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201083",
+  "keyword": "실업급여문의",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201084",
+  "keyword": "실업급여반복수급",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201085",
+  "keyword": "실업급여부정수급",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201086",
+  "keyword": "실업급여부정수급공모",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201087",
+  "keyword": "실업급여부정수급벌금",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201088",
+  "keyword": "실업급여부정수급사례",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201089",
+  "keyword": "실업급여빨리받는법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201090",
+  "keyword": "실업급여수급기간",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201091",
+  "keyword": "실업급여수급나이",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201092",
+  "keyword": "실업급여수급자격",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201093",
+  "keyword": "실업급여수급자격신청온라인",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201095",
+  "keyword": "실업급여수급조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201096",
+  "keyword": "실업급여신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201097",
+  "keyword": "실업급여신청가능",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201098",
+  "keyword": "실업급여신청고용센터",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201099",
+  "keyword": "실업급여신청기간",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201100",
+  "keyword": "실업급여신청문의",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201101",
+  "keyword": "실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201102",
+  "keyword": "실업급여신청시필요서류",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201103",
+  "keyword": "실업급여신청시필요한서류",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201104",
+  "keyword": "실업급여신청은어디서",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201105",
+  "keyword": "실업급여신청일",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201106",
+  "keyword": "실업급여신청자격",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201107",
+  "keyword": "실업급여신청조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201108",
+  "keyword": "실업급여신청조건확인",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201109",
+  "keyword": "실업급여신청하기",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201110",
+  "keyword": "실업급여신청하는곳",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201111",
+  "keyword": "실업급여신청홈페이지",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201112",
+  "keyword": "실업급여신청후취소",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201113",
+  "keyword": "실업급여액",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201114",
+  "keyword": "실업급여어디서",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201115",
+  "keyword": "실업급여연기신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201116",
+  "keyword": "실업급여연장방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201117",
+  "keyword": "실업급여온라인신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201118",
+  "keyword": "실업급여워크넷구직신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201119",
+  "keyword": "실업급여이직확인서",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201120",
+  "keyword": "실업급여인터넷신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201121",
+  "keyword": "실업급여자격조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201122",
+  "keyword": "실업급여조건6개월",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201123",
+  "keyword": "실업급여조건확인",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201124",
+  "keyword": "실업급여지급기간",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201125",
+  "keyword": "실업급여타는방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201126",
+  "keyword": "실업급여타는법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201127",
+  "keyword": "실업급여필요서류",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201128",
+  "keyword": "실업수당조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201129",
+  "keyword": "워크넷실업급여신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201130",
+  "keyword": "일용직실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201131",
+  "keyword": "자발적퇴사실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201132",
+  "keyword": "자영업자실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201133",
+  "keyword": "정년퇴직실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201134",
+  "keyword": "정년퇴직후실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201135",
+  "keyword": "질병실업급여신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201136",
+  "keyword": "퇴사후실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201137",
+  "keyword": "퇴사후실업급여신청기간",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201138",
+  "keyword": "퇴사후실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201139",
+  "keyword": "해고시실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008502201140",
+  "keyword": "해고실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560779",
+  "keyword": "고용보험실업급여",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560780",
+  "keyword": "고용보험실업급여조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": true
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560781",
+  "keyword": "알바실업급여조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560782",
+  "keyword": "실업급여단기알바",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560783",
+  "keyword": "고용보험실업급여신청",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560784",
+  "keyword": "고용보험실업급여모의계산",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560785",
+  "keyword": "고용보험실업급여신청방법",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560786",
+  "keyword": "고용보험실업급여계산기",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560787",
+  "keyword": "고용보험실업급여신청조건",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008509560788",
+  "keyword": "고용보험실업급여신청서류",
+  "bidAmt": 70,
+  "useGroupBidAmt": false,
+  "userLock": false
+ },
+ {
+  "nccKeywordId": "nkw-a001-01-000008521308384",
+  "keyword": "실업급여조건",
+  "bidAmt": 100,
+  "useGroupBidAmt": false,
+  "userLock": false
+ }
+]
