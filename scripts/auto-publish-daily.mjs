@@ -150,28 +150,63 @@ async function pingIndexNow(url) {
   }
 }
 
+// 일시적 실패(5xx·429·네트워크 끊김)는 다시 걸면 대개 통과한다. 사람이 지켜보지 않는
+// 예약 작업이라 한 번 실패하면 그날 발행이 통째로 사라지고 다음 실행까지 이틀을 기다린다.
+// 실제로 2026-08-31과 2026-09-11 두 번 그렇게 죽었다(빈 본문 500). 그래서 재시도를 둔다.
+// 400·401·403·404처럼 다시 걸어도 같은 답이 오는 오류는 즉시 포기한다.
+const RETRY_MAX = 3;
+const RETRY_BASE_MS = 4000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function callClaude(userPrompt, maxTokens = 2600) {
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: BLOG_MODEL,
-      max_tokens: maxTokens,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
-  });
-  if (!resp.ok) {
-    const t = await resp.text().catch(() => "");
-    throw new Error(`Anthropic 오류 ${resp.status}: ${t.slice(0, 300)}`);
+  let lastErr;
+  for (let attempt = 1; attempt <= RETRY_MAX; attempt++) {
+    let resp;
+    try {
+      resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: BLOG_MODEL,
+          max_tokens: maxTokens,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+    } catch (e) {
+      // 네트워크 자체가 끊긴 경우도 다시 걸어 본다.
+      lastErr = new Error(`Anthropic 연결 실패: ${e.message}`);
+      if (attempt === RETRY_MAX) break;
+      const wait = RETRY_BASE_MS * 2 ** (attempt - 1);
+      console.warn(`   ${lastErr.message} — ${wait / 1000}초 뒤 재시도 (${attempt}/${RETRY_MAX})`);
+      await sleep(wait);
+      continue;
+    }
+
+    if (resp.ok) {
+      const data = await resp.json();
+      return data.content?.find((c) => c.type === "text")?.text ?? "";
+    }
+
+    const body = await resp.text().catch(() => "");
+    lastErr = new Error(`Anthropic 오류 ${resp.status}: ${body.slice(0, 300)}`);
+
+    const retryable = resp.status >= 500 || resp.status === 429 || resp.status === 408;
+    if (!retryable || attempt === RETRY_MAX) break;
+
+    // 429는 서버가 알려 준 대기 시간을 우선 따른다.
+    const hinted = Number(resp.headers.get("retry-after"));
+    const wait = Number.isFinite(hinted) && hinted > 0
+      ? hinted * 1000
+      : RETRY_BASE_MS * 2 ** (attempt - 1);
+    console.warn(`   ${lastErr.message} — ${wait / 1000}초 뒤 재시도 (${attempt}/${RETRY_MAX})`);
+    await sleep(wait);
   }
-  const data = await resp.json();
-  const text = data.content?.find((c) => c.type === "text")?.text ?? "";
-  return text;
+  throw lastErr;
 }
 
 function parseJsonLoose(text) {
