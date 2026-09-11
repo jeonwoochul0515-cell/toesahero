@@ -3784,3 +3784,24 @@ body[data-mascot="false"] .mascot {
   align-items: center;
   gap: 6px;
 }
+
+/* 올린 자료 지우기 — 파괴적 동작이라 눈에 띄되 주 동작보다 약하게 */
+.my-file-del {
+  margin-left: 10px;
+  background: none;
+  border: 1.5px solid var(--muted);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+  min-height: 30px;
+  cursor: pointer;
+}
+.my-file-del:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.my-file-del:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

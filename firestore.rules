@@ -80,7 +80,10 @@ service cloud.firestore {
                     && request.resource.data.uid == request.auth.uid
                     && request.resource.data.keys().hasAll(['caseId', 'uid', 'name', 'url', 'createdAt']);
       allow read: if isAdmin() || isOwner();
-      allow update, delete: if isAdmin();
+      // 잘못 올린 자료(다른 사람 개인정보가 찍힌 사진 등)는 본인이 지울 수 있어야 한다.
+      // Storage 쪽은 이미 본인 삭제가 열려 있어, 여기만 막으면 목록에 유령 항목이 남는다.
+      allow delete: if isAdmin() || isOwner();
+      allow update: if isAdmin();
     }
 
     // 사이트 실적/신뢰 지표. 공개 읽기, 어드민만 수정.

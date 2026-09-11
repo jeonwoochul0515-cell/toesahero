@@ -776,6 +776,8 @@ export type CaseFileDoc = {
   name: string;
   url: string;
   size?: number;
+  // 업로드 때 저장한 Storage 경로. 삭제할 때 쓴다(예전 문서에는 없을 수 있어 선택값).
+  storagePath?: string;
   createdAt?: { seconds: number; nanoseconds: number } | null;
 };
 
@@ -802,6 +804,27 @@ export async function uploadCaseFile(caseId: string, file: File): Promise<void> 
     storagePath: path,
     createdAt: serverTimestamp(),
   });
+}
+
+// 의뢰인 본인이 올린 자료 삭제. 저장소 파일과 목록 문서를 함께 지운다.
+// 저장소 쪽이 이미 없어도(이전 실패 등) 목록은 지워 유령 항목이 남지 않게 한다.
+export async function deleteCaseFile(row: CaseFileDoc): Promise<void> {
+  const database = getDb();
+  const user = getAuthOrNull()?.currentUser ?? null;
+  if (!database || !user) throw new Error("로그인 후 이용해 주세요.");
+  if (row.uid !== user.uid) throw new Error("본인이 올린 자료만 지울 수 있습니다.");
+  const st = getStorageOrNull();
+  if (st && row.storagePath) {
+    try {
+      const { deleteObject } = await import("firebase/storage");
+      await deleteObject(storageRef(st, row.storagePath));
+    } catch (e) {
+      // 저장소에 이미 없으면 목록만 정리하면 된다. 그 밖의 오류는 아래에서 드러난다.
+      console.warn("[case-file] storage delete skipped", e);
+    }
+  }
+  const { deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(database, "case_files", row.id));
 }
 
 // 의뢰인 본인 파일 전체 구독 (마이페이지 — uid 단일 조건, 컴포넌트에서 caseId로 그룹).

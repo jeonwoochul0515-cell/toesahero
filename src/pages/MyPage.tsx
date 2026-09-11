@@ -7,6 +7,7 @@ import {
   watchMyCases,
   watchMyCaseFiles,
   uploadCaseFile,
+  deleteCaseFile,
   type AppUser,
   type ConsultationDoc,
   type CaseFileDoc,
@@ -59,6 +60,7 @@ export function MyPage() {
   const [files, setFiles] = useState<CaseFileDoc[]>([]);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const seo = usePageMeta({
     title: "마이페이지 — 의뢰인 본인 사건 진행 상황",
@@ -92,10 +94,26 @@ export function MyPage() {
     try {
       await uploadCaseFile(caseId, file);
     } catch (e) {
-      alert("업로드에 실패했습니다. 다시 시도해 주세요.");
-      console.warn(e);
+      console.warn("[case-file] upload failed", e);
+      alert(
+        "자료를 올리지 못했습니다. 20MB가 넘는 파일은 올라가지 않습니다. 다시 해 보셔도 안 되면 1660-4452로 전화 주십시오."
+      );
     } finally {
       setUploadingFor(null);
+    }
+  };
+
+  // 지우면 되돌릴 수 없으므로 무엇을 지우는지 이름까지 보여 주고 확인을 받는다.
+  const handleDeleteFile = async (row: CaseFileDoc) => {
+    if (!window.confirm(`「${row.name}」을(를) 지울까요?\n지운 자료는 되돌릴 수 없습니다.`)) return;
+    setDeletingId(row.id);
+    try {
+      await deleteCaseFile(row);
+    } catch (e) {
+      console.warn("[case-file] delete failed", e);
+      alert("자료를 지우지 못했습니다. 1660-4452로 전화 주시면 사무실에서 정리해 드리겠습니다.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -253,6 +271,16 @@ export function MyPage() {
                               <a href={f.url} target="_blank" rel="noopener noreferrer">
                                 <Icon name="doc" size={16} /> {f.name}
                               </a>
+                              {/* 잘못 올린 자료를 본인이 지울 수 있어야 한다.
+                                  지우면 되돌릴 수 없으므로 반드시 확인을 받는다. */}
+                              <button
+                                type="button"
+                                className="my-file-del"
+                                disabled={deletingId === f.id}
+                                onClick={() => void handleDeleteFile(f)}
+                              >
+                                {deletingId === f.id ? "지우는 중..." : "지우기"}
+                              </button>
                             </li>
                           ))}
                       </ul>
