@@ -188,7 +188,21 @@ async function callClaude(userPrompt, maxTokens = 2600) {
     }
 
     if (resp.ok) {
-      const data = await resp.json();
+      // 헤더만 받고 본문을 읽는 중에 연결이 끊길 수 있다. 그 읽기가 try 밖에 있으면
+      // 재시도를 건너뛰고 즉시 죽는다(2026-09-12 독립 검토 지적). 본문 수신도 재시도 범위다.
+      // 다만 본문이 오긴 왔는데 JSON이 아니면 다시 걸어도 같은 답이라 즉시 포기한다.
+      let data;
+      try {
+        data = await resp.json();
+      } catch (e) {
+        if (e instanceof SyntaxError) throw new Error(`Anthropic 응답 파싱 실패: ${e.message}`);
+        lastErr = new Error(`Anthropic 본문 수신 실패: ${e.message}`);
+        if (attempt === RETRY_MAX) break;
+        const wait = RETRY_BASE_MS * 2 ** (attempt - 1);
+        console.warn(`   ${lastErr.message} — ${wait / 1000}초 뒤 재시도 (${attempt}/${RETRY_MAX})`);
+        await sleep(wait);
+        continue;
+      }
       return data.content?.find((c) => c.type === "text")?.text ?? "";
     }
 
