@@ -99,6 +99,11 @@ function RootLayout() {
         통보부터 임금체불·퇴직금·부당해고·직장 내 괴롭힘 대응까지 맡는
         서비스입니다. 법률사무소 청송law 담당변호사 김창희.
       </p>
+      {/* 변호사법 제23조 광고물 고지 — 전체 Footer를 쓰지 않는 화면(/diagnose,
+          /foreign-workers)에도 반드시 나가야 한다(2026-09-11 site-qa H02). */}
+      <p className="site-define" style={{ fontSize: 12, opacity: 0.75 }}>
+        이 사이트는 「변호사법」 제23조에 따른 광고물입니다.
+      </p>
       </footer>
       <HiroChat />
     </Suspense>

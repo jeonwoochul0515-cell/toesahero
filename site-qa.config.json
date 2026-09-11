@@ -1,0 +1,93 @@
+{
+  "_comment": "퇴사히어로 site-qa 설정 (2026-09-11). 사이트 고유값은 전부 여기에 둔다.",
+  "origin": "https://toesahero.com",
+  "dist": "dist",
+  "lang": "ko",
+  "privatePaths": [
+    "^/admin",
+    "^/my",
+    "^/checkout",
+    "^/delegation"
+  ],
+  "dynamicPathPrefixes": [
+    "/api/"
+  ],
+  "articlePathPrefix": "/blog/",
+  "entityPages": [
+    "/"
+  ],
+  "expertPages": [],
+  "canonicalExceptions": [],
+  "brand": {
+    "name": "법률사무소 청송law",
+    "schemaTypes": [
+      "LegalService",
+      "Organization"
+    ],
+    "forbiddenVariants": [
+      "법무법인\\s*청송",
+      "청송\\s*법률사무소",
+      "법률사무소\\s*청송(?!law|Law|LAW)"
+    ],
+    "phone": {
+      "canonical": "1660-4452",
+      "variants": "1660-?4452"
+    },
+    "address": {
+      "marker": "연제구",
+      "canonical": "부산 연제구 법원남로15번길 10, 202호"
+    }
+  },
+  "experts": [
+    "김창희"
+  ],
+  "naver": {
+    "ownershipMeta": true
+  },
+  "indexnow": true,
+  "cloudflare": true,
+  "jsBudgetKB": {
+    "total": 900,
+    "chunk": 400
+  },
+  "legal": {
+    "banRegex": "무료 상담|승소를? 보장|최고의 변호사|1위 변호사|전문 변호사|승소율",
+    "requiredNotices": [
+      {
+        "label": "광고물 고지",
+        "pages": "all",
+        "regex": "변호사법"
+      }
+    ],
+    "privacyPath": "/privacy",
+    "privacyRegex": "위탁|보유"
+  },
+  "emergencyNumbers": [
+    "1350"
+  ],
+  "robots": {
+    "allow": [
+      "Googlebot",
+      "Googlebot-Image",
+      "bingbot",
+      "Yeti",
+      "OAI-SearchBot",
+      "Claude-SearchBot",
+      "Claude-User",
+      "PerplexityBot",
+      "Applebot",
+      "Google-Extended"
+    ],
+    "block": [
+      "GPTBot",
+      "ClaudeBot",
+      "Applebot-Extended"
+    ],
+    "blockLevel": "RECOMMENDED",
+    "samplePaths": null
+  },
+  "runtimeArtifacts": {
+    "sitemap": "https://toesahero.com/sitemap.xml",
+    "rss": "https://toesahero.com/rss.xml"
+  }
+}

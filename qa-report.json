@@ -1,0 +1,695 @@
+{
+  "origin": "https://toesahero.com",
+  "dist": "C:\\Users\\jeonw\\.antigravity\\퇴사히어로\\design_handoff_toesahero\\dist",
+  "at": "2026-09-11T05:46:44.920Z",
+  "counts": {
+    "FAIL": 1,
+    "WARN": 9,
+    "PASS": 60,
+    "N_A": 3,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "A01",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "robots.txt 존재",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "A02",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "robots.txt에 Sitemap 절대 URL 지시",
+      "status": "PASS",
+      "detail": "https://toesahero.com/sitemap.xml, https://toesahero.com/rss.xml",
+      "failing": []
+    },
+    {
+      "id": "A03",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "robots: 검색·retrieval 허용 봇이 공개 표본 경로에 접근 가능 (V2 §08 B)",
+      "status": "PASS",
+      "detail": "10개 봇 × 7개 경로",
+      "failing": []
+    },
+    {
+      "id": "A04",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "robots: 학습 전용 token이 / 에서 차단됨 (소유자 정책 V2 §08 B)",
+      "status": "WARN",
+      "detail": "미차단: GPTBot, ClaudeBot, Applebot-Extended (정책 미적용. 결함이 아니라 정책 결정 사항)",
+      "failing": []
+    },
+    {
+      "id": "A05",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "robots: 허용 봇 전용 그룹이 * 그룹의 제외 경로를 잃지 않음 (RFC 9309 그룹은 상속되지 않는다)",
+      "status": "WARN",
+      "detail": "Googlebot: /__/ 미상속; bingbot: /__/ 미상속; Yeti: /__/ 미상속; OAI-SearchBot: /__/ 미상속; Claude-SearchBot: /__/ 미상속; Claude-User: /__/ 미상속; PerplexityBot: /__/ 미상속; Google-Extended: /__/ 미상속",
+      "failing": []
+    },
+    {
+      "id": "A06",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "robots: Googlebot·Yeti가 JS/CSS 자산 경로에 접근 가능",
+      "status": "PASS",
+      "detail": "4개 자산 경로",
+      "failing": []
+    },
+    {
+      "id": "A07",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "sitemap.xml 존재·urlset 형식",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "A08",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "sitemap URL이 모두 대표 origin의 절대 URL",
+      "status": "PASS",
+      "detail": "46개",
+      "failing": []
+    },
+    {
+      "id": "A09",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "sitemap이 색인 대상 공개 페이지를 모두 포함",
+      "status": "PASS",
+      "detail": "46개 포함",
+      "failing": []
+    },
+    {
+      "id": "A10",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "sitemap에 비공개·noindex·없는 페이지가 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "A11",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "sitemap lastmod에 미래 날짜 없음 (가짜 최신일 금지)",
+      "status": "PASS",
+      "detail": "46건",
+      "failing": []
+    },
+    {
+      "id": "A12",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "sitemap lastmod가 배포 시각으로 일괄 치환된 흔적 없음 (실질 변경일이어야 함)",
+      "status": "PASS",
+      "detail": "23개 날짜",
+      "failing": []
+    },
+    {
+      "id": "A13",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "색인 대상 페이지에 canonical 존재",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "A14",
+      "area": "A 크롤링·색인",
+      "level": "REQUIRED",
+      "label": "canonical이 절대 URL이며 자기 주소 (의도적 예외는 config.canonicalExceptions)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "A15",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "공개 페이지의 noindex는 의도된 것인지 확인 (목록에 나오면 사유 기록)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "A16",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "비공개 화면이 정적 산출물에 있으면 인증으로 보호되는지 확인 (noindex·robots는 보호 수단이 아님)",
+      "status": "PASS",
+      "detail": "비공개 경로 없음",
+      "failing": []
+    },
+    {
+      "id": "A17",
+      "area": "A 크롤링·색인",
+      "level": "RECOMMENDED",
+      "label": "404 문서 존재",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B01",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "모든 공개 페이지에 비어 있지 않은 title",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B02",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "title 태그가 정확히 1개",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B03",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "title 중복 없음 (pagination 등 의도적 중복은 사유 기록)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B04",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "색인 대상 페이지에 description",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B05",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "description 중복 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B06",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "title/description 길이 진단 (고정 글자 수는 규칙이 아님. 극단값만 표시)",
+      "status": "PASS",
+      "detail": "title 12~75자, description 48~191자",
+      "failing": []
+    },
+    {
+      "id": "B07",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "charset 선언과 html lang=\"ko\"",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B08",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "viewport(width=device-width)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B09",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "주요 제목(h1) 존재 — 개수는 채점하지 않음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B10",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "이미지에 alt 속성 (장식은 alt=\"\" 허용)",
+      "status": "PASS",
+      "detail": "59개 이미지",
+      "failing": []
+    },
+    {
+      "id": "B11",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "이미지에 width·height (레이아웃 이동 예방)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B12",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "동영상 preload=metadata|none 및 poster",
+      "status": "N_A",
+      "detail": "video 없음",
+      "failing": []
+    },
+    {
+      "id": "B13",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "fragment(#/) 라우팅 링크 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B14",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "javascript: 링크 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B15",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "페이지마다 내부 탐색 href가 1개 이상 (개수 목표 없음)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "B16",
+      "area": "B HTML·메타",
+      "level": "RECOMMENDED",
+      "label": "내부 링크가 산출물에 존재 (동적 경로는 config.dynamicPathPrefixes로 제외)",
+      "status": "WARN",
+      "detail": "4건",
+      "failing": [
+        "/ → /my",
+        "/ → /checkout?pkg=basic",
+        "/ → /checkout?pkg=pro",
+        "/ → /checkout?pkg=max"
+      ]
+    },
+    {
+      "id": "B17",
+      "area": "B HTML·메타",
+      "level": "REQUIRED",
+      "label": "외부 링크 URL의 괄호 짝이 맞음 (법제처 판례 주소 등 잘림 방지)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "C01",
+      "area": "C 오픈그래프",
+      "level": "RECOMMENDED",
+      "label": "og:title·description·url·image·type 존재",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "C02",
+      "area": "C 오픈그래프",
+      "level": "REQUIRED",
+      "label": "og:image가 절대 URL",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "C03",
+      "area": "C 오픈그래프",
+      "level": "REQUIRED",
+      "label": "같은 origin의 og:image 파일이 산출물에 실재",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "C04",
+      "area": "C 오픈그래프",
+      "level": "RECOMMENDED",
+      "label": "og:url이 canonical과 일치",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "C05",
+      "area": "C 오픈그래프",
+      "level": "RECOMMENDED",
+      "label": "twitter:card",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "C06",
+      "area": "C 오픈그래프",
+      "level": "RECOMMENDED",
+      "label": "글마다 고유 og:image (공유 시 어느 글인지 보이게)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D01",
+      "area": "D 구조화 데이터",
+      "level": "REQUIRED",
+      "label": "JSON-LD 파싱 오류 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D02",
+      "area": "D 구조화 데이터",
+      "level": "REQUIRED",
+      "label": "entity 페이지(/)에 조직 entity(LegalService/Organization) 존재",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D03",
+      "area": "D 구조화 데이터",
+      "level": "REQUIRED",
+      "label": "조직 entity의 name이 브랜드 표준명과 일치",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D04",
+      "area": "D 구조화 데이터",
+      "level": "REQUIRED",
+      "label": "sameAs 값이 절대 URL (개수 목표 없음. 실재 공식 채널만)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D05",
+      "area": "D 구조화 데이터",
+      "level": "NOT_APPLICABLE",
+      "label": "전문가 페이지()에 Person entity",
+      "status": "N_A",
+      "detail": "expertPages에 해당하는 페이지 없음",
+      "failing": []
+    },
+    {
+      "id": "D06",
+      "area": "D 구조화 데이터",
+      "level": "RECOMMENDED",
+      "label": "BreadcrumbList가 있으면 실제 계층(2단계 이상)이고 마지막 항목이 현재 페이지",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D07",
+      "area": "D 구조화 데이터",
+      "level": "REQUIRED",
+      "label": "Article 날짜가 유효하고 미래가 아니며 dateModified ≥ datePublished (가짜 최신일 금지)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D08",
+      "area": "D 구조화 데이터",
+      "level": "RECOMMENDED",
+      "label": "글의 Article에 author·publisher·dateModified",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "D09",
+      "area": "D 구조화 데이터",
+      "level": "REQUIRED",
+      "label": "FAQPage가 있으면 질문이 화면 본문에도 있음 (rich result 목적이 아니라 화면 일치 검사)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "E01",
+      "area": "E 성능",
+      "level": "RECOMMENDED",
+      "label": "JS 총량 예산 900KB",
+      "status": "WARN",
+      "detail": "1484KB",
+      "failing": []
+    },
+    {
+      "id": "E02",
+      "area": "E 성능",
+      "level": "RECOMMENDED",
+      "label": "가장 큰 JS 묶음 예산 400KB",
+      "status": "WARN",
+      "detail": "/assets/firebase-CJn0RvAm.js 615KB",
+      "failing": []
+    },
+    {
+      "id": "E03",
+      "area": "E 성능",
+      "level": "RECOMMENDED",
+      "label": "정적 자산 장기 캐시 규칙(_headers)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "E04",
+      "area": "E 성능",
+      "level": "RECOMMENDED",
+      "label": "보안 헤더(X-Content-Type-Options·HSTS)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "E05",
+      "area": "E 성능",
+      "level": "REQUIRED",
+      "label": "_routes.json이 있으면 파싱되고 include가 [\"/*\"] 하나 (겹침 규칙은 배포 실패)",
+      "status": "PASS",
+      "detail": "include=[\"/*\"] exclude 14개",
+      "failing": []
+    },
+    {
+      "id": "F01",
+      "area": "F 접근성",
+      "level": "REQUIRED",
+      "label": "버튼에 접근 이름(글자 또는 aria-label)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "F02",
+      "area": "F 접근성",
+      "level": "RECOMMENDED",
+      "label": "입력칸에 label for= 또는 aria-label (id만으로는 라벨이 아님)",
+      "status": "WARN",
+      "detail": "3/46 페이지",
+      "failing": [
+        "/calc",
+        "/diagnose",
+        "/unemployment-calc"
+      ]
+    },
+    {
+      "id": "F03",
+      "area": "F 접근성",
+      "level": "RECOMMENDED",
+      "label": "main 랜드마크",
+      "status": "WARN",
+      "detail": "1/46 페이지",
+      "failing": [
+        "/"
+      ]
+    },
+    {
+      "id": "F04",
+      "area": "F 접근성",
+      "level": "RECOMMENDED",
+      "label": "header·footer 랜드마크",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "F05",
+      "area": "F 접근성",
+      "level": "RECOMMENDED",
+      "label": "가로 스크롤을 만드는 고정 폭 인라인 스타일 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "G01",
+      "area": "G Naver·브랜드",
+      "level": "REQUIRED",
+      "label": "naver-site-verification 메타가 head 안에 있음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "G02",
+      "area": "G Naver·브랜드",
+      "level": "RECOMMENDED",
+      "label": "파비콘 링크",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "G03",
+      "area": "G Naver·브랜드",
+      "level": "RECOMMENDED",
+      "label": "RSS가 있으면 item 1개 이상·본문 전체(content:encoded)·자동발견 링크 (없으면 N_A. 개수 목표 없음)",
+      "status": "PASS",
+      "detail": "item 30개, content:encoded 있음, 자동발견 있음",
+      "failing": []
+    },
+    {
+      "id": "G04",
+      "area": "G Naver·브랜드",
+      "level": "REQUIRED",
+      "label": "IndexNow 키 파일이 루트에 있고 본문이 파일명과 같음 (형식은 hex 강제 없음)",
+      "status": "PASS",
+      "detail": "938f576e2a5781026560da253ad84446.txt",
+      "failing": []
+    },
+    {
+      "id": "G05",
+      "area": "G Naver·브랜드",
+      "level": "RECOMMENDED",
+      "label": "배포 스크립트에 IndexNow 통지 연결 (전역 규칙 §19)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "G06",
+      "area": "G Naver·브랜드",
+      "level": "REQUIRED",
+      "label": "브랜드명 표기 통일 (금지 변형 없음)",
+      "status": "FAIL",
+      "detail": "1/47 페이지",
+      "failing": [
+        "/blog/auto-mttm11bg"
+      ]
+    },
+    {
+      "id": "G07",
+      "area": "G Naver·브랜드",
+      "level": "RECOMMENDED",
+      "label": "전화번호 표기 통일",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "G08",
+      "area": "G Naver·브랜드",
+      "level": "RECOMMENDED",
+      "label": "주소 표기 일관 (marker가 있는 페이지는 표준 주소 포함)",
+      "status": "WARN",
+      "detail": "45/47 페이지",
+      "failing": [
+        "/blog/annual-leave-allowance-settlement",
+        "/blog/auto-mt6l6k8d",
+        "/blog/auto-mt9g3c4p",
+        "/blog/auto-mtcv3uoo",
+        "/blog/auto-mtjlmddp",
+        "/blog/auto-mtmggncu",
+        "/blog/auto-mtqr2edq",
+        "/blog/auto-mttm11bg"
+      ]
+    },
+    {
+      "id": "G09",
+      "area": "G Naver·브랜드",
+      "level": "NOT_APPLICABLE",
+      "label": "llms.txt — 검사하지 않음 (Google Search 미사용 G03. 다른 소비자의 실사용 목적이 있을 때만 별도 판단)",
+      "status": "N_A",
+      "detail": "검사 대상 아님",
+      "failing": []
+    },
+    {
+      "id": "H01",
+      "area": "H 법적·신뢰",
+      "level": "REQUIRED",
+      "label": "광고 규정 금지 표현 없음",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "H02",
+      "area": "H 법적·신뢰",
+      "level": "REQUIRED",
+      "label": "필수 고지: 광고물 고지",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "H10",
+      "area": "H 법적·신뢰",
+      "level": "REQUIRED",
+      "label": "개인정보처리방침 페이지 존재(필요 시 위탁·국외 이전 고지)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "H11",
+      "area": "H 법적·신뢰",
+      "level": "RECOMMENDED",
+      "label": "글에 저자/감수자 표기 (문자열 존재만 확인. 실제 검수 여부는 사람이 확인)",
+      "status": "PASS",
+      "detail": "",
+      "failing": []
+    },
+    {
+      "id": "H12",
+      "area": "H 법적·신뢰",
+      "level": "RECOMMENDED",
+      "label": "본문에 긴급 번호가 글자로만 있으면 tel: 링크로",
+      "status": "WARN",
+      "detail": "1/1 페이지",
+      "failing": [
+        "/blog/unpaid-wage-report-and-confirmation"
+      ]
+    }
+  ]
+}
