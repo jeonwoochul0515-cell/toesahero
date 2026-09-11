@@ -10,7 +10,7 @@ interface Env extends NotifyEnv {
 }
 
 type RequestBody = {
-  type: "consultation" | "draft" | "notice" | "chatlog";
+  type: "consultation" | "draft" | "notice" | "chatlog" | "safety";
   caseId?: string;
   summary?: string;
   name?: string | null;
@@ -20,9 +20,13 @@ type RequestBody = {
   sessionId?: string;
   transcript?: string;
   consent?: boolean;
+  // safety(안전 신호) 전용 — 무엇이 감지됐는지만 받는다. 대화 내용은 받지 않는다.
+  signal?: "urgent" | "damage_threat";
 };
 
-const LABEL: Record<Exclude<RequestBody["type"], "chatlog">, string> = {
+// safety(안전 신호)와 chatlog 는 각자 전용 경로에서 처리한다. 여기 라벨이 필요한 것은
+// 일반 접수 세 종류뿐이다.
+const LABEL: Record<Exclude<RequestBody["type"], "chatlog" | "safety">, string> = {
   consultation: "신규 상담 신청",
   draft: "AI 통보문 초안 신청",
   notice: "내용증명(표준) 신청",
@@ -150,6 +154,33 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
   return json({ ok: inboxOk || sms.ok, inboxOk, smsOk: sms.ok }, 200);
 }
 
+// 안전 신호 보고 — 자해·긴급 암시와 회사의 손해배상 협박.
+//
+// 이것만은 **동의 여부와 무관하게** 사무실에 닿아야 한다. 동의는 마케팅 활용에 관한
+// 것이지 사람을 구하는 일에 관한 것이 아니다. 그동안 긴급 신호는 화면에 109 카드만
+// 띄우고 알림 경로 어디에도 걸려 있지 않았고, 손배 협박 감지조차 선택 동의에 묶여
+// 있어 동의하지 않은 손님이 협박당한 사실은 기록도 알림도 남지 않았다(2026-09-12 점검).
+//
+// 대신 **대화 내용은 한 글자도 보내지 않는다.** 무슨 신호가 언제 어느 대화에서 났는지만
+// 알리고, 내용 확인은 손님이 동의했을 때의 정상 경로에서만 한다.
+async function handleSafety(env: Env, body: RequestBody): Promise<Response> {
+  const signal = body.signal === "damage_threat" ? "damage_threat" : "urgent";
+  const sid = typeof body.sessionId === "string" ? body.sessionId.slice(0, 8) : "";
+  const what =
+    signal === "urgent"
+      ? "자해 또는 긴급 상황으로 의심되는 표현이 감지되었습니다."
+      : "회사가 손해배상 또는 위약금을 언급한 정황이 감지되었습니다.";
+  const lines = [
+    `[퇴사히어로] 안전 신호${sid ? ` #${sid}` : ""}`,
+    what,
+    "대화 내용은 전달되지 않습니다(손님 동의 없음 가능).",
+    "어드민 > 대화 로그에서 해당 대화를 확인해 주세요.",
+  ];
+  // 템플릿을 따로 두지 않고 문자로 바로 보낸다 — 드물고 급한 알림이라 지연을 만들지 않는다.
+  const sms = await sendAlimtalk(env, KAKAO_TPL.chatlog, {}, lines.join("\n"));
+  return json({ ok: sms.ok }, 200);
+}
+
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 외부 스크립트의 직접 호출 차단
   const origin = request.headers.get("origin") || request.headers.get("referer") || "";
@@ -168,6 +199,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   // 접수 후 대화 전문 보고 — 별도 레이트리밋 버킷으로만 세고 여기서 끝낸다
   // (기본 알림 한도 5회/10분을 소모하면 정작 상담 접수 문자가 유실될 수 있다)
+  // 안전 신호는 동의·연락처와 무관하게 먼저 처리한다. 대화 전문 한도와도 분리한다.
+  if (body.type === "safety") {
+    if (chatlogLimited(ip)) {
+      return json({ ok: false, reason: "too_many_requests" }, 429);
+    }
+    return handleSafety(env, body);
+  }
+
   if (body.type === "chatlog") {
     if (chatlogLimited(ip)) {
       return json({ ok: false, reason: "too_many_requests" }, 429);
@@ -186,7 +225,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const type =
     typeof body.type === "string" &&
     Object.prototype.hasOwnProperty.call(LABEL, body.type)
-      ? (body.type as Exclude<RequestBody["type"], "chatlog">)
+      ? (body.type as Exclude<RequestBody["type"], "chatlog" | "safety">)
       : null;
   if (!type) {
     return json({ ok: false, reason: "unknown_type" }, 200);

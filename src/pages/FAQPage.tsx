@@ -149,9 +149,17 @@ export function FAQPage() {
             <Link to="/calc" className="btn">
               <Icon name="calc" size={16} /> 임금 계산기
             </Link>
-            <Link to="/" className="btn primary">
-              <Icon name="chat" size={16} /> 카톡으로 문의
-            </Link>
+            <a
+              className="btn primary"
+              href="https://pf.kakao.com/_zkzIX"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="chat" size={16} /> 카카오톡으로 문의
+            </a>
+            <a className="btn" href="tel:1660-4452">
+              <Icon name="phone" size={16} /> 1660-4452 전화
+            </a>
           </div>
         </div>
       </main>

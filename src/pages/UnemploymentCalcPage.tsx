@@ -64,12 +64,20 @@ function benefitDays(totalMonths: number, age: number): number {
 function calc(inputs: Inputs) {
   const dailyWage = inputs.monthlySalary / 30;
   const rawDailyBenefit = Math.round(dailyWage * 0.6);
-  const dailyBenefit = Math.min(UPPER_LIMIT, Math.max(LOWER_LIMIT, rawDailyBenefit));
+  // 하한액 보정을 먼저 해 버리면 월급 0원에도 금액이 나온다. 값을 안 넣은 상태와
+  // 계산한 상태를 구분한다(2026-09-12 점검 — 빈 화면에서 792만원이 나왔다).
+  const hasInput = inputs.monthlySalary > 0;
+  const dailyBenefit = hasInput
+    ? Math.min(UPPER_LIMIT, Math.max(LOWER_LIMIT, rawDailyBenefit))
+    : 0;
   const totalMonths = inputs.insuredYears * 12 + inputs.insuredMonths;
   const days = benefitDays(totalMonths, inputs.age);
   const total = dailyBenefit * days;
-  const likelyEligible = inputs.reason !== "voluntary";
-  return { dailyBenefit, days, total, likelyEligible, totalMonths };
+  // 고용보험 피보험단위기간이 180일에 못 미치면 수급 요건 자체가 서지 않는다.
+  // 월 단위 입력이라 정확한 일수는 알 수 없으므로 6개월 미만을 경고 기준으로 쓴다.
+  const monthsTooShort = totalMonths < 6;
+  const likelyEligible = hasInput && inputs.reason !== "voluntary" && !monthsTooShort;
+  return { dailyBenefit, days, total, likelyEligible, totalMonths, hasInput, monthsTooShort };
 }
 
 function NumField({
@@ -314,9 +322,21 @@ export function UnemploymentCalcPage() {
               <div className="calc-total">
                 {fmt(result.total)}<span>원</span>
               </div>
+              {!result.hasInput && (
+                <p className="calc-warn">
+                  월 평균 세전 급여를 넣으시면 예상액이 계산됩니다.
+                </p>
+              )}
+              {result.hasInput && result.monthsTooShort && (
+                <p className="calc-warn">
+                  고용보험 가입기간이 짧습니다. 퇴직 전 18개월 안에 일한 날이 180일 이상이어야
+                  받으실 수 있어, 지금 기간으로는 어려울 수 있습니다. 정확한 판단은 근무 형태와
+                  가입 이력을 봐야 하니 1660-4452로 문의해 주십시오.
+                </p>
+              )}
               <p className="calc-disclaimer">
                 ※ 1일 {fmt(result.dailyBenefit)}원 × {result.days}일(소정급여일수) 기준 단순 계산이며,
-                실제 지급액과 다를 수 있습니다.
+                실제 지급액과 다를 수 있습니다. 수급 가능 여부는 고용센터가 판단합니다.
               </p>
 
               <ul className="calc-items">

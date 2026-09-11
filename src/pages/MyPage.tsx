@@ -226,7 +226,12 @@ export function MyPage() {
           <div className="my-cases">
             {cases.map((c) => {
               const status = c.status ?? "new";
-              const currentIndex = STAGES.findIndex((s) => s.key === status);
+              const savedIndex = STAGES.findIndex((s) => s.key === status);
+              // 결제가 확인됐는데 단계가 그대로면 "돈만 냈다"로 읽힌다(2026-09-12 점검 02-2).
+              // 저장값은 건드리지 않고 보여 주는 단계만 「위임 체결」 이상으로 맞춘다.
+              const paid = c.paymentStatus === "paid";
+              const contractedIndex = STAGES.findIndex((s) => s.key === "contracted");
+              const currentIndex = paid ? Math.max(savedIndex, contractedIndex) : savedIndex;
               return (
                 <article key={c.id} className="my-case">
                   <header className="my-case-head">

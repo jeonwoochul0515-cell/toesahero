@@ -11,7 +11,7 @@ export function pageIntro(path: string): string | null {
   if (path.startsWith("/unemployment-calc"))
     return "월급·나이·고용보험 가입기간만 넣으면 실업급여 예상액이 나오는 계산기예요. 권고사직인지 자발적 퇴사인지에 따라 받을 수 있는지가 갈리니까, 애매하면 저한테 물어보세요.";
   if (path.startsWith("/resignation-letter"))
-    return "상황별 사직서 양식 3종을 무료로 받아 가실 수 있는 화면이에요. 일반·즉시 퇴사·권고사직 확인서 중 뭘 써야 할지 헷갈리면 상황을 말씀해 주세요. 특히 권고사직은 이직사유 한 줄이 실업급여를 좌우해요.";
+    return "상황별 사직서 양식 3종을 그대로 받아 가실 수 있는 화면이에요. 일반·즉시 퇴사·권고사직 확인서 중 뭘 써야 할지 헷갈리면 상황을 말씀해 주세요. 특히 권고사직은 이직사유 한 줄이 실업급여를 좌우해요.";
   if (path.startsWith("/diagnose"))
     return "몇 가지 질문에 답하면 통보·임금청구·분쟁대응 중 내 상황에 맞는 절차를 찾아 주는 셀프 진단이에요. 결과가 나오면 다음 걸음을 같이 정해 봐요.";
   if (path.startsWith("/harassment"))
@@ -23,7 +23,7 @@ export function pageIntro(path: string): string | null {
   if (path.startsWith("/unpaid-wages"))
     return "밀린 월급·수당 문제라면 잘 오셨어요. 언제부터 얼마가 밀렸는지, 급여명세서나 통장기록이 있는지 말씀해 주시면 어떤 절차로 받을 수 있는지 정리해 드릴게요.";
   if (path.startsWith("/severance-pay"))
-    return "1년 이상 일했다면 퇴직금은 당연한 권리예요. 5인 미만 사업장도, 알바도 예외가 아니에요. 회사가 뭐라고 하던가요?";
+    return "1년 이상 일했다면 퇴직금은 법으로 정해진 것이에요. 5인 미만 사업장도, 알바도 예외가 아니에요. 회사가 뭐라고 하던가요?";
   if (path.startsWith("/foreign-workers"))
     return "This page explains our lawyer-run resignation service for foreign workers in Korea. Feel free to tell me your situation in English — I'll help you sort it out.";
   if (path.startsWith("/blog"))

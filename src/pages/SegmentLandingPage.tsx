@@ -481,6 +481,15 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
           >
             <Icon name="chat" size={16} /> 카톡으로 상담하기
           </a>
+          {/* 광고로 들어온 사람은 급한 경우가 많은데 전화 버튼이 아예 없었다
+              (2026-09-12 점검 07-3). 지금 통화할 길을 화면 안에 둔다. */}
+          <a
+            href="tel:1660-4452"
+            className="btn"
+            style={{ padding: 15, textAlign: "center" }}
+          >
+            <Icon name="phone" size={16} /> 지금 전화 1660-4452
+          </a>
         </div>
 
         <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 20, lineHeight: 1.6 }}>

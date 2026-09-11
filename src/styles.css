@@ -3816,3 +3816,20 @@ body[data-mascot="false"] .mascot {
   line-height: 1.65;
   background: var(--paper);
 }
+
+/* 관리자 저장 실패 — 성공 표시와 확실히 구분되어야 한다 */
+.admin-save-error {
+  color: #b3261e;
+  font-weight: 700;
+  font-size: 13px;
+  margin-left: 8px;
+}
+/* 계산기 경고 — 결과를 단정하지 않되 눈에 띄게 */
+.calc-warn {
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}

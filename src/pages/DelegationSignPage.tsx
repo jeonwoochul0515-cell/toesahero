@@ -186,8 +186,10 @@ export function DelegationSignPage() {
             width={600}
             height={220}
             style={{
+              // 캔버스 좌표계(600x220)와 같은 비율로 그려야 서명이 늘어나지 않는다.
               width: "100%",
-              height: 180,
+              aspectRatio: "600 / 220",
+              maxWidth: 600,
               border: "2px dashed var(--ink)",
               borderRadius: 12,
               background: "#fff",

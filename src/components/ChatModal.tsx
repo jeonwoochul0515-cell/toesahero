@@ -122,7 +122,7 @@ const replies = [
 // AI 챗봇 미설정·장애 시 폴백 응답
 const fallbackResponses: Record<string, string> = {
   "어떤 서비스예요?":
-    "퇴사 통보 대행부터 임금·퇴직금 청구, 직장 내 괴롭힘·부당해고 분쟁 대응까지 변호사가 직접 처리하는 서비스입니다. 임금 계산기(/calc)와 셀프 진단(/diagnose)도 무료로 쓰실 수 있습니다.",
+    "퇴사 통보 대행부터 임금·퇴직금 청구, 직장 내 괴롭힘·부당해고 분쟁 대응까지 변호사가 직접 처리하는 서비스입니다. 임금 계산기(/calc)와 셀프 진단(/diagnose)은 따로 비용 없이 쓰실 수 있습니다.",
   "비용이 궁금해요":
     "단순 통보 199,000원, 임금 청구 통합 390,000원, 분쟁 대응 790,000원 — 세 가지 정액 패키지입니다. 상황을 말씀해 주시면 맞는 패키지를 안내드립니다.",
   "계약서에 무서운 조항이 있어요":
@@ -252,6 +252,24 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   const [contactSending, setContactSending] = useState(false);
   // 대화 내용 전달 동의 — 민감정보가 섞이므로 기본 해제. 손님이 직접 체크해야 전달된다.
   const [shareChat, setShareChat] = useState(() => loadStoredContact().shareChat);
+  // 이미 보낸 안전 신호는 다시 보내지 않는다(같은 대화에서 반복 감지되어도 1회).
+  const safetySentRef = useRef<Set<string>>(new Set());
+  const notifySafety = (signal: "urgent" | "damage_threat") => {
+    if (safetySentRef.current.has(signal)) return;
+    safetySentRef.current.add(signal);
+    void fetch("/api/notify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type: "safety",
+        signal,
+        sessionId: sessionIdRef.current,
+      }),
+    }).catch(() => {
+      // 알림이 실패해도 손님 대화는 멈추지 않는다. 다음 신호에서 다시 시도되도록 표시를 지운다.
+      safetySentRef.current.delete(signal);
+    });
+  };
   // 개인정보 수집·이용 동의(필수) — 체크 전에는 접수가 전송되지 않는다.
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   // 연락처 시트 — 평소엔 접혀 있고 필요한 순간에만 대화 위로 올라온다(2026-09-06).
@@ -630,8 +648,22 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     let autoContactDeliveryFailed = false;
     if (!contactSaved) {
       const typedPhone = extractPhone(text);
-      if (typedPhone) {
-        // 대화에 회신 번호를 남기면 버튼 없이 그대로 접수한다.
+      if (typedPhone && !privacyAgreed) {
+        // 접수칸 경로에는 개인정보 동의 검사가 있는데 이 자동 접수 경로에는 없어서,
+        // 대화창에 번호만 적으면 동의 없이 저장·문자·중앙 접수함까지 나갔다
+        // (2026-09-12 점검 04-2). 동의를 받기 전에는 저장하지 않는다.
+        const formatted = typedPhone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+        setContact(formatted);
+        preMsgs = [
+          ...messages,
+          {
+            who: "them",
+            text: "번호를 아래 접수칸에 옮겨 두었어요. 개인정보 수집·이용 동의에 체크하고 «연락처 남기기»를 눌러 주시면 변호사님께 전달됩니다. 급하시면 전화 1660-4452로 연락 주셔도 돼요.",
+            expression: "calm",
+          },
+        ];
+      } else if (typedPhone) {
+        // 대화에 회신 번호를 남기면 버튼 없이 그대로 접수한다(동의를 받은 경우에만).
         const formatted = typedPhone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
         autoAcceptedPhone = formatted;
         setContact(formatted);
@@ -666,6 +698,10 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     // 회사의 손해배상·위약금 협박 감지 → 변호사 우선 대응 플래그
     const damageThreat =
       /손해\s*배상|손배|위약금|배상\s*청구|배상하|물어내|변상|구상권/.test(text);
+    // 안전 신호는 동의와 무관하게 사무실에 알린다. 동의는 마케팅 활용에 관한 것이지
+    // 사람을 구하는 일에 관한 것이 아니다. 대화 내용은 보내지 않고 신호만 보낸다
+    // (2026-09-12 점검 — 그동안 협박 감지가 선택 동의에 묶여 있었다).
+    if (damageThreat) notifySafety("damage_threat");
     // 일반 대화는 chat_messages에만 기록한다. 상담 목록에 같은 내용을 한 건씩
     // 중복 생성하지 않고, 손해배상 위협처럼 우선 확인이 필요한 경우만 별도 접수한다.
     if (shareChat && damageThreat) {
@@ -695,6 +731,10 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     );
 
     setTyping(false);
+
+    // 서버가 자해·긴급 신호로 판정하면 화면에만 109 카드를 띄우고 끝나던 것을,
+    // 사무실에도 알린다. 대화 내용은 보내지 않는다(2026-09-12 점검 04-1).
+    if (ai?.urgent) notifySafety("urgent");
 
     const reply: Msg = ai
       ? { who: "them", text: ai.text, expression: ai.expression, urgent: ai.urgent }

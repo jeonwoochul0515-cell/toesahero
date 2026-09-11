@@ -343,7 +343,20 @@ export function CheckoutPage() {
           </div>
         )}
 
-        {!confirmResult && (
+        {/* 이미 결제된 사건에 또 결제 버튼을 띄우면 두 번 낼 수 있다(2026-09-12 점검 01-2). */}
+        {!confirmResult && doc1?.paymentStatus === "paid" && (
+          <div className="checkout-result ok">
+            이 사건은 이미 결제가 완료되었습니다. 두 번 결제하지 않으셔도 됩니다.
+            <div style={{ marginTop: 14 }}>
+              <Link to="/my" className="btn primary">내 사건 보기</Link>
+              <a className="btn" href="tel:1660-4452" style={{ marginLeft: 8 }}>
+                1660-4452 전화
+              </a>
+            </div>
+          </div>
+        )}
+
+        {!confirmResult && doc1?.paymentStatus !== "paid" && (
           <>
             <div className="checkout-summary">
               <h2>{pkg.name}</h2>
