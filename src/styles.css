@@ -3805,3 +3805,14 @@ body[data-mascot="false"] .mascot {
   opacity: 0.55;
   cursor: default;
 }
+
+/* 조회 실패는 "0건"과 다르게 보여야 한다 */
+.my-load-error {
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.65;
+  background: var(--paper);
+}

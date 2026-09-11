@@ -163,7 +163,10 @@ export function CheckoutPage() {
         };
         if (resp.status === 503) {
           setConfirmResult(
-            "지금은 카드 결제를 받을 수 없습니다. 1660-4452로 전화 주시면 계좌 안내를 도와드리겠습니다."
+            [
+              "결제가 되었는지 확인하지 못했습니다. 승인이 이미 끝났을 수도 있습니다.",
+              "다시 결제하지 마시고 1660-4452로 전화 주십시오. 확인해서 바로 알려드리겠습니다.",
+            ].join("\n")
           );
           return;
         }
@@ -181,10 +184,18 @@ export function CheckoutPage() {
         // Firestore에 결제 결과 반영 — 의뢰인 본인이 카카오 로그인된 상태이므로
         // isOwner 권한으로 update 가능... 그러나 보안 규칙상 paymentStatus 는 어드민만 update 가능.
         // 따라서 프론트엔드는 결제 승인 결과만 UI에 표시하고 실제 DB 반영은 webhook 또는 어드민이 처리.
+        setPaidOk(true);
+        // 서버 반영(사건 기록·변호사 알림)이 실패해도 결제 자체는 성공이다. 다만 사무실
+        // 확인이 늦어질 수 있으므로 손님에게 그 사실을 숨기지 않는다(2026-09-12 점검 01-3).
+        const reflectFailed = (data as { warn?: string }).warn === "reflect_failed";
+        if (reflectFailed) console.warn("[payment] reflect failed", data);
         setConfirmResult(
-          `✓ 결제가 정상 처리되었습니다. 변호사 김창희가 영업일 기준 회신드립니다.\n결제 승인 시각: ${
-            data.payment?.approvedAt ?? "—"
-          }`
+          [
+            "결제가 정상 처리되었습니다. 담당변호사 김창희가 영업일 기준으로 연락드립니다.",
+            ...(reflectFailed
+              ? ["사무실 접수 처리가 조금 늦어질 수 있습니다. 하루가 지나도 연락이 없으면 1660-4452로 알려 주십시오."]
+              : []),
+          ].join("\n")
         );
       } catch (e) {
         console.warn("[payment] confirm error", e);

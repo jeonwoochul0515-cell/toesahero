@@ -153,6 +153,19 @@ export async function signInAdminWithEmail(
   return toAppUser(result.user)!;
 }
 
+// 관리자 전용 서버 API 를 부를 때 실어 보낼 ID 토큰. 서버가 이 토큰으로 관리자인지 확인한다.
+export async function getIdToken(): Promise<string | null> {
+  const a = getAuthOrNull();
+  const u = a?.currentUser ?? null;
+  if (!u) return null;
+  try {
+    return await u.getIdToken();
+  } catch (e) {
+    console.warn("[firebase] getIdToken failed", e);
+    return null;
+  }
+}
+
 export async function checkIsAdmin(uid: string): Promise<boolean> {
   const database = getDb();
   if (!database) return false;
@@ -369,7 +382,8 @@ export async function fetchChatMessagesBySession(
 export function watchMyCases(
   uid: string,
   cb: (rows: ConsultationDoc[]) => void,
-  max = 50
+  max = 50,
+  onError?: (message: string) => void
 ): () => void {
   const database = getDb();
   if (!database) {
@@ -382,7 +396,13 @@ export function watchMyCases(
     orderBy("createdAt", "desc"),
     limit(max)
   );
-  return onSnapshot(q, (snap) => cb(snap.docs.map(snapToConsultation)));
+  // 실패를 조용히 넘기면 "사건이 없습니다"와 구분이 안 된다. 색인 누락·권한 오류가
+  // 손님에게 빈 화면으로만 보였다(2026-09-12 점검). 반드시 알린다.
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(snapToConsultation)),
+    snapshotError("consultations(uid)", onError)
+  );
 }
 
 // 신규 상담 신청 시 변호사에게 문자 알림 (서버 /api/notify 경유).

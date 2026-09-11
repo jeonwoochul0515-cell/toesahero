@@ -1,11 +1,11 @@
 {
   "origin": "https://toesahero.com",
   "dist": "C:\\Users\\jeonw\\.antigravity\\퇴사히어로\\design_handoff_toesahero\\dist",
-  "at": "2026-09-11T05:46:44.920Z",
+  "at": "2026-09-11T20:34:57.997Z",
   "counts": {
-    "FAIL": 1,
+    "FAIL": 0,
     "WARN": 9,
-    "PASS": 60,
+    "PASS": 61,
     "N_A": 3,
     "NOT_RUN": 0
   },
@@ -602,11 +602,9 @@
       "area": "G Naver·브랜드",
       "level": "REQUIRED",
       "label": "브랜드명 표기 통일 (금지 변형 없음)",
-      "status": "FAIL",
-      "detail": "1/47 페이지",
-      "failing": [
-        "/blog/auto-mttm11bg"
-      ]
+      "status": "PASS",
+      "detail": "",
+      "failing": []
     },
     {
       "id": "G07",

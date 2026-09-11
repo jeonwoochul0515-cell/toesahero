@@ -61,6 +61,7 @@ export function MyPage() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const seo = usePageMeta({
     title: "마이페이지 — 의뢰인 본인 사건 진행 상황",
@@ -79,7 +80,14 @@ export function MyPage() {
 
   useEffect(() => {
     if (!user) return;
-    return watchMyCases(user.uid, setCases, 50);
+    setLoadError(null);
+    // 조회가 실패하면 "사건이 없습니다"와 똑같이 보여, 손님이 자기 사건이 사라진 줄 안다.
+    // 실패는 실패라고 밝히고 연락 경로를 준다(2026-09-12 점검).
+    return watchMyCases(user.uid, setCases, 50, () =>
+      setLoadError(
+        "사건 목록을 불러오지 못했습니다. 신청이 사라진 것은 아닙니다. 잠시 후 새로고침해 보시고, 그래도 안 되면 1660-4452로 전화 주십시오."
+      )
+    );
   }, [user]);
 
   useEffect(() => {
@@ -185,6 +193,8 @@ export function MyPage() {
 
       <main className="my-main">
         <h1 className="my-h1">내 사건 ({cases.length})</h1>
+
+        {loadError && <div className="my-load-error">{loadError}</div>}
 
         {cases.length === 0 ? (
           <div className="my-empty">

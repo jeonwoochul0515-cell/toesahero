@@ -4,7 +4,9 @@
 // 어드민이 ConsultationDetail에서 [📧 이메일 발송] 버튼을 클릭하면 호출됩니다.
 // 발송 후 Firestore의 draftStatus/noticeStatus 를 'sent'로 업데이트합니다.
 
-interface Env {
+import { requireAdmin, type AdminAuthEnv } from "./_admin-auth";
+
+interface Env extends AdminAuthEnv {
   RESEND_API_KEY?: string;
   // FROM 주소: 도메인 검증 후 noreply@toesahero.kr 같은 형태로 사용
   // 미설정 시 Resend 의 onboarding 임시 도메인 활용
@@ -88,6 +90,13 @@ function buildHtml(letterText: string, kind: LetterKind, clientName?: string): s
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+  // 사무소 명의로 메일이 나가는 경로다. 인증 없이 열려 있으면 누구나 「법률사무소 청송law
+  // 담당변호사 김창희」 이름으로 아무 회사에나 메일을 보낼 수 있다(2026-09-12 점검에서 발견).
+  const admin = await requireAdmin(request, env);
+  if (!admin.ok) {
+    return jsonResponse({ error: admin.error, message: admin.message }, admin.status);
+  }
+
   if (!env.RESEND_API_KEY) {
     return jsonResponse(
       {

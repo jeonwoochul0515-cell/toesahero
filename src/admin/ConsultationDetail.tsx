@@ -8,6 +8,7 @@ import {
   type ConsultationDoc,
   type ChatMessageDoc,
   type CaseFileDoc,
+  getIdToken,
 } from "../firebase";
 
 const STATUS_OPTIONS: Array<{ value: NonNullable<ConsultationDoc["status"]>; label: string }> = [
