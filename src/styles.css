@@ -3725,3 +3725,62 @@ body[data-mascot="false"] .mascot {
   color: var(--ink, #141414);
   text-align: center;
 }
+
+/* 예행연습 2026-09-12 — 결제 뒤 다음 행동, 로그인 안내, 빈 화면 연락 경로 */
+.checkout-next {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 2px dashed var(--ink);
+  text-align: left;
+}
+.checkout-next h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+.checkout-next ol {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+.checkout-next li + li {
+  margin-top: 14px;
+}
+.checkout-login-hint {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 0 0 20px;
+}
+.checkout-login-hint strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+.checkout-login-hint p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.my-empty-note {
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 460px;
+  margin: 0 auto 18px !important;
+}
+.my-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+/* 손가락으로 누르는 버튼은 44px 아래로 내려가지 않게 한다 */
+.my-empty-actions .btn,
+.checkout-login-hint .btn,
+.checkout-next .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

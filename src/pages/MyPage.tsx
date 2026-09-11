@@ -170,10 +170,29 @@ export function MyPage() {
 
         {cases.length === 0 ? (
           <div className="my-empty">
-            <p>아직 신청한 사건이 없습니다.</p>
-            <Link to="/" className="btn primary">
-              <Icon name="chat" size={16} /> 상담 신청하러 가기
-            </Link>
+            <p>이 계정으로 신청하신 사건이 아직 없습니다.</p>
+            {/* 로그인 없이 상담·결제한 건은 계정에 붙지 않아 여기 나오지 않는다.
+                "없습니다"로만 끝내면 결제한 손님이 돈만 냈다고 생각한다(2026-09-12 예행연습 ①). */}
+            <p className="my-empty-note">
+              이미 상담을 신청하셨거나 결제하셨는데 보이지 않는다면, 로그인 없이 진행하신
+              경우입니다. 신청이 취소된 것은 아니니 아래로 연락 주시면 바로 확인해 드리겠습니다.
+            </p>
+            <div className="my-empty-actions">
+              <Link to="/" className="btn primary">
+                <Icon name="chat" size={16} /> 상담 신청하러 가기
+              </Link>
+              <a className="btn" href="tel:1660-4452">
+                <Icon name="phone" size={16} /> 1660-4452 전화
+              </a>
+              <a
+                className="btn"
+                href="https://pf.kakao.com/_zkzIX"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                카카오톡으로 문의
+              </a>
+            </div>
           </div>
         ) : (
           <div className="my-cases">

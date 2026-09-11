@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   watchAuth,
+  signInWithKakao,
   type AppUser,
   type ConsultationDoc,
 } from "../firebase";
@@ -74,6 +75,7 @@ export function CheckoutPage() {
   const [tossLoaded, setTossLoaded] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmResult, setConfirmResult] = useState<string | null>(null);
+  const [paidOk, setPaidOk] = useState(false);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -125,6 +127,19 @@ export function CheckoutPage() {
     document.head.appendChild(script);
   }, []);
 
+  // 결제 실패로 되돌아온 경우(?fail=1). 토스는 code·message도 함께 붙여 준다.
+  useEffect(() => {
+    if (!searchParams.get("fail")) return;
+    const reason = searchParams.get("message");
+    setConfirmResult(
+      [
+        "결제가 완료되지 않았습니다.",
+        ...(reason ? [`사유: ${reason}`] : []),
+        "카드사에서 승인이 거절되었거나 결제창을 닫으신 경우입니다. 아래에서 다시 시도하실 수 있고, 계속 안 되시면 1660-4452로 전화 주시면 도와드리겠습니다.",
+      ].join("\n")
+    );
+  }, [searchParams]);
+
   // success 콜백 처리 (URL ?paymentKey=...&orderId=...&amount=... 으로 돌아옴)
   useEffect(() => {
     const paymentKey = searchParams.get("paymentKey");
@@ -148,15 +163,18 @@ export function CheckoutPage() {
         };
         if (resp.status === 503) {
           setConfirmResult(
-            "❌ 결제 인프라 미설정. 변호사 사무소에 직접 입금 안내드립니다."
+            "지금은 카드 결제를 받을 수 없습니다. 1660-4452로 전화 주시면 계좌 안내를 도와드리겠습니다."
           );
           return;
         }
         if (!resp.ok || !data.ok) {
+          // 손님에게는 무엇을 하면 되는지만 보여 주고, 원인 코드는 사무실이 볼 수 있게 콘솔에만 남긴다.
+          console.warn("[payment] confirm failed", data.error, data.message);
           setConfirmResult(
-            `❌ 결제 승인 실패: ${data.error ?? "unknown"} ${
-              data.message ?? ""
-            }`
+            [
+              "결제 승인이 완료되지 않았습니다. 카드에서 금액이 빠져나갔다면 자동으로 취소됩니다.",
+              "1660-4452로 전화 주시면 바로 확인해 드리겠습니다.",
+            ].join("\n")
           );
           return;
         }
@@ -169,7 +187,11 @@ export function CheckoutPage() {
           }`
         );
       } catch (e) {
-        setConfirmResult(`❌ ${String(e)}`);
+        console.warn("[payment] confirm error", e);
+        setConfirmResult(
+          "결제 결과를 확인하는 중 연결이 끊겼습니다. 잠시 후 새로고침해 보시고, " +
+            "그래도 안 되면 1660-4452로 전화 주십시오."
+        );
       } finally {
         setConfirming(false);
       }
@@ -183,7 +205,7 @@ export function CheckoutPage() {
     }
     if (!TOSS_CLIENT_KEY || !window.TossPayments) {
       alert(
-        "결제 인프라가 아직 설정되지 않았습니다. 변호사 사무소에 직접 문의해 주세요. (☎ 1660-4452)"
+        "지금은 카드 결제를 받을 수 없습니다. 1660-4452로 전화 주시면 계좌 안내를 도와드리겠습니다."
       );
       return;
     }
@@ -223,8 +245,7 @@ export function CheckoutPage() {
       };
       if (resp.status === 503) {
         alert(
-          data.message ??
-            "결제 인프라가 아직 설정되지 않았습니다. ☎ 1660-4452 로 문의해 주세요."
+          "지금은 카드 결제를 받을 수 없습니다. 1660-4452로 전화 주시면 계좌 안내를 도와드리겠습니다."
         );
         return;
       }
@@ -268,10 +289,44 @@ export function CheckoutPage() {
 
       <main className="calc-main" style={{ maxWidth: 700 }}>
         {confirmResult && (
-          <div className={`checkout-result ${confirmResult.startsWith("✓") ? "ok" : "fail"}`}>
+          <div className={`checkout-result ${paidOk ? "ok" : "fail"}`}>
             {confirmResult}
+            {/* 결제만 끝내고 끝내지 않는다. 다음에 무엇을 하면 되는지를 이 화면에서 이어 준다.
+                위임장은 그동안 손님이 갈 길이 아예 없었다(2026-09-12 예행연습 ②). */}
+            {paidOk && (
+              <div className="checkout-next">
+                <h3>다음으로 하실 일</h3>
+                <ol>
+                  <li>
+                    <strong>위임장에 서명해 주세요.</strong> 변호사가 회사에 정식으로
+                    통보하려면 위임장이 필요합니다. 휴대폰에서 손가락으로 서명하시면 됩니다.
+                    <div style={{ marginTop: 6 }}>
+                      <Link to="/delegation" className="btn primary">위임장 서명하러 가기</Link>
+                    </div>
+                  </li>
+                  <li>
+                    <strong>자료를 보내 주세요.</strong> 근로계약서·급여명세서·회사와 주고받은
+                    문자가 있으면 카카오톡 채널로 보내 주시면 변호사가 함께 확인합니다.
+                    <div style={{ marginTop: 6 }}>
+                      <a
+                        className="btn"
+                        href="https://pf.kakao.com/_zkzIX"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        카카오톡 채널로 자료 보내기
+                      </a>
+                    </div>
+                  </li>
+                  <li>
+                    담당변호사 김창희가 영업일 기준으로 연락드립니다. 급하시면 1660-4452로
+                    전화 주셔도 됩니다.
+                  </li>
+                </ol>
+              </div>
+            )}
             <div style={{ marginTop: 14 }}>
-              <Link to="/my" className="btn primary">내 사건 보기</Link>
+              <Link to="/my" className="btn">내 사건 보기</Link>
               <Link to="/" className="btn" style={{ marginLeft: 8 }}>홈</Link>
             </div>
           </div>
@@ -293,10 +348,32 @@ export function CheckoutPage() {
               )}
             </div>
 
+            {/* 로그인 없이 결제하면 그 사건이 계정에 붙지 않아 「내 사건」에서 영영 보이지 않는다.
+                결제 전에 그 사실을 알리고 로그인을 먼저 권한다(2026-09-12 예행연습 ①⑧). */}
+            {!user && (
+              <div className="checkout-login-hint">
+                <strong>진행 상황을 직접 확인하시려면 먼저 로그인해 주세요.</strong>
+                <p>
+                  로그인하시면 접수부터 종료까지 어디까지 왔는지 「내 사건」에서 보실 수 있고,
+                  근로계약서 같은 자료도 올리실 수 있습니다. 로그인 없이 결제하셔도 진행에는
+                  문제가 없지만, 그 경우 진행 상황은 전화나 카카오톡으로 안내받으셔야 합니다.
+                </p>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={() => void signInWithKakao()}
+                >
+                  <Icon name="chat" size={16} /> 카카오로 로그인하고 진행
+                </button>
+              </div>
+            )}
+
             <div className="checkout-terms">
               <h3>의뢰인 정보</h3>
               <p style={{ fontSize: 13, color: "#666", margin: "4px 0 10px" }}>
-                로그인 없이 진행됩니다. 변호사가 연락드릴 정보만 입력해 주세요.
+                {user
+                  ? "변호사가 연락드릴 정보를 확인해 주세요."
+                  : "로그인 없이도 진행됩니다. 변호사가 연락드릴 정보만 입력해 주세요."}
               </p>
               <div style={{ display: "grid", gap: 10, marginBottom: 6 }}>
                 <input
