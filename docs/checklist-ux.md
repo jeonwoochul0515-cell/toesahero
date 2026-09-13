@@ -100,7 +100,10 @@
 - 커밋 `c99e5ec` `6992b93` `a14a769`
 - 독립 검토(codex) 2회 — HIGH 1건(오프라인 addDoc이 문자 발송까지 막음),
   MEDIUM 1건(정렬 없는 limit) 모두 ACCEPT 후 수정·재검증
-- **아직 배포하지 않았다.** 배포는 사용자 확인 후.
+- **배포 완료** — 2026-09-13 09:54 KST, Cloudflare Pages `environment == production`, branch `main`.
+  실서비스 번들 md5 대조로 반영 확인(`app` · `ConsultationDetail` · `PrintLetter` 전부 일치),
+  홈에 "통보문 작성 요청하기" 노출, IndexNow 통지 HTTP 200.
+  (첫 배포 시도는 PC 메모리 부족으로 빌드가 죽었고, 재시도해서 성공했다.)
 
 ## 남은 것 (1차 발견 중)
 
