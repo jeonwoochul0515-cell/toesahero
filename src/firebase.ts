@@ -28,6 +28,7 @@ import {
   onSnapshot,
   updateDoc,
   type DocumentData,
+  type DocumentReference,
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
 import {
@@ -448,6 +449,21 @@ export function watchMyCases(
   );
 }
 
+// 접수 저장을 정해진 시간 안에 매듭짓는다(2026-09-13).
+// 오프라인이면 addDoc은 "실패"하지 않는다 — 로컬에 써 두고 서버 확인이 올 때까지 끝나지 않는다.
+// 접수 문자가 그 뒤에 묶이면 유일한 기록마저 못 나가므로 여기서 끊고 문자 경로로 넘어간다.
+// 뒤늦게 저장이 성사되면 문서는 정상으로 남는다(문자는 어차피 한 번만 보낸다).
+async function docIdWithin(
+  write: Promise<DocumentReference<DocumentData>>,
+  ms = 8_000
+): Promise<string | null> {
+  const ref = await Promise.race([
+    write,
+    new Promise<null>((r) => setTimeout(() => r(null), ms)),
+  ]);
+  return ref?.id ?? null;
+}
+
 // 신규 상담 신청 시 변호사에게 문자 알림 (서버 /api/notify 경유).
 // name·contact를 명시적으로 보내면 서버가 중앙 접수함(lead-inbox)에도 사본을 남긴다.
 // 접수 누락 방지: 네트워크 실패 시 1회 재시도하고, 문자가 실제로 나갔는지(boolean)를 돌려준다.
@@ -530,14 +546,7 @@ export async function saveNoticeConsultation(
           typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
         path: typeof window !== "undefined" ? window.location.pathname : "/",
       });
-      // 오프라인이면 addDoc은 서버 확인이 올 때까지 끝나지 않는다.
-      // 문자 알림이 그 뒤에 묶이면 유일한 기록마저 못 나가므로 8초에서 끊고 문자부터 보낸다.
-      // (나중에 저장이 성사되면 문서는 정상적으로 남는다 — 문자는 어차피 한 번만 보낸다.)
-      const ref = await Promise.race([
-        write,
-        new Promise<null>((r) => setTimeout(() => r(null), 8_000)),
-      ]);
-      id = ref?.id ?? null;
+      id = await docIdWithin(write);
     } catch (e) {
       console.warn("[firebase] saveNoticeConsultation failed", e);
     }
@@ -960,7 +969,7 @@ export async function saveDraftConsultation(
   const database = getDb();
   if (database) {
     try {
-      const ref = await addDoc(collection(database, "consultations"), {
+      const write = addDoc(collection(database, "consultations"), {
         source: "draft",
         message: "자동 생성 통보문 초안 — 변호사 검토 대기",
         uid: user?.uid ?? null,
@@ -977,7 +986,7 @@ export async function saveDraftConsultation(
           typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
         path: typeof window !== "undefined" ? window.location.pathname : "/",
       });
-      id = ref.id;
+      id = await docIdWithin(write);
     } catch (e) {
       console.warn("[firebase] saveDraftConsultation failed", e);
     }
@@ -990,7 +999,7 @@ export async function saveDraftConsultation(
     [
       id
         ? null
-        : "[주의] DB 저장 실패 — 어드민에 기록이 없습니다. 이 문자가 유일한 기록입니다.",
+        : "[주의] 저장 확인 실패 — 어드민에 기록이 없을 수 있습니다. 이 문자를 기준으로 연락해 주세요.",
       payload.userName ? `이름 ${payload.userName}` : null,
       payload.contact ? `연락처 ${payload.contact}` : null,
       payload.conversationLog
@@ -1072,7 +1081,7 @@ export async function saveConsultationDetailed(
   const database = getDb();
   if (database) {
     try {
-      const ref = await addDoc(collection(database, "consultations"), {
+      const write = addDoc(collection(database, "consultations"), {
         ...payload,
         uid: user?.uid ?? null,
         userName: payload.userName ?? user?.displayName ?? null,
@@ -1082,7 +1091,7 @@ export async function saveConsultationDetailed(
           typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
         path: typeof window !== "undefined" ? window.location.pathname : "/",
       });
-      id = ref.id;
+      id = await docIdWithin(write);
     } catch (e) {
       console.warn("[firebase] saveConsultation failed", e);
     }
@@ -1099,7 +1108,7 @@ export async function saveConsultationDetailed(
         // 이모지(⚠ 등)는 EUC-KR에 없어 문자 발송에서 깨질 수 있다 — 텍스트로 표기.
         id
           ? null
-          : "[주의] DB 저장 실패 — 어드민에 기록이 없습니다. 이 문자가 유일한 기록입니다.",
+          : "[주의] 저장 확인 실패 — 어드민에 기록이 없을 수 있습니다. 이 문자를 기준으로 연락해 주세요.",
         payload.damageThreat ? "[긴급] 손배·위약금 협박 감지" : null,
         payload.userName ? `이름 ${payload.userName}` : null,
         payload.contact ? `연락처 ${payload.contact}` : null,
