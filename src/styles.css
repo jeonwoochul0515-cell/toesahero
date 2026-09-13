@@ -2465,6 +2465,16 @@ body[data-mascot="false"] .mascot {
   margin: 0 auto 20px;
   color: var(--ink);
 }
+/* 접수는 됐지만 화면 조회에 연결되지 않은 경우의 안내 */
+.calc-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 2px dashed var(--ink);
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: left;
+}
 
 /* ─── Checkout 페이지 ─── */
 .checkout-page {

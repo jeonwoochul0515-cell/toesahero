@@ -456,59 +456,77 @@ export type NoticeSubmission = {
   contact?: string | null; // 변호사 회신용 휴대전화
 };
 
+// 계산기 접수도 채팅 접수와 같은 원칙을 따른다(2026-09-13):
+// DB 저장과 문자 알림은 독립 경로다. DB가 죽어도 문자로 접수가 살아남고,
+// 호출부는 두 경로의 성패를 모두 받아 손님에게 거짓 성공을 말하지 않는다.
 export async function saveNoticeConsultation(
   payload: NoticeSubmission
-): Promise<string | null> {
+): Promise<SaveConsultationResult> {
   const database = getDb();
-  if (!database) {
-    console.info("[firebase] config missing — skipping notice save");
-    return null;
-  }
   const a = getAuthOrNull();
   const user = a?.currentUser ?? null;
-  try {
-    const ref = await addDoc(collection(database, "consultations"), {
-      source: "notice",
-      message: "표준 패키지: 내용증명 1차 초안 — 변호사 검토 대기",
-      uid: user?.uid ?? null,
-      userName: payload.userName ?? user?.displayName ?? null,
-      userEmail: user?.email ?? null,
-      contact: payload.contact ?? null,
-      pickedItems: payload.computedItems.map((i) => i.label),
-      estimatedAmount: payload.computedTotal,
-      meta: { factSummary: payload.factSummary, items: payload.computedItems },
-      noticeLetter: payload.noticeLetter,
-      noticeStatus: "pending_review",
-      status: "new",
-      createdAt: serverTimestamp(),
-      userAgent:
-        typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
-      path: typeof window !== "undefined" ? window.location.pathname : "/",
-    });
-    notifyNewConsultation(
-      "notice",
-      ref.id,
-      [
-        payload.userName ? `이름 ${payload.userName}` : null,
-        payload.contact ? `연락처 ${payload.contact}` : null,
-        `합산액 ${payload.computedTotal.toLocaleString("ko-KR")}원`,
-        payload.computedItems.length
-          ? "청구 항목: " +
-            payload.computedItems
-              .map((i) => `${i.label} ${i.amount.toLocaleString("ko-KR")}원`)
-              .join(" / ")
-          : null,
-        payload.factSummary ? `입력 내용: ${payload.factSummary.slice(0, 500)}` : null,
-      ]
-        .filter(Boolean)
-        .join("\n") || undefined,
-      { name: payload.userName, contact: payload.contact }
-    );
-    return ref.id;
-  } catch (e) {
-    console.warn("[firebase] saveNoticeConsultation failed", e);
-    return null;
+
+  let id: string | null = null;
+  if (database) {
+    try {
+      const write = addDoc(collection(database, "consultations"), {
+        source: "notice",
+        message: "표준 패키지: 내용증명 1차 초안 — 변호사 검토 대기",
+        uid: user?.uid ?? null,
+        userName: payload.userName ?? user?.displayName ?? null,
+        userEmail: user?.email ?? null,
+        contact: payload.contact ?? null,
+        pickedItems: payload.computedItems.map((i) => i.label),
+        estimatedAmount: payload.computedTotal,
+        meta: { factSummary: payload.factSummary, items: payload.computedItems },
+        noticeLetter: payload.noticeLetter,
+        noticeStatus: "pending_review",
+        status: "new",
+        createdAt: serverTimestamp(),
+        userAgent:
+          typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        path: typeof window !== "undefined" ? window.location.pathname : "/",
+      });
+      // 오프라인이면 addDoc은 서버 확인이 올 때까지 끝나지 않는다.
+      // 문자 알림이 그 뒤에 묶이면 유일한 기록마저 못 나가므로 8초에서 끊고 문자부터 보낸다.
+      // (나중에 저장이 성사되면 문서는 정상적으로 남는다 — 문자는 어차피 한 번만 보낸다.)
+      const ref = await Promise.race([
+        write,
+        new Promise<null>((r) => setTimeout(() => r(null), 8_000)),
+      ]);
+      id = ref?.id ?? null;
+    } catch (e) {
+      console.warn("[firebase] saveNoticeConsultation failed", e);
+    }
+  } else {
+    console.info("[firebase] config missing — 계산기 접수를 문자 알림으로만 전달");
   }
+
+  const notified = await notifyNewConsultation(
+    "notice",
+    id ?? "",
+    [
+      // 이모지는 EUC-KR에 없어 문자에서 깨진다 — 텍스트로 표기.
+      id
+        ? null
+        : "[주의] 저장 확인 실패 — 어드민에 기록이 없을 수 있습니다. 이 문자를 기준으로 연락해 주세요.",
+      payload.userName ? `이름 ${payload.userName}` : null,
+      payload.contact ? `연락처 ${payload.contact}` : null,
+      `합산액 ${payload.computedTotal.toLocaleString("ko-KR")}원`,
+      payload.computedItems.length
+        ? "청구 항목: " +
+          payload.computedItems
+            .map((i) => `${i.label} ${i.amount.toLocaleString("ko-KR")}원`)
+            .join(" / ")
+        : null,
+      payload.factSummary ? `입력 내용: ${payload.factSummary.slice(0, 500)}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n") || undefined,
+    { name: payload.userName, contact: payload.contact }
+  );
+
+  return { id, notified };
 }
 
 export async function updateConsultation(

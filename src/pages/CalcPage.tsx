@@ -196,7 +196,8 @@ export function CalcPage() {
     companySize: "under30",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  // id가 null이면 DB 저장은 실패했지만 사무실 문자로 접수가 전달된 경우다.
+  const [submitted, setSubmitted] = useState<{ id: string | null } | null>(null);
   // 변호사가 회신할 연락처 — 미수집 시 신청이 들어와도 연락할 방법이 없어 필수로 받는다.
   const [applicantName, setApplicantName] = useState("");
   const [applicantPhone, setApplicantPhone] = useState("");
@@ -289,15 +290,29 @@ export function CalcPage() {
         amount: i.amount,
       }));
 
-      const noticeResp = await fetch("/api/notice", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ factSummary, items: computedItems }),
-      });
+      // 초안 생성이 접수를 막지 않게 한다(2026-09-13).
+      // 신호가 나빠 응답이 안 오면 예전에는 "생성 중..."이 무한히 돌고 접수도 못 됐다.
+      // 20초가 지나면 초안 없이 접수부터 남긴다.
       let noticeLetter = "";
-      if (noticeResp.ok) {
-        const data = (await noticeResp.json()) as { text?: string };
-        noticeLetter = data.text ?? "";
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 20_000);
+        try {
+          const noticeResp = await fetch("/api/notice", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ factSummary, items: computedItems }),
+            signal: controller.signal,
+          });
+          if (noticeResp.ok) {
+            const data = (await noticeResp.json()) as { text?: string };
+            noticeLetter = data.text ?? "";
+          }
+        } finally {
+          clearTimeout(timer);
+        }
+      } catch (e) {
+        console.warn("[calc] notice draft failed", e);
       }
       if (!noticeLetter) {
         noticeLetter =
@@ -307,7 +322,7 @@ export function CalcPage() {
           computedItems.map((i) => `- ${i.label}: ${fmt(i.amount)}원`).join("\n");
       }
 
-      const id = await saveNoticeConsultation({
+      const { id, notified } = await saveNoticeConsultation({
         noticeLetter,
         computedItems,
         computedTotal: total,
@@ -315,10 +330,13 @@ export function CalcPage() {
         userName: name,
         contact: phone,
       });
-      if (id) {
-        setSubmitted(id);
+      if (id || notified) {
+        // 저장은 실패해도 사무실에 문자가 닿았다면 접수는 살아 있다.
+        setSubmitted({ id });
       } else {
-        alert("저장에 실패했습니다. 카카오톡 채널로 직접 문의해 주세요.");
+        alert(
+          "접수를 전달하지 못했습니다. 잠시 후 다시 시도하시거나 카카오톡 채널로 문의해 주세요."
+        );
       }
     } catch (e) {
       console.error(e);
@@ -339,14 +357,27 @@ export function CalcPage() {
             <div className="calc-success-icon">✓</div>
             <h1 className="my-h1">검토 신청이 접수되었습니다</h1>
             <p>
-              접수번호: <strong>#{submitted.slice(0, 8)}</strong>
-              <br />
+              {submitted.id ? (
+                <>
+                  접수번호: <strong>#{submitted.id.slice(0, 8)}</strong>
+                  <br />
+                </>
+              ) : null}
               변호사 김창희가 사실관계 확인 + 내용증명 1차 초안 검토 후 안내드립니다.
             </p>
+            {submitted.id ? null : (
+              <p className="calc-note">
+                지금 접수 내용은 사무실로 바로 전달됐습니다. 다만 일시적인 문제로
+                화면에서 진행 상황을 보시는 기능은 이번 건에 연결되지 않았습니다.
+                안내는 적어 주신 번호로 드립니다.
+              </p>
+            )}
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap", justifyContent: "center" }}>
-              <Link to="/my" className="btn primary">
-                내 사건 진행 상황 보기
-              </Link>
+              {submitted.id ? (
+                <Link to="/my" className="btn primary">
+                  내 사건 진행 상황 보기
+                </Link>
+              ) : null}
               <Link to="/" className="btn">홈으로</Link>
             </div>
           </div>
