@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { watchConsultations, type ConsultationDoc } from "../firebase";
+import { watchConsultation, type ConsultationDoc } from "../firebase";
 
 export function PrintLetter() {
   const { id } = useParams();
   const [row, setRow] = useState<ConsultationDoc | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [hasAutoPrinted, setHasAutoPrinted] = useState(false);
 
   useEffect(() => {
-    return watchConsultations((rows) => {
-      setRow(rows.find((r) => r.id === id) ?? null);
-    }, 500);
+    if (!id) return;
+    setNotFound(false);
+    return watchConsultation(id, (found) => {
+      setRow(found);
+      setNotFound(found === null);
+    });
   }, [id]);
 
   // 페이지 로드 + 데이터 도착 후 자동 인쇄 다이얼로그 1회
@@ -27,7 +31,9 @@ export function PrintLetter() {
   if (!row) {
     return (
       <div className="print-letter-page">
-        <div className="print-letter">로드 중...</div>
+        <div className="print-letter">
+          {notFound ? "이 사건을 찾을 수 없습니다." : "불러오는 중..."}
+        </div>
       </div>
     );
   }

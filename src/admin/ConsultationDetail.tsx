@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
-  watchConsultations,
+  watchConsultation,
+  fetchConsultationsBySession,
   updateConsultation,
   fetchChatMessagesBySession,
   watchCaseFiles,
@@ -28,6 +29,12 @@ function fmtDate(ts: ConsultationDoc["createdAt"]): string {
 export function ConsultationDetail() {
   const { id } = useParams();
   const [row, setRow] = useState<ConsultationDoc | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  // 같은 대화에서 앞서 저장된 상태·메모 (대표 문서가 바뀌어도 안 사라지게 승계해 보여 준다)
+  const [inherited, setInherited] = useState<{
+    status?: ConsultationDoc["status"];
+    notes?: string;
+  }>({});
   const [notes, setNotes] = useState("");
   const [draftEdit, setDraftEdit] = useState("");
   const [noticeEdit, setNoticeEdit] = useState("");
@@ -46,13 +53,16 @@ export function ConsultationDetail() {
     // 사건(id)이 바뀌면 이전 사건의 편집 내용부터 비운다 — 남겨두면 A 사건의
     // 문서가 B 사건 화면에 그대로 보이고 저장까지 될 수 있다.
     setRow(null);
+    setNotFound(false);
+    setInherited({});
     setNotes("");
     setDraftEdit("");
     setNoticeEdit("");
+    if (!id) return;
     let seeded = false;
-    return watchConsultations((rows) => {
-      const found = rows.find((r) => r.id === id) ?? null;
+    return watchConsultation(id, (found) => {
       setRow(found);
+      setNotFound(found === null);
       if (!found) return;
       // 메모는 첫 스냅샷에서 한 번만 시딩 — 이후 스냅샷이 수정 중인 내용을 덮지 않게.
       if (!seeded) {
@@ -67,8 +77,31 @@ export function ConsultationDetail() {
       if (found.noticeLetter) {
         setNoticeEdit((prev) => (prev === "" ? found.noticeLetter ?? "" : prev));
       }
-    }, 500);
+    });
   }, [id]);
+
+  // 같은 대화에 앞서 만들어진 접수 문서에서 상태·메모를 승계한다(2026-09-13).
+  // 손님이 대화를 이어가면 새 접수 문서가 생기고 목록은 그 문서로 링크한다. 승계하지 않으면
+  // 어제 바꿔 둔 상태와 적어 둔 메모가 이 화면에서 사라진 것처럼 보인다.
+  useEffect(() => {
+    if (!sessionId || !row) return;
+    if (row.status !== undefined && row.notes !== undefined) return;
+    let cancel = false;
+    void fetchConsultationsBySession(sessionId).then((siblings) => {
+      if (cancel) return;
+      const older = siblings.filter((s) => s.id !== row.id);
+      const status =
+        row.status ?? older.find((s) => s.status !== undefined)?.status;
+      const notes = row.notes ?? older.find((s) => s.notes !== undefined)?.notes;
+      setInherited({ status, notes });
+      if (row.notes === undefined && notes !== undefined) {
+        setNotes((prev) => (prev === "" ? notes : prev));
+      }
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [sessionId, row]);
 
   // 같은 대화(sessionId)에 속한 채팅 메시지 전체를 불러와 시간순으로 표시.
   useEffect(() => {
@@ -91,13 +124,20 @@ export function ConsultationDetail() {
     return watchCaseFiles(id, setCaseFiles);
   }, [id]);
 
+  // 이 문서에 상태가 저장돼 있으면 그 값, 없으면 같은 대화에서 승계한 값, 둘 다 없으면 신규.
+  const currentStatus = row?.status ?? inherited.status ?? "new";
+
   if (!row) {
     return (
       <div className="admin-dash">
         <Link to="/admin/consultations" className="admin-link">
           ← 상담 요청 목록
         </Link>
-        <p style={{ marginTop: 24 }}>로드 중... (없는 ID 일 수도 있음)</p>
+        <p style={{ marginTop: 24 }}>
+          {notFound
+            ? "이 사건을 찾을 수 없습니다. 삭제되었거나 주소가 잘못되었습니다."
+            : "불러오는 중..."}
+        </p>
       </div>
     );
   }
@@ -766,10 +806,10 @@ export function ConsultationDetail() {
             {STATUS_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
-                disabled={saving || (row.status ?? "new") === opt.value}
+                disabled={saving || currentStatus === opt.value}
                 onClick={() => void updateStatus(opt.value)}
                 className={`admin-status-btn ${
-                  (row.status ?? "new") === opt.value ? "current" : ""
+                  currentStatus === opt.value ? "current" : ""
                 }`}
               >
                 {opt.label}

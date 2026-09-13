@@ -333,6 +333,49 @@ export function watchConsultations(
   );
 }
 
+// 사건 하나만 직접 구독 (어드민 상세·인쇄용).
+// 예전에는 최근 500건을 통째로 받아 그 안에서 id를 찾았고, 500건 밖으로 밀려난 오래된 사건은
+// 화면이 "로드 중"에서 끝나지 않았다. 문서가 없으면 null을 넘겨 "못 찾음"을 분명히 구분한다.
+export function watchConsultation(
+  id: string,
+  cb: (row: ConsultationDoc | null) => void
+): () => void {
+  const database = getDb();
+  if (!database) {
+    cb(null);
+    return () => {};
+  }
+  return onSnapshot(
+    doc(database, "consultations", id),
+    (snap) => cb(snap.exists() ? snapToConsultation(snap) : null),
+    snapshotError("consultation")
+  );
+}
+
+// 같은 채팅 대화(sessionId)로 만들어진 상담 문서 전부를 최신순으로 조회.
+// where 단일 등가 조건이라 복합 인덱스가 필요 없도록 정렬은 클라이언트에서 수행한다.
+// limit을 걸지 않는 이유 — 정렬 없이 자르면 어느 문서가 잘릴지 정해지지 않아
+// 최신 상태·메모를 놓칠 수 있다. 한 대화에서 만들어지는 접수 문서는 몇 건 수준이다.
+export async function fetchConsultationsBySession(
+  sessionId: string
+): Promise<ConsultationDoc[]> {
+  const database = getDb();
+  if (!database) return [];
+  try {
+    const q = query(
+      collection(database, "consultations"),
+      where("sessionId", "==", sessionId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map(snapToConsultation)
+      .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+  } catch (e) {
+    console.warn("[firebase] fetchConsultationsBySession failed", e);
+    return [];
+  }
+}
+
 export function watchChatMessages(
   cb: (rows: ChatMessageDoc[]) => void,
   max = 200
