@@ -190,7 +190,8 @@ export function UnemploymentCalcPage() {
         source: "form",
         userName: name,
         contact: phone,
-        message: `실업급여 계산기 결과: 1일 ${fmt(result.dailyBenefit)}원 × ${result.days}일 = 약 ${fmt(result.total)}원 예상 (퇴사 사유: ${
+        // 회사가 적은 사유 때문에 막힌 분은 사건이 될 가능성이 높아 접수함에서 먼저 보이게 표시한다.
+        message: `${blocks.length ? "[사건 후보 · 회사 사유 문제] " : ""}실업급여 계산기 결과: 1일 ${fmt(result.dailyBenefit)}원 × ${result.days}일 = 약 ${fmt(result.total)}원 예상 (퇴사 사유: ${
           { voluntary: "자발적 퇴사", boss_pressure: "권고사직", bullying: "직장 내 괴롭힘", layoff: "정리해고/계약만료", no_pay: "임금 체불" }[inputs.reason]
         })${
           blocks.length
@@ -261,6 +262,12 @@ export function UnemploymentCalcPage() {
         <p className="calc-lead">
           월급·나이·고용보험 가입기간을 입력하면 2026년 기준 실업급여(구직급여) 예상액을 계산합니다.{" "}
           <strong>※ 실제 수급액·자격은 고용센터 심사로 최종 결정되며, 본 계산은 단순 참고용입니다.</strong>
+        </p>
+        {/* 광고로 들어온 첫 화면에 '변호사'가 한 번도 없었다(2026-09-15 점검). 누가 운영하는지 먼저 보인다. */}
+        <p className="calc-lead" style={{ marginTop: 6 }}>
+          법률사무소 청송law 담당변호사 김창희가 운영합니다. 회사가 퇴사 사유를 불리하게 적어 막히면
+          변호사가 직접 확인합니다.{" "}
+          <a href="tel:1660-4452">전화 1660-4452</a>
         </p>
 
         <div className="calc-grid-page">
@@ -427,7 +434,11 @@ export function UnemploymentCalcPage() {
                 onClick={() => void requestConsult()}
                 disabled={submitting}
               >
-                {submitting ? "접수 중..." : <><Icon name="doc" size={16} /> 수급자격 확인 상담 신청</>}
+                {submitting
+                  ? "접수 중..."
+                  : blocks.length
+                    ? <><Icon name="doc" size={16} /> 변호사에게 퇴사 사유 확인 요청</>
+                    : <><Icon name="doc" size={16} /> 수급자격 확인 상담 신청</>}
               </button>
               <div className="calc-fallback-cta">
                 <a
