@@ -894,6 +894,166 @@ body[data-mascot="false"] .mascot {
   }
 }
 
+/* 히어로 카톡창 스크롤 시퀀스(2026-09-15) — 카톡창이 화면에 붙은 채 스크롤한 만큼 대화가 진행된다.
+   단계는 Hero.tsx의 SEQ가 정하고, 여기서는 켜진(.on) 모습과 연출만 정한다. */
+.hero-grid.seq {
+  align-items: start;
+}
+.hero-art.seq {
+  padding: 0;
+}
+@media (min-width: 1051px) {
+  .hero-art.seq {
+    padding-top: 60px;
+  }
+}
+.hero-pin {
+  position: sticky;
+  top: 96px;
+  padding: 20px;
+}
+@media (max-width: 700px) {
+  .hero-pin {
+    top: 80px;
+  }
+}
+.seq-spacer {
+  height: 85vh;
+}
+.seq-item {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+.seq-item.on {
+  opacity: 1;
+  transform: none;
+}
+.seq-missed {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--cream);
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.seq-threat {
+  background: #ffe1dc;
+  border-color: #c62828;
+  color: #b71c1c;
+  font-weight: 800;
+  white-space: normal;
+}
+.seq-item.on .seq-threat {
+  animation: seq-shake 0.45s ease-in-out 2;
+}
+@keyframes seq-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px) rotate(-1.5deg);
+  }
+  40% {
+    transform: translateX(5px) rotate(1.5deg);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+.seq-notice {
+  position: relative;
+}
+.seq-stamp {
+  position: absolute;
+  left: -44px;
+  top: -30px;
+  width: 54px;
+  height: 54px;
+  border: 3px solid #c62828;
+  color: #c62828;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.88);
+  transform: rotate(-14deg);
+  opacity: 0;
+}
+.seq-item.on .seq-stamp {
+  animation: seq-stamp 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.25s both;
+}
+@keyframes seq-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-14deg) scale(2.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-14deg) scale(1);
+  }
+}
+.seq-read {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.seq-read.on {
+  opacity: 1;
+}
+/* 자리는 늘 차지하고 투명도만 바꾼다 — 높이가 바뀌면 붙어 있는 카톡창 아래 페이지가 밀리고,
+   브라우저가 스크롤 위치를 보정하면서 진행률이 되돌아가 '입력 중'에 걸린다(2026-09-15 측정). */
+.seq-typing {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.seq-typing.on {
+  opacity: 1;
+}
+.seq-typing-bub {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seq-spacer {
+    display: none;
+  }
+  .hero-pin {
+    position: static;
+  }
+  .seq-item,
+  .seq-read,
+  .seq-typing {
+    transition: none;
+  }
+  .seq-item.on .seq-threat {
+    animation: none;
+  }
+  .seq-item.on .seq-stamp {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Audience */
 .aud-grid {
   margin-top: 48px;

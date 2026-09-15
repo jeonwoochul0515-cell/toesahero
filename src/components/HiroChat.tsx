@@ -121,16 +121,23 @@ export function HiroChat() {
     const t1 = window.setTimeout(() => setPeek(true), 3500);
     let t2 = 0;
     // 휴대폰 첫 화면에서는 말풍선이 본문의 문의 버튼을 덮는다(2026-09-15 점검).
-    // 좁은 화면에서는 첫 화면을 지나 내려간 뒤에 말을 건다.
+    // 좁은 화면에서는 첫 화면을 지나 내려간 뒤에 말을 건다. 홈은 카톡창 스크롤 시퀀스(.hero-art)가
+    // 끝날 때까지 기다린다 — 진행 중에 띄우면 붙어 있는 카톡창 아래쪽을 가린다.
+    const pastHero = () => {
+      const art = document.querySelector(".hero-art");
+      return art ? art.getBoundingClientRect().bottom <= 0 : window.scrollY >= 400;
+    };
     const onScroll = () => {
-      if (window.scrollY < 400) return;
+      if (!pastHero()) return;
       window.removeEventListener("scroll", onScroll);
       setBubble(true);
     };
     if (!HIDDEN.test(path) && !spokenRecently(path)) {
       markSpoken(path);
       t2 = window.setTimeout(() => {
-        if (window.innerWidth > 480 || window.scrollY >= 400) setBubble(true);
+        // 홈은 폭과 관계없이 기다린다 — 데스크톱에서도 말풍선이 변호사 통보 장면을 덮었다(2026-09-15 캡처).
+        const wait = window.innerWidth <= 480 || !!document.querySelector(".hero-art");
+        if (!wait || pastHero()) setBubble(true);
         else window.addEventListener("scroll", onScroll, { passive: true });
       }, 4300);
     }
