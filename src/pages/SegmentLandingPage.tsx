@@ -24,6 +24,7 @@ type Config = {
   points: Point[];
   faqs?: QA[];
   price?: string; // 정액 상품 안내 (있을 때만 노출)
+  pkg?: "basic" | "pro" | "max"; // 결제 화면(/checkout?pkg=)으로 이어지는 상품
   priceNote?: string; // 큰 소송 등 별도 견적 안내
   relatedPosts?: { slug: string; title: string }[]; // 관련 칼럼(내부링크·OSMU)
 };
@@ -51,6 +52,7 @@ const CONFIG: Record<Seg, Config> = {
     // 괴롭힘 전용 66만원 상품을 없애고 분쟁 대응 하나로 통일했다(2026-09-06 사용자 확정).
     // 66만원 카드와 79만원 패키지가 둘 다 괴롭힘을 다뤄 손님이 무엇을 사야 할지 헷갈렸다.
     price: "분쟁 대응 · 79만원 (정액)",
+    pkg: "max",
     priceNote: "손해배상 소송으로 이어질 경우 착수금은 상담 후 견적입니다.",
     relatedPosts: [
       {
@@ -158,7 +160,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/unfair-dismissal",
     breadcrumbName: "부당해고",
-    price: "부당해고 대응(자문) · 66만원 (정액)",
+    price: "분쟁 대응 · 79만원 (정액)",
+    pkg: "max",
     priceNote: "노동위원회 구제신청 대리는 착수금 + 위임계약으로 상담 후 견적입니다.",
     relatedPosts: [
       {
@@ -228,7 +231,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/unpaid-wages",
     breadcrumbName: "임금체불",
-    price: "임금·퇴직금 회수 · 88만원 (정액 · 성공보수 0)",
+    price: "표준 절차 · 39만원 (정액)",
+    pkg: "pro",
     priceNote: "민사소송·지급명령으로 이어질 경우 착수금은 상담 후 견적입니다.",
     relatedPosts: [
       {
@@ -290,7 +294,8 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/severance-pay",
     breadcrumbName: "퇴직금 미지급",
-    price: "임금·퇴직금 회수 · 88만원 (정액 · 성공보수 0)",
+    price: "표준 절차 · 39만원 (정액)",
+    pkg: "pro",
     priceNote: "민사소송·지급명령으로 이어질 경우 착수금은 상담 후 견적입니다.",
     relatedPosts: [
       {
@@ -366,6 +371,40 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
         <div style={{ fontSize: 44, marginTop: 8 }}><Icon name={c.icon} size={40} /></div>
         <h1 className="page-static-title">{c.title}</h1>
         <p className="page-static-sub">{c.sub}</p>
+        {/* 광고로 들어온 첫 화면에 누가 하는지와 연락할 길이 없었다(2026-09-15 점검).
+            다른 업체를 깎지 않고 우리가 하는 일만 적는다(변호사 광고규정 제4조). */}
+        <div
+          style={{
+            marginTop: 16,
+            padding: "14px 16px",
+            border: "2.5px solid var(--ink)",
+            borderRadius: 14,
+            background: "var(--yellow)",
+            boxShadow: "3px 3px 0 0 var(--ink)",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, lineHeight: 1.5 }}>
+            법률사무소 청송law 담당변호사 김창희가 직접 맡습니다.
+          </p>
+          <p style={{ margin: "4px 0 12px", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
+            가족·지인 역할을 대신하는 서비스가 아닙니다. 변호사 명의로 회사에 통보하고, 받을 돈을
+            청구하고, 회사 대응을 맡습니다.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <a href="tel:1660-4452" className="btn primary" style={{ flex: "1 1 140px", padding: 12, textAlign: "center" }}>
+              <Icon name="phone" size={16} /> 전화 1660-4452
+            </a>
+            <a
+              href="https://pf.kakao.com/_zkzIX"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn"
+              style={{ flex: "1 1 140px", padding: 12, textAlign: "center", background: "var(--paper)" }}
+            >
+              <Icon name="chat" size={16} /> 카톡 상담
+            </a>
+          </div>
+        </div>
       </header>
 
       <main className="page-static-main" style={{ maxWidth: 680 }}>
@@ -465,6 +504,16 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
             <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>
               부가세 별도. 인지대·송달료 등 실비는 별도이며, 결과를 보장하지 않습니다.
             </p>
+            {/* 가격을 보고도 결제로 갈 길이 없었다(2026-09-15 점검). 이 사안의 절차로 바로 잇는다. */}
+            {c.pkg ? (
+              <Link
+                to={`/checkout?pkg=${c.pkg}`}
+                className="btn primary"
+                style={{ display: "block", marginTop: 12, padding: 13, textAlign: "center" }}
+              >
+                이 절차로 위임 진행 / 결제 안내 →
+              </Link>
+            ) : null}
           </div>
         ) : null}
 
