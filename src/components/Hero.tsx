@@ -1,5 +1,6 @@
 import { Mascot } from "./Mascot";
 import { Icon } from "./Icon";
+import { BlurText } from "./BlurText";
 
 export type HeroCopy = "boss" | "soft" | "legal";
 
@@ -56,11 +57,17 @@ export function Hero({ heroCopy = "boss", openChat }: Props) {
               {v.eyebrow}
             </span>
             <h1 className="h1">
-              <span className="h1-line">{v.h1a}</span>
-              <span className="h1-line h1-highlight">
-                <span className="h1-mark">{v.h1b}</span>
+              <span className="h1-line">
+                <BlurText text={v.h1a} />
               </span>
-              <span className="h1-line">{v.h1c}</span>
+              <span className="h1-line h1-highlight">
+                <span className="h1-mark">
+                  <BlurText text={v.h1b} delay={350} />
+                </span>
+              </span>
+              <span className="h1-line">
+                <BlurText text={v.h1c} delay={650} step={90} />
+              </span>
             </h1>
             <p className="hero-sub">{v.sub}</p>
             <div className="hero-cta">
