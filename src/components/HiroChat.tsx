@@ -120,13 +120,24 @@ export function HiroChat() {
     // 등장 연출: 3.5초 뒤 아바타가 튀어나오고, 잠시 후 말을 건다
     const t1 = window.setTimeout(() => setPeek(true), 3500);
     let t2 = 0;
+    // 휴대폰 첫 화면에서는 말풍선이 본문의 문의 버튼을 덮는다(2026-09-15 점검).
+    // 좁은 화면에서는 첫 화면을 지나 내려간 뒤에 말을 건다.
+    const onScroll = () => {
+      if (window.scrollY < 400) return;
+      window.removeEventListener("scroll", onScroll);
+      setBubble(true);
+    };
     if (!HIDDEN.test(path) && !spokenRecently(path)) {
       markSpoken(path);
-      t2 = window.setTimeout(() => setBubble(true), 4300);
+      t2 = window.setTimeout(() => {
+        if (window.innerWidth > 480 || window.scrollY >= 400) setBubble(true);
+        else window.addEventListener("scroll", onScroll, { passive: true });
+      }, 4300);
     }
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
+      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
