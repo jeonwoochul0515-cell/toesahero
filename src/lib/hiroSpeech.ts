@@ -58,6 +58,11 @@ export function sectionIntro(id: string): string | null {
   }
 }
 
+/** 가격·패키지처럼 내용이 고정된 안내 — 한 대화에 한 번만 내보낸다(호객꾼 §6-3).
+ *  윤창우 건(2026-09-10)에서 같은 가격 안내가 세 번 나갔고, 세 번째는 손님의 말을 끊는 데 쓰였다.
+ *  키는 HiroChat의 화면 쿨다운 키와 같은 형식이다("/#섹션id" 또는 경로). */
+export const FIXED_NOTICE_KEYS = new Set(["/#pricing", "/checkout"]);
+
 /** 첫마디 — 화면 안내 > 재방문 > 유입 경로 > 시간대 순. 매번 같은 문장이 안 나오게 변형 중 무작위. */
 export function greetingFor(path: string, entry: Entry, revisit: boolean): string {
   // 특정 화면에 바로 들어왔다면 그 화면 설명이 우선 — 재방문이면 인사만 짧게 얹는다

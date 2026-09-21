@@ -16,13 +16,26 @@ type RequestBody = {
   name?: string | null;
   contact?: string | null;
   attr?: unknown;
-  // chatlog(접수 후 대화 전문 보고) 전용
+  // 같은 대화를 중앙 접수함에서 한 건으로 묶는 키로 쓴다(호객꾼 정책 §6-4).
+  // chatlog(접수 후 대화 전문 보고)에서도 같은 값을 쓴다.
   sessionId?: string;
   transcript?: string;
   consent?: boolean;
+  // 접수함 목록에 뜨는 한 줄 판정 "사건/정보/불명 · 단계 · 근거"(2026-09-17 intent 칸).
+  intent?: string;
+  // 이번 보고에 새 알림 문자를 실을 것인가(§6-4). 최초·새 연락처·새 쟁점일 때만 true를 보낸다.
+  // 스냅샷마다 문자를 쏘면 담당자가 알림을 무시하게 되고, 그때부터 접수함은 장부가 아니다.
+  alert?: boolean;
   // safety(안전 신호) 전용 — 무엇이 감지됐는지만 받는다. 대화 내용은 받지 않는다.
   signal?: "urgent" | "damage_threat";
 };
+
+// 중앙 접수함에서 같은 대화를 한 건으로 묶는 키.
+// 세션이 없는 접수(계산기·진단·문의 폼)는 키가 없어 종전대로 매번 새 건으로 쌓인다.
+function leadKey(sessionId?: string): string | undefined {
+  const sid = String(sessionId ?? "").trim().slice(0, 64);
+  return sid ? `퇴사히어로:${sid}` : undefined;
+}
 
 // safety(안전 신호)와 chatlog 는 각자 전용 경로에서 처리한다. 여기 라벨이 필요한 것은
 // 일반 접수 세 종류뿐이다.
@@ -120,6 +133,8 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
           phone,
           detail: `[히로 대화 전문 · 전달 동의함]${sid ? ` #${sid}` : ""}\n${transcript}`,
           source,
+          extKey: leadKey(body.sessionId),
+          intent: typeof body.intent === "string" ? body.intent.slice(0, 120) : "",
           link: "https://toesahero.com/admin/consultations",
         }),
       });
@@ -130,6 +145,14 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
   }
 
   // ② 알림톡 — 간단 알림 한 통. 전문은 접수함에서 본다. (전문 문구는 문자 대체용 fallback)
+  //
+  // 호객꾼 §6-4 — 대화 스냅샷마다 문자를 쏘지 않는다. 사이트가 최초 접수·새 연락처·새 쟁점일
+  // 때만 alert=true로 보낸다. 다만 접수함 저장이 실패했으면 이 문자가 유일한 기록이므로
+  // alert와 무관하게 반드시 보낸다(유실 방지가 알림 절약보다 위다).
+  const mustAlert = body.alert !== false || !inboxOk;
+  if (!mustAlert) {
+    return json({ ok: inboxOk, inboxOk, smsOk: false, alerted: false }, 200);
+  }
   const lines = [
     `[퇴사히어로] 히로 대화 접수${sid ? ` #${sid}` : ""}`,
     `${name} · ${body.contact ?? ""}`.trim(),
@@ -151,7 +174,7 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
   );
 
   // 두 채널 중 하나라도 성공하면 보고 성공(정본 원칙: 전부 실패했을 때만 실패)
-  return json({ ok: inboxOk || sms.ok, inboxOk, smsOk: sms.ok }, 200);
+  return json({ ok: inboxOk || sms.ok, inboxOk, smsOk: sms.ok, alerted: true }, 200);
 }
 
 // 안전 신호 보고 — 자해·긴급 암시와 회사의 손해배상 협박.
@@ -272,6 +295,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           // 상담 대화·초안이 실려 오므로 넉넉히 — 접수함 상한(2만 자) 안에서 자른다.
           detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 12000),
           source,
+          extKey: leadKey(body.sessionId),
           link: caseId
             ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
             : "https://toesahero.com/admin/consultations",

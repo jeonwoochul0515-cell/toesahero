@@ -12,8 +12,13 @@ const ChatModal = lazy(() =>
 );
 import { Icon } from "./Icon";
 import { getEntry } from "../lib/entry";
-import { greetingFor, pageIntro, sectionIntro } from "../lib/hiroSpeech";
-import { formalBlocked } from "../lib/hiroPolicy";
+import {
+  FIXED_NOTICE_KEYS,
+  greetingFor,
+  pageIntro,
+  sectionIntro,
+} from "../lib/hiroSpeech";
+import { formalBlocked, markOnce, noteVisit, usedOnce } from "../lib/hiroPolicy";
 
 const KEY_MSGS = "hiro:msgs"; // ChatModal이 대화 이력을 저장하는 키 — 재방문 판별에 쓴다
 const KEY_OPEN = "hiro:open"; // 패널 열림 상태 — 메뉴가 일반 링크(전체 로드)라 보존 안 하면 이동마다 닫힌다
@@ -106,6 +111,8 @@ export function HiroChat() {
   useEffect(() => {
     setMounted(true);
     setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    // 이 방문을 한 번 센다(탭 세션당 1회) — 접수함의 "재방문 N회" 표시에 쓴다(§6-7).
+    noteVisit();
     const path = window.location.pathname;
     greeting.current = greetingFor(path, getEntry(), hasChatHistory());
 
@@ -205,8 +212,14 @@ export function HiroChat() {
     const line = pageIntro(location.pathname);
     if (!line) return;
     if (spokenRecently(location.pathname)) return;
+    // 가격·패키지 같은 고정 안내는 한 대화에 한 번만(§6-3)
+    const fixed = FIXED_NOTICE_KEYS.has(location.pathname);
+    if (fixed && usedOnce(location.pathname)) return;
     // 대화창이 열려 있으면 대화 안에, 아니면 말풍선으로. 막히면(§6-1) 쿨다운도 남기지 않는다.
-    if (speak(line)) markSpoken(location.pathname);
+    if (speak(line)) {
+      markSpoken(location.pathname);
+      if (fixed) markOnce(location.pathname);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, mounted, open]);
 
@@ -223,7 +236,13 @@ export function HiroChat() {
           if (!line) continue;
           const key = "/#" + id;
           if (spokenRecently(key)) continue;
-          if (speak(line)) markSpoken(key);
+          // 가격·패키지 같은 고정 안내는 한 대화에 한 번만(§6-3)
+          const fixed = FIXED_NOTICE_KEYS.has(key);
+          if (fixed && usedOnce(key)) continue;
+          if (speak(line)) {
+            markSpoken(key);
+            if (fixed) markOnce(key);
+          }
         }
       },
       // 화면 위아래 40%를 제외한 가운데 띠 기준 — 화면보다 키 큰 섹션도 확실히 잡힌다

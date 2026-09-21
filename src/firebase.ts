@@ -471,7 +471,10 @@ async function notifyNewConsultation(
   type: "consultation" | "draft" | "notice",
   caseId: string,
   summary?: string,
-  who?: { name?: string | null; contact?: string | null }
+  who?: { name?: string | null; contact?: string | null },
+  // 같은 대화의 접수를 중앙 접수함에서 한 건으로 묶는 키(호객꾼 정책 §6-4).
+  // 세션이 없는 접수(계산기·진단·폼)는 넘기지 않는다 — 각각 별개 건이 맞다.
+  sessionId?: string | null
 ): Promise<boolean> {
   // 유입 경로(광고 검색어·키워드)를 함께 보내 알림 문자에서 어느 광고로 온 신청인지 판별한다
   const body = JSON.stringify({
@@ -480,6 +483,7 @@ async function notifyNewConsultation(
     summary,
     name: who?.name ?? null,
     contact: who?.contact ?? null,
+    sessionId: sessionId ?? undefined,
     attr: (window as unknown as { getAttribution?: () => unknown }).getAttribution?.() ?? null,
   });
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -1011,7 +1015,8 @@ export async function saveDraftConsultation(
     {
       name: payload.userName ?? user?.displayName ?? null,
       contact: payload.contact ?? null,
-    }
+    },
+    payload.sessionId
   );
   return id;
 }
@@ -1122,7 +1127,8 @@ export async function saveConsultationDetailed(
       ]
         .filter(Boolean)
         .join("\n") || undefined,
-      { name: payload.userName ?? user?.displayName ?? null, contact: payload.contact ?? null }
+      { name: payload.userName ?? user?.displayName ?? null, contact: payload.contact ?? null },
+      payload.sessionId
     );
   }
   return { id, notified };

@@ -14,7 +14,20 @@ import {
 } from "../firebase";
 import { Icon } from "./Icon";
 import { Mascot, type MascotPose } from "./Mascot";
-import { isQuestion, noteAnswered, notePendingQuestion } from "../lib/hiroPolicy";
+import {
+  alertNeeded,
+  intentOf,
+  isLateNight,
+  isQuestion,
+  issuesFrom,
+  ledgerHead,
+  markAlerted,
+  noteAnswered,
+  notePendingQuestion,
+  pendingQuestion,
+  slotsFrom,
+  visitCount,
+} from "../lib/hiroPolicy";
 
 type Expression = "base" | "empathy" | "resolve" | "calm" | "cheer" | "urgent";
 
@@ -23,6 +36,8 @@ type Msg = {
   text: string;
   expression?: Expression;
   urgent?: boolean;
+  at?: number; // 손님 발화 시각 — 연달아 두 번 누른 중복 전송 판별(§6-5)
+  repeat?: number; // 같은 말을 거듭한 횟수. 본문은 한 번만 두고 횟수만 남긴다(§6-5)
 };
 
 // 표정 → 마스코트 포즈 매핑 (서버가 표정 태그를 파싱해 expression으로 내려준다)
@@ -179,7 +194,9 @@ const PHONE_IN_CHAT_MSG =
 async function callAiChat(
   messages: Array<{ role: "user" | "assistant"; content: string }>,
   userName: string | null,
-  contactSaved: boolean
+  contactSaved: boolean,
+  // 이미 받은 답(§6-2) — 서버가 "다시 묻지 말고 확인형으로"라는 지시와 함께 프롬프트에 싣는다
+  slots: string[]
 ): Promise<AiReply | null> {
   // 일시 오류로 즉시 기계식 폴백이 나가는 것을 막기 위해 1회 재시도
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -192,6 +209,7 @@ async function callAiChat(
           userName,
           // 게이트 통과 여부 — 이걸 안 알려주면 히로가 접수 완료 손님에게 연락처를 또 요청한다
           contactSaved,
+          slots,
           page: window.location.pathname,
           officeOpen: isOfficeOpen(),
         }),
@@ -279,6 +297,9 @@ export function ChatModal({ open, onClose, greeting }: Props) {
   const sheetAutoShownRef = useRef(false); // 3턴 자동 펼침은 1회만
   const closeAskedRef = useRef(false); // 닫기 때 붙잡기도 1회만
   const pendingDraftRef = useRef(false); // 연락처를 받고 이어서 통보문 요청할지
+  // 마지막으로 보낸 손님 발화 — 연달아 같은 말을 누른 중복 전송 판별에 쓴다(§6-5).
+  // React 상태는 같은 틱의 두 번째 호출에서 아직 옛것이라 판별에 쓸 수 없다.
+  const lastSentRef = useRef<{ text: string; at: number } | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
@@ -384,23 +405,54 @@ export function ChatModal({ open, onClose, greeting }: Props) {
       /* 못 읽으면 메모리 값 사용 */
     }
     if (count <= last) return;
-    const markReported = () => {
+    // 접수 장부(§6-4·6-6·6-7). 세션 키(sessionId)로 접수함의 같은 행을 갱신하므로,
+    // 이 보고 하나가 그 대화의 완본이다. 그래서 회신하는 사람이 열자마자 알아야 할 것을
+    // 맨 위에 적는다 — 히로가 묻고 답을 못 받은 질문, 그리고 심야·재방문 표시.
+    const name = s.contactName.trim() || s.user?.displayName || "";
+    const phone = s.contact.trim();
+    const issues = issuesFrom(s.messages);
+    const lateNight = isLateNight();
+    const visits = visitCount();
+    const alertState = { sessionId: sessionIdRef.current, name, phone, issues };
+    const alert = alertNeeded(alertState);
+    // 알림을 "보냈음"으로 적는 것은 실제로 나갔을 때만이다 — 안 나간 것을 적으면
+    // 다음 보고도 조용히 넘어가 접수가 묻힌다(§6-4의 반대쪽 위험).
+    const markReported = (alerted: boolean) => {
       reportedRef.current = count;
+      if (alerted) markAlerted(alertState);
       try {
         sessionStorage.setItem(key, String(count));
       } catch {
         /* 무시 */
       }
     };
-    const transcript = s.messages
-      .map((m) => `${m.who === "me" ? "손님" : "히로"}: ${m.text}`)
+    const body = s.messages
+      .map(
+        (m) =>
+          `${m.who === "me" ? "손님" : "히로"}: ${m.text}${
+            (m.repeat ?? 1) > 1 ? ` (${m.repeat}회 반복)` : ""
+          }`
+      )
       .join("\n");
+    const head = ledgerHead({ unanswered: pendingQuestion(), lateNight, visits });
     const payload = JSON.stringify({
       type: "chatlog",
       sessionId: sessionIdRef.current,
-      name: s.contactName.trim() || s.user?.displayName || null,
-      contact: s.contact.trim() || null,
-      transcript,
+      name: name || null,
+      contact: phone || null,
+      transcript: head ? `${head}\n\n${body}` : body,
+      intent: intentOf({
+        issues,
+        userChars: s.messages
+          .filter((m) => m.who === "me")
+          .reduce((n, m) => n + m.text.length, 0),
+        contactSaved: s.contactSaved,
+        lateNight,
+        visits,
+      }),
+      // 스냅샷마다 문자를 쏘지 않는다(§6-4) — 최초·새 연락처·새 쟁점일 때만.
+      // 접수함 저장이 실패하면 서버가 이 값과 무관하게 문자로 알린다(유실 방지).
+      alert,
       consent: true,
       attr:
         (
@@ -412,7 +464,8 @@ export function ChatModal({ open, onClose, greeting }: Props) {
         "/api/notify",
         new Blob([payload], { type: "application/json" })
       );
-      if (queued) markReported();
+      // 이탈 직전 비콘은 응답을 못 받는다. 큐에 실렸으면 보낸 것으로 본다.
+      if (queued) markReported(alert);
       return;
     }
     void fetch("/api/notify", {
@@ -425,8 +478,9 @@ export function ChatModal({ open, onClose, greeting }: Props) {
         if (!response.ok) return;
         const result = (await response.json().catch(() => null)) as {
           ok?: boolean;
+          smsOk?: boolean;
         } | null;
-        if (result?.ok === true) markReported();
+        if (result?.ok === true) markReported(result.smsOk === true);
       })
       .catch(() => {});
   }
@@ -699,14 +753,38 @@ export function ChatModal({ open, onClose, greeting }: Props) {
         }
       }
     }
-    const userMsg: Msg = { who: "me", text };
-    const nextMsgs = [...preMsgs, userMsg];
+    // §6-5 — 전송이 안 된 줄 알고 같은 말을 연달아 다시 누른 경우. 본문은 한 번만 두고
+    // "거듭 말했다"는 사실만 남긴다. 손님이 두 번 말한 것 자체가 신호이기 때문이다.
+    //
+    // 판정은 React 상태가 아니라 ref로 한다 — 버튼을 같은 틱에 두 번 누르면 두 번째
+    // send가 보는 messages는 아직 첫 번째가 반영되기 전이라 중복을 못 잡는다(실측).
+    const now = Date.now();
+    const prevSent = lastSentRef.current;
+    const gap = prevSent && prevSent.text === text ? now - prevSent.at : Infinity;
+    const repeated = gap < 30 * 1000; // 기록은 한 번만
+    const doublePress = gap < 3 * 1000; // 연타 — 같은 답변을 두 번 만들지 않는다
+    lastSentRef.current = { text, at: now };
+    const lastSame = preMsgs.reduce(
+      (found, m, i) => (m.who === "me" && m.text === text ? i : found),
+      -1
+    );
+    const nextMsgs: Msg[] =
+      repeated && lastSame >= 0
+        ? preMsgs.map((m, i) =>
+            i === lastSame ? { ...m, repeat: (m.repeat ?? 1) + 1, at: now } : m
+          )
+        : [
+            ...preMsgs,
+            { who: "me", text, at: now, ...(repeated ? { repeat: 2 } : {}) } as Msg,
+          ];
     setMessages(nextMsgs);
     setInput("");
+    // 연타면 답변은 이미 만들어지는 중이다. 화면에는 "(2회 반복)" 표시가 반응으로 남는다.
+    if (doublePress) return;
     setTyping(true);
     // 선택 동의를 하지 않은 대화는 브라우저 세션과 답변 생성 요청에만 사용하고,
     // Firestore·문자·중앙 접수함에는 저장하거나 전달하지 않는다.
-    if (shareChat) void logChatMessage(text, "me", sessionIdRef.current);
+    if (shareChat && !repeated) void logChatMessage(text, "me", sessionIdRef.current);
     // 회사의 손해배상·위약금 협박 감지 → 변호사 우선 대응 플래그
     const damageThreat =
       /손해\s*배상|손배|위약금|배상\s*청구|배상하|물어내|변상|구상권/.test(text);
@@ -739,7 +817,11 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     const ai = await callAiChat(
       aiHistory,
       contactName.trim() || user?.displayName || null,
-      nowSaved
+      nowSaved,
+      slotsFrom(nextMsgs, {
+        name: contactName.trim() || user?.displayName || undefined,
+        contactSaved: nowSaved,
+      })
     );
 
     setTyping(false);
@@ -913,6 +995,11 @@ export function ChatModal({ open, onClose, greeting }: Props) {
               style={{ whiteSpace: "pre-line" }}
             >
               {m.text}
+              {/* 같은 말을 연달아 다시 보낸 경우 — 본문은 한 번만 두되, 눌린 것이
+                  전달됐다는 반응은 화면에 보여 준다(§6-5, 무반응은 고장으로 보인다) */}
+              {(m.repeat ?? 1) > 1 && (
+                <span className="msg-repeat"> ({m.repeat}회 반복)</span>
+              )}
             </div>
           ))}
           {typing && (

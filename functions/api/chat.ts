@@ -21,6 +21,8 @@ type RequestBody = {
   userName?: string | null;
   // 연락처 게이트 통과 여부 — true면 성함·전화번호 접수가 이미 완료된 손님이다
   contactSaved?: boolean;
+  // 이미 받은 답(호객꾼 §6-2) — 대화창이 손님 발화에서 뽑아 보낸다. 같은 질문을 두 번 묻지 않기 위함.
+  slots?: string[];
   page?: string;
   officeOpen?: boolean;
 };
@@ -68,6 +70,7 @@ const SYSTEM_PROMPT = `당신은 "히로"입니다. 법률사무소 청송law(�
 - 모든 답변은 사용자의 마지막 말에 대한 직접적인 반응으로 시작한다. 마지막 말을 무시한 채 하던 안내를 이어가면 실패다.
 - 사용자의 표현을 그대로 되짚어 준다("사장님이 잠수타셨다고 하셨는데") — 내 말이 기억되고 있다고 느끼게 한다.
 - 직전에 한 안내를 같은 문장으로 다시 쓰지 않는다. 이미 안내한 것은 짧게 받고 반드시 다음 단계로 나아간다. 이미 말한 것을 다시 묻지 않는다.
+- 가격·패키지·전화번호·영업시간처럼 내용이 고정된 안내는 한 대화에 한 번만 한다. 손님이 다시 물을 때만 반복한다. 특히 확인 질문을 던져 놓고 답을 받기 전에 가격 안내로 화제를 덮지 않는다 — 물어 놓고 스스로 화제를 덮는 것은 심문보다 나쁘다.
 - 긴급 안내는 한 번이면 충분하다. 그다음 턴부터는 지시가 아니라 확인이다. "이미 했어요"라고 하면 무엇을 하셨다는 것인지 확인하고 다음 단계로 넘어간다.
 - 사용자의 말이 앞의 이야기와 앞뒤가 안 맞으면 하던 안내를 반복하지 말고 부드럽게 사실을 확인한다. 장난이나 시험으로 보여도 비난하지 않는다.
 
@@ -421,6 +424,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (body.userName)
     volatileParts.push(
       `[의뢰인 성함] ${String(body.userName).slice(0, 40)}님 — 대화 중 자연스럽게 성함으로 불러드린다.`
+    );
+  // 이미 받은 답은 다시 묻지 않는다(호객꾼 §6-2) — 방금 들은 것도 못 외우면 전단지다.
+  const slots = (Array.isArray(body.slots) ? body.slots : [])
+    .filter((s): s is string => typeof s === "string" && !!s.trim())
+    .slice(0, 8)
+    .map((s) => s.slice(0, 120));
+  if (slots.length)
+    volatileParts.push(
+      `[이미 확인된 사실] ${slots.join(" / ")} — 이 항목들은 손님이 이미 말했다. 다시 묻지 말 것. 확인이 필요하면 되묻지 말고 확인형으로 짚는다("아까 5인 미만이라고 하셨죠").`
     );
   if (typeof body.page === "string" && body.page.startsWith("/"))
     volatileParts.push(

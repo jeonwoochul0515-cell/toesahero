@@ -4025,3 +4025,10 @@ body[data-mascot="false"] .mascot {
   font-size: 13px;
   line-height: 1.6;
 }
+
+/* 같은 말을 연달아 다시 보낸 표시(§6-5) — 본문은 한 번만 두고 횟수만 옅게 붙인다 */
+.bubble .msg-repeat {
+  opacity: 0.6;
+  font-size: 0.85em;
+  font-weight: 700;
+}
