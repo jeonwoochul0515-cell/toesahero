@@ -1,5 +1,6 @@
 // 히로 도크 — 방문자에게 먼저 말을 거는 호객꾼 캐릭터. 화면마다 안내하고 대화(ChatModal)로 잇는다.
-// 능동성 최우선 원칙(2026-08-22): 끄기 버튼 없음, 억제는 "같은 화면 2분 쿨다운" 하나뿐.
+// 능동성 최우선 원칙(2026-08-22): 끄기 버튼 없음, 억제는 "같은 화면 2분 쿨다운"과
+// "히로가 던진 질문의 답을 기다리는 동안 잠금"(호객꾼 §6-1) 둘뿐이다.
 // 프리렌더 주의: 반드시 마운트 후에만 렌더한다(정적 HTML에 위젯 흔적 0).
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -12,6 +13,7 @@ const ChatModal = lazy(() =>
 import { Icon } from "./Icon";
 import { getEntry } from "../lib/entry";
 import { greetingFor, pageIntro, sectionIntro } from "../lib/hiroSpeech";
+import { formalBlocked } from "../lib/hiroPolicy";
 
 const KEY_MSGS = "hiro:msgs"; // ChatModal이 대화 이력을 저장하는 키 — 재방문 판별에 쓴다
 const KEY_OPEN = "hiro:open"; // 패널 열림 상태 — 메뉴가 일반 링크(전체 로드)라 보존 안 하면 이동마다 닫힌다
@@ -80,17 +82,24 @@ export function HiroChat() {
     }
   }, [open]);
 
-  // 말 걸기 공통 경로 — 대화창이 열려 있으면 대화 안에 주입, 아니면 말풍선으로(타이핑 재시동 포함)
-  const speak = (line: string) => {
+  // 말 걸기 공통 경로 — 대화창이 열려 있으면 대화 안에 주입, 아니면 말풍선으로(타이핑 재시동 포함).
+  //
+  // ⚠ 호객꾼 §6-1(회수 우선) — 히로가 확인 질문을 던져 놓고 답을 기다리는 중이면 아무것도
+  //   내보내지 않는다. 2026-09-10 윤창우 건에서 손님이 답을 쓰려던 순간 정형 가격 안내가
+  //   끼어들어 사건의 핵심 정보를 영영 못 받았다. 막힌 경우 false를 돌려주어 호출부가
+  //   화면 쿨다운도 기록하지 않게 한다 — 답이 오면 그 화면 안내를 다시 건넬 수 있어야 한다.
+  const speak = (line: string): boolean => {
+    if (formalBlocked()) return false;
     if (openRef.current) {
       window.dispatchEvent(new CustomEvent("hiro-page-intro", { detail: line }));
-      return;
+      return true;
     }
     greeting.current = line;
     setPeek(true);
     setBubbleTyped(0);
     setBubbleKey((k) => k + 1);
     setBubble(true);
+    return true;
   };
 
   // 마운트 후에만 존재 — 프리렌더된 HTML에는 아무것도 남지 않는다
@@ -104,14 +113,14 @@ export function HiroChat() {
     if (openRef.current) {
       const line = pageIntro(path);
       if (line && !HIDDEN.test(path) && !spokenRecently(path)) {
-        markSpoken(path);
-        const t = window.setTimeout(
-          () =>
-            window.dispatchEvent(
-              new CustomEvent("hiro-page-intro", { detail: line })
-            ),
-          80
-        );
+        const t = window.setTimeout(() => {
+          // 잠금 판정은 실제로 내보내는 순간에 한다 — 그사이 손님이 답했을 수 있다(§6-1)
+          if (formalBlocked()) return;
+          markSpoken(path);
+          window.dispatchEvent(
+            new CustomEvent("hiro-page-intro", { detail: line })
+          );
+        }, 80);
         return () => window.clearTimeout(t);
       }
       return;
@@ -171,8 +180,8 @@ export function HiroChat() {
     const line = pageIntro(location.pathname);
     if (!line) return;
     if (spokenRecently(location.pathname)) return;
-    markSpoken(location.pathname);
-    speak(line); // 대화창이 열려 있으면 대화 안에, 아니면 말풍선으로
+    // 대화창이 열려 있으면 대화 안에, 아니면 말풍선으로. 막히면(§6-1) 쿨다운도 남기지 않는다.
+    if (speak(line)) markSpoken(location.pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, mounted, open]);
 
@@ -189,8 +198,7 @@ export function HiroChat() {
           if (!line) continue;
           const key = "/#" + id;
           if (spokenRecently(key)) continue;
-          markSpoken(key);
-          speak(line);
+          if (speak(line)) markSpoken(key);
         }
       },
       // 화면 위아래 40%를 제외한 가운데 띠 기준 — 화면보다 키 큰 섹션도 확실히 잡힌다

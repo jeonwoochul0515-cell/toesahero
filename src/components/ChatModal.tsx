@@ -14,6 +14,7 @@ import {
 } from "../firebase";
 import { Icon } from "./Icon";
 import { Mascot, type MascotPose } from "./Mascot";
+import { isQuestion, noteAnswered, notePendingQuestion } from "../lib/hiroPolicy";
 
 type Expression = "base" | "empathy" | "resolve" | "calm" | "cheer" | "urgent";
 
@@ -305,6 +306,17 @@ export function ChatModal({ open, onClose, greeting }: Props) {
     } catch {
       /* 저장 실패 무시 */
     }
+  }, [messages]);
+
+  // ⚠ 호객꾼 §6-1(회수 우선) — 히로가 확인 질문을 던지면 손님의 답이 올 때까지
+  //   정형 메시지(화면 안내·재접속 인사·쿨다운 만료 말걸기)를 잠근다. 잠금은 세션
+  //   저장소에 있어 대화창을 닫고 다른 화면을 돌아다녀도 유지된다.
+  //   유일한 예외는 긴급 신호다 — 서버가 urgent로 판정한 턴에서는 잠그지 않는다(헌장 제9조).
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (!last) return;
+    if (last.who === "me" || last.urgent || !isQuestion(last.text)) noteAnswered();
+    else notePendingQuestion(last.text);
   }, [messages]);
 
   // 연락처 제출 상태 보존 — 새로고침 후에도 이미 접수한 분을 다시 차단하지 않는다
