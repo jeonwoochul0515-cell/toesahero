@@ -129,30 +129,55 @@ export function HiroChat() {
     // 등장 연출: 3.5초 뒤 아바타가 튀어나오고, 잠시 후 말을 건다
     const t1 = window.setTimeout(() => setPeek(true), 3500);
     let t2 = 0;
-    // 휴대폰 첫 화면에서는 말풍선이 본문의 문의 버튼을 덮는다(2026-09-15 점검).
-    // 좁은 화면에서는 첫 화면을 지나 내려간 뒤에 말을 건다. 홈은 카톡창 스크롤 시퀀스(.hero-art)가
-    // 끝날 때까지 기다린다 — 진행 중에 띄우면 붙어 있는 카톡창 아래쪽을 가린다.
+    let capTimer = 0;
+    // 휴대폰 첫 화면에서는 말풍선이 본문의 문의 버튼을 덮고, 홈에서는 카톡창 스크롤
+    // 시퀀스(.hero-art)를 덮는다(2026-09-15 점검). 그래서 첫 화면을 지날 때까지 기다린다.
+    //
+    // ⚠ 다만 기다리기만 하면 호객꾼이 침묵한다 — 광고로 들어온 손님 대부분은 거기까지
+    //   스크롤하지 않는다(헌장 제1조: 침묵은 휴식이 아니라 고장). 그래서 대기에 상한을 둔다.
+    //   상한은 "손님이 멈춘 뒤 WAIT_CAP"이다. 스크롤이 이어지는 동안은 미뤄 두어 보고
+    //   있는 연출을 덮지 않고, 첫 화면에서 머뭇거리면 그때가 바로 말을 걸 때다.
+    const WAIT_CAP = 8000;
     const pastHero = () => {
       const art = document.querySelector(".hero-art");
       return art ? art.getBoundingClientRect().bottom <= 0 : window.scrollY >= 400;
     };
-    const onScroll = () => {
-      if (!pastHero()) return;
+    // 실제로 말풍선을 띄우는 유일한 자리. 쿨다운은 여기서만 기록한다 —
+    // 말을 걸기도 전에 "말했음"으로 적으면 다른 화면에 갔다 와도 2분간 침묵한다(2026-09-15 버그).
+    const sayHello = () => {
+      window.clearTimeout(capTimer);
       window.removeEventListener("scroll", onScroll);
+      // 기다리는 사이 다른 화면으로 옮겨 갔으면 그 화면 담당(라우트 이동 효과)에게 맡긴다
+      if (window.location.pathname !== path) return;
+      if (spokenRecently(path) || formalBlocked()) return;
+      markSpoken(path);
       setBubble(true);
     };
+    const onScroll = () => {
+      if (pastHero()) {
+        sayHello();
+        return;
+      }
+      // 아직 첫 화면이다 — 손님이 움직이는 동안은 상한을 미룬다
+      window.clearTimeout(capTimer);
+      capTimer = window.setTimeout(sayHello, WAIT_CAP);
+    };
     if (!HIDDEN.test(path) && !spokenRecently(path)) {
-      markSpoken(path);
       t2 = window.setTimeout(() => {
         // 홈은 폭과 관계없이 기다린다 — 데스크톱에서도 말풍선이 변호사 통보 장면을 덮었다(2026-09-15 캡처).
         const wait = window.innerWidth <= 480 || !!document.querySelector(".hero-art");
-        if (!wait || pastHero()) setBubble(true);
-        else window.addEventListener("scroll", onScroll, { passive: true });
+        if (!wait || pastHero()) {
+          sayHello();
+          return;
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        capTimer = window.setTimeout(sayHello, WAIT_CAP);
       }, 4300);
     }
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
+      window.clearTimeout(capTimer);
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
