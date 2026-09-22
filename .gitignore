@@ -13,6 +13,7 @@ firebase-debug.log
 *.log
 .DS_Store
 .claude/
+.gjc/
 
 # 빌드타임 생성물 (prerender-posts.mjs 가 Firestore 글을 박아 넣음)
 src/generated/
@@ -30,5 +31,13 @@ docs/research/*.png
 docs/research/*.html
 docs/research/내용증명*
 
+# 의뢰인 사건 폴더 — 저장소 안에 두지 않는다. 의뢰인 자료는
+# C:\Users\jeonw\.antigravity\퇴사히어로\퇴사희어로의뢰인\ 아래로 옮긴다.
+/김하늘/
+
 # 로컬 검수 중 캡처한 임시 화면
 /docs/image.png
+
+# 배포 확인용으로 받아 둔 임시 응답
+/live.html
+/cfproj.json
