@@ -108,7 +108,7 @@ export function Pricing({ openChat }: Props) {
             상담 후 사안에 적합한 절차를 안내드립니다. 아래 금액은 위임계약을 맺을 때 기준이 되는 보수이며, 사안에 따라 변동될 수 있습니다.
             <br />
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
-              ※ 위 보수에는 부가세가 별도로 부과될 수 있습니다.
+              ※ 표시 금액은 <strong>부가세가 포함된 금액</strong>입니다. 결제 금액 외에 더 붙지 않습니다.
             </span>
           </p>
         </div>

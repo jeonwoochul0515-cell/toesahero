@@ -502,7 +502,7 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
               <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "var(--ink-2)" }}>{c.priceNote}</p>
             ) : null}
             <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>
-              부가세 별도. 인지대·송달료 등 실비는 별도이며, 결과를 보장하지 않습니다.
+              부가세 포함 금액입니다. 인지대·송달료 등 실비는 별도이며, 결과를 보장하지 않습니다.
             </p>
             {/* 가격을 보고도 결제로 갈 길이 없었다(2026-09-15 점검). 이 사안의 절차로 바로 잇는다. */}
             {c.pkg ? (
