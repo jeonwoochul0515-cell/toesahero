@@ -568,3 +568,12 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 
 **교훈.** 번들을 쪼개는 최적화는 배포 후 실제 화면에서 하이드레이션까지 확인해야 한다.
 파일이 200 으로 잘 내려오는 것과 스크립트가 실행되는 것은 다른 문제다.
+
+## 2026-09-24 사무실 접수 알림을 중앙 접수함으로 이관 (lead-sms-rule)
+
+- 접수(consultation·draft·notice)와 히로 대화 보고(chatlog)는 먼저 중앙 접수함(`/api/lead`)에 올리고, 사무실 알림 문자는 접수함이 보낸다.
+  응답 `alert`가 `queued`·`skipped`면 사이트 알림톡은 보내지 않는다. `off`·응답 없음·8초 초과·비정상 응답이면 종전 알림톡을 비상용으로 보낸다.
+- 새 필드: `query`(n_query→utm_term), `firstVisit`(attribution의 UTC 시각을 한국시간으로), `visitNo`(기존 `hiroPolicy.visitCount`), `unanswered`(히로가 묻고 답을 못 받은 질문), `alertTo`(종전 `ALERT_TO_PHONE`).
+- 접수는 새 요청이라 `notify:true`, 대화 보고는 화면이 알림을 청한 보고(`alert:true`)만 `notify:true`. `skipped`(10분 묶음)면 `smsOk:false`로 돌려 화면이 다음 보고에서 다시 청한다.
+- 안전 신호 문자(`type:"safety"`)는 그대로 사이트가 직접 보낸다.
+- 공통 전송부: `functions/api/_leadInbox.ts`, 테스트: `functions/api/notify-inbox.test.ts`.

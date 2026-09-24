@@ -38,6 +38,7 @@ import {
   getDownloadURL,
   type FirebaseStorage,
 } from "firebase/storage";
+import { visitCount } from "./lib/hiroPolicy";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -485,6 +486,8 @@ async function notifyNewConsultation(
     contact: who?.contact ?? null,
     sessionId: sessionId ?? undefined,
     attr: (window as unknown as { getAttribution?: () => unknown }).getAttribution?.() ?? null,
+    // 이 브라우저의 몇 번째 방문인지 — 접수함 알림 문자 머리에 실린다(lead-sms-rule §3)
+    visitNo: visitCount(),
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {

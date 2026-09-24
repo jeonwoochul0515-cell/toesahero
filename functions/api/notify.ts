@@ -4,6 +4,7 @@
 // 시크릿은 서버 env(_notify)에 있으므로 본 엔드포인트가 SOLAPI 키를 노출하지 않는다.
 
 import { sendAlimtalk, KAKAO_TPL, type NotifyEnv } from "./_notify";
+import { postLead, attrFields, visitNoOf } from "./_leadInbox";
 
 interface Env extends NotifyEnv {
   LEAD_INBOX_TOKEN?: string; // 중앙 접수함(lead-inbox) 전송 토큰
@@ -26,6 +27,9 @@ type RequestBody = {
   // 이번 보고에 새 알림 문자를 실을 것인가(§6-4). 최초·새 연락처·새 쟁점일 때만 true를 보낸다.
   // 스냅샷마다 문자를 쏘면 담당자가 알림을 무시하게 되고, 그때부터 접수함은 장부가 아니다.
   alert?: boolean;
+  // 접수함 문자에 싣는 값(lead-sms-rule §3) — 이 브라우저의 몇 번째 방문인지, 히로가 묻고 답을 못 받은 질문.
+  visitNo?: number;
+  unanswered?: string | null;
   // safety(안전 신호) 전용 — 무엇이 감지됐는지만 받는다. 대화 내용은 받지 않는다.
   signal?: "urgent" | "damage_threat";
 };
@@ -117,34 +121,37 @@ async function handleChatLog(env: Env, body: RequestBody): Promise<Response> {
   const phone = String(body.contact ?? "").replace(/[^0-9]/g, "");
   const source = summarizeAttr(body.attr);
 
-  // ① 전문 — 중앙 접수함에 저장(완본 보관처). 실패해도 문자는 나간다.
+  // ① 전문 — 중앙 접수함에 저장(완본 보관처). 사무실 알림 문자도 접수함이 보낸다(lead-sms-rule §3).
+  // 스냅샷 갱신은 notify 없이 올린다. 사이트가 알림이 필요하다고 본 보고(최초·새 연락처·새 쟁점)만 notify:true.
   let inboxOk = false;
+  let inboxHandled = false;
+  let inboxAlert: string | undefined;
   if (env.LEAD_INBOX_TOKEN && /^01[016789][0-9]{7,8}$/.test(phone)) {
-    try {
-      const resp = await fetch("https://lead-inbox.jeonwoochul0515.workers.dev/api/lead", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-ingest-token": env.LEAD_INBOX_TOKEN,
-        },
-        body: JSON.stringify({
-          site: "퇴사히어로",
-          name,
-          phone,
-          detail: `[히로 대화 전문 · 전달 동의함]${sid ? ` #${sid}` : ""}\n${transcript}`,
-          source,
-          extKey: leadKey(body.sessionId),
-          intent: typeof body.intent === "string" ? body.intent.slice(0, 120) : "",
-          link: "https://toesahero.com/admin/consultations",
-        }),
-      });
-      inboxOk = resp.ok;
-    } catch {
-      /* 접수함 실패 — 아래 문자로 알린다 */
-    }
+    const r = await postLead(env.LEAD_INBOX_TOKEN, {
+      site: "퇴사히어로",
+      name,
+      phone,
+      detail: `[히로 대화 전문 · 전달 동의함]${sid ? ` #${sid}` : ""}\n${transcript}`,
+      source,
+      extKey: leadKey(body.sessionId),
+      intent: typeof body.intent === "string" ? body.intent.slice(0, 120) : "",
+      link: "https://toesahero.com/admin/consultations",
+      ...inboxExtras(env, body),
+      ...(body.alert === true ? { notify: true } : {}),
+    });
+    inboxOk = r.saved;
+    inboxHandled = r.handled;
+    inboxAlert = r.alert;
   }
 
-  // ② 알림톡 — 간단 알림 한 통. 전문은 접수함에서 본다. (전문 문구는 문자 대체용 fallback)
+  // 접수함이 알림을 맡았으면(queued·skipped) 사이트는 알림톡을 보내지 않는다.
+  // smsOk는 문자가 실제로 예약됐을 때만 true — skipped(10분 묶음)면 화면이 다음 보고에서 다시 알림을 청한다.
+  if (inboxHandled) {
+    const queued = inboxAlert === "queued";
+    return json({ ok: true, inboxOk, smsOk: queued, alerted: queued }, 200);
+  }
+
+  // ② 비상 알림톡 — 접수함이 알림을 못 맡았을 때만(off·장애·시간 초과). 문구는 종전 그대로.
   //
   // 호객꾼 §6-4 — 대화 스냅샷마다 문자를 쏘지 않는다. 사이트가 최초 접수·새 연락처·새 쟁점일
   // 때만 alert=true로 보낸다. 다만 접수함 저장이 실패했으면 이 문자가 유일한 기록이므로
@@ -264,6 +271,32 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     summary ? `\n${summary}` : ""
   }\n유입경로: ${source}\n어드민에서 확인해 주세요.`;
 
+  // 연락처가 있는 접수는 중앙 접수함(lead-inbox)에 먼저 올린다. 사무실 알림 문자도 접수함이 보낸다
+  // (lead-sms-rule §3). 접수함이 알림을 못 맡았을 때(off·장애·8초 초과)만 아래 알림톡을 비상용으로 보낸다.
+  // 신청 자체가 새 요청이므로 같은 대화의 기존 건이어도 notify:true로 올린다(10분 묶음은 접수함이 한다).
+  const phone = String(body.contact ?? "").replace(/[^0-9]/g, "");
+  let inboxOk = false;
+  let inboxHandled = false;
+  if (env.LEAD_INBOX_TOKEN && /^01[016789][0-9]{7,8}$/.test(phone)) {
+    const res = await postLead(env.LEAD_INBOX_TOKEN, {
+      site: "퇴사히어로",
+      name: String(body.name ?? "").trim() || "미입력",
+      phone,
+      // 상담 대화·초안이 실려 오므로 넉넉히 — 접수함 상한(2만 자) 안에서 자른다.
+      detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 12000),
+      source,
+      extKey: leadKey(body.sessionId),
+      link: caseId
+        ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
+        : "https://toesahero.com/admin/consultations",
+      ...inboxExtras(env, body),
+      notify: true,
+    });
+    inboxOk = res.saved;
+    inboxHandled = res.handled;
+  }
+  if (inboxHandled) return json({ ok: true }, 200);
+
   const r = await sendAlimtalk(
     env,
     KAKAO_TPL.intake,
@@ -276,41 +309,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     text
   );
 
-  // 연락처가 있는 접수는 중앙 접수함(lead-inbox)에도 사본을 남긴다 — 전 사이트 통합 현황판.
-  // 상세 처리는 자체 어드민 링크로 이동해 진행한다.
-  const phone = String(body.contact ?? "").replace(/[^0-9]/g, "");
-  let inboxOk = false;
-  if (env.LEAD_INBOX_TOKEN && /^01[016789][0-9]{7,8}$/.test(phone)) {
-    try {
-      const resp = await fetch("https://lead-inbox.jeonwoochul0515.workers.dev/api/lead", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-ingest-token": env.LEAD_INBOX_TOKEN,
-        },
-        body: JSON.stringify({
-          site: "퇴사히어로",
-          name: String(body.name ?? "").trim() || "미입력",
-          phone,
-          // 상담 대화·초안이 실려 오므로 넉넉히 — 접수함 상한(2만 자) 안에서 자른다.
-          detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 12000),
-          source,
-          extKey: leadKey(body.sessionId),
-          link: caseId
-            ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
-            : "https://toesahero.com/admin/consultations",
-        }),
-      });
-      inboxOk = resp.ok;
-    } catch {
-      /* 접수함 전송 실패 — 문자·Firestore가 남은 기록 */
-    }
-  }
-
   // 전달 채널이 전부 실패했을 때만 실패로 응답한다(가짜 성공 금지 원칙의 이면 —
   // 문자만 실패하고 접수함이 살아 있으면 접수는 유실되지 않았으므로 성공이다).
   return json({ ok: r.ok || inboxOk, reason: r.ok ? undefined : r.reason }, 200);
 };
+
+// 접수함 문자에 싣는 값(lead-sms-rule §3). 수신 번호는 종전 알림 번호를 그대로 넘겨 받는 사람이 바뀌지 않게 한다.
+function inboxExtras(env: Env, body: RequestBody): Record<string, unknown> {
+  const { query, firstVisit } = attrFields(body.attr);
+  const unanswered = typeof body.unanswered === "string" ? body.unanswered.trim().slice(0, 300) : "";
+  return {
+    query,
+    firstVisit,
+    visitNo: visitNoOf(body.visitNo),
+    ...(unanswered ? { unanswered } : {}),
+    alertTo: String(env.ALERT_TO_PHONE ?? "").replace(/[^0-9,]/g, ""),
+  };
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

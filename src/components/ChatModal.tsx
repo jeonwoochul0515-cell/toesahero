@@ -453,6 +453,9 @@ export function ChatModal({ open, onClose, greeting }: Props) {
       // 스냅샷마다 문자를 쏘지 않는다(§6-4) — 최초·새 연락처·새 쟁점일 때만.
       // 접수함 저장이 실패하면 서버가 이 값과 무관하게 문자로 알린다(유실 방지).
       alert,
+      // 접수함 알림 문자에 싣는 값(lead-sms-rule §3)
+      visitNo: visits,
+      unanswered: pendingQuestion(),
       consent: true,
       attr:
         (
