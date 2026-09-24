@@ -6,6 +6,7 @@ import { onRequestGet as leadDetail } from "./admin/lead/detail";
 import { onRequestGet as leadFile } from "./admin/lead/file";
 import { onRequestPost as leadDocument } from "./admin/lead/document";
 import { onRequestGet as chats } from "./admin/chats";
+import { onRequestGet as weekly } from "./admin/weekly";
 import { onRequestGet as chatMessages } from "./admin/chat/messages";
 import { onRequestPost as chatSend } from "./admin/chat/send";
 import { onRequestPost as notify } from "./notify";
@@ -273,6 +274,31 @@ describe("대화 API", () => {
   it("답장은 창구가 없어 501", async () => {
     const r = await post(chatSend, "/api/admin/chat/send", { sid: SID, content: "안녕하세요" });
     expect(r.status).toBe(501);
+  });
+});
+
+describe("주간 지표", () => {
+  const W = "/api/admin/weekly?since=2026-09-21%2000%3A00%3A00&until=2026-09-28%2000%3A00%3A00";
+  it("열쇠가 틀리면 401, 기간 형식이 틀리면 400", async () => {
+    stubFirestore(DB());
+    expect((await get(weekly, W, { "x-admin-id": "hq", "x-admin-key": "wrong" })).status).toBe(401);
+    expect((await get(weekly, "/api/admin/weekly?since=2026-09-21&until=2026-09-28")).status).toBe(400);
+  });
+  it("기간 안의 챗봇 접수·결제만 세고, 저장하지 않는 대화 수·AI 호출은 비운다", async () => {
+    const db = DB();
+    db.consultations.oldChat0001 = { source: "chat", sessionId: "old-session-1", createdAt: "2026-09-10T00:00:00.000Z" };
+    db.consultations.sameSess002 = { source: "chat", sessionId: SID, createdAt: "2026-09-24T02:00:00.000Z" };
+    db.orders.ord_123456789.approvedAt = "2026-09-24T03:00:00.000Z";
+    db.orders.ord_old000001 = { status: "paid", amount: 50000, approvedAt: "2026-09-01T00:00:00.000Z" };
+    stubFirestore(db);
+    const r = await get(weekly, W);
+    expect(r.status).toBe(200);
+    const d = (await r.json()) as { ok: boolean; chat: Record<string, unknown>; ai: Record<string, unknown>; notes: string[] };
+    expect(d.ok).toBe(true);
+    expect(d.chat).toEqual({ conversations: null, leads: 1 });
+    expect(d.ai).toEqual({});
+    expect(d.notes).toEqual(["결제 완료 1건(합계 99,000원)", "서면 초안 검토 대기 1건(보고 시점)"]);
+    expect(d.notes.join("")).not.toMatch(/홍길동|010-/);
   });
 });
 
