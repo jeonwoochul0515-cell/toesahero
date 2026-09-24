@@ -35,6 +35,11 @@ export const onRequest: PagesFunction = async ({ request, next }) => {
 
   const pathname = new URL(request.url).pathname;
 
+  // API의 404는 JSON 그대로 돌려준다(중앙 접수함이 {ok:false,error:'not_found'}를 읽는다).
+  if (pathname.startsWith("/api/")) {
+    return response;
+  }
+
   // 클라이언트 전용 라우트 — index.html 반환(React Router가 클라이언트에서 처리)
   if (isClientRoute(pathname)) {
     const indexResponse = await fetch(new URL("/index.html", request.url));

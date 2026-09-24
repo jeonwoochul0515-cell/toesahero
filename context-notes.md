@@ -577,3 +577,19 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - 접수는 새 요청이라 `notify:true`, 대화 보고는 화면이 알림을 청한 보고(`alert:true`)만 `notify:true`. `skipped`(10분 묶음)면 `smsOk:false`로 돌려 화면이 다음 보고에서 다시 청한다.
 - 안전 신호 문자(`type:"safety"`)는 그대로 사이트가 직접 보낸다.
 - 공통 전송부: `functions/api/_leadInbox.ts`, 테스트: `functions/api/notify-inbox.test.ts`.
+
+## 2026-09-25 중앙 접수함용 헤드리스 어드민 API (사이트 어드민에 갈 일 줄이기)
+
+- 인증: 헤더 `x-admin-id`·`x-admin-key` ↔ env `TOESA_ADMIN_ID`·`TOESA_ADMIN_KEY`(해시 후 상수시간 비교, 없으면 503).
+  예전 `chat/draft`가 쓰던 `TOESAHERO_ADMIN_ID/KEY`는 새 이름이 없을 때만 대체로 읽는다. 공용부 `functions/api/_adminApi.ts`.
+- ref(접수함 ext_key의 첫 ':' 뒤): 채팅 접수 = 대화 세션 id(UUID), 폼·계산기·통보문 접수 = `c:<상담 문서 id>`.
+  notify.ts가 세션이 없으면 `퇴사히어로:c:<caseId>`를 싣도록 바꿨다. 이 변경 전에 들어온 폼 접수(ext_key 없음)는 연결되지 않는다.
+- 대화 API: chats·chat/messages·chat/draft(sid로 Firestore 읽기)·chat/document·chat/files·chat/file. **chat/send는 501** —
+  이 사이트에는 사무실이 방문자 화면에 답하는 실시간 창구가 없다(chat_messages는 전달 동의한 대화 기록뿐, 역할 me/them).
+- v2: lead/status(신규→new, 연락완료→contacted, 진행중→consulted, 수임→contracted, 종결→closed, 같은 세션 문서 전부),
+  lead/detail(폼 항목·손배 위협 플래그·서면 진행·결제 조회 전용, 주민번호·12자리+ 숫자·이메일·생년월일·주소 가림, 결제키 비노출),
+  lead/files·file(case_files, 이 접수 파일만·firebasestorage 호스트만), lead/documents·document(통보문·내용증명·위임장 문안 + "검토 전 초안" 워터마크, 발송 없음).
+- 세션 조회에 orderBy를 붙이지 않는다 — sessionId+createdAt 복합 색인이 없다. 넉넉히 받아(접수 200·메시지 1000) 코드에서 정렬.
+- `_middleware.ts`: `/api/*`의 404는 404.html로 바꾸지 않고 JSON 그대로 돌려준다(접수함이 not_found를 읽는다).
+- 독립 검토(codex) 2패킷: ①정렬 전 limit 지적 → 색인 없이 한도만 올림(부분 수용) ②자른 뒤 가림 → 가린 뒤 자르기로 수정, 재검토 PASS.
+- 배포·시크릿 설정은 하지 않았다. 배포 후 Pages env에 `TOESA_ADMIN_ID/KEY`를 접수함 값과 같게 넣어야 동작한다.

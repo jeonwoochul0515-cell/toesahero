@@ -34,11 +34,14 @@ type RequestBody = {
   signal?: "urgent" | "damage_threat";
 };
 
-// 중앙 접수함에서 같은 대화를 한 건으로 묶는 키.
-// 세션이 없는 접수(계산기·진단·문의 폼)는 키가 없어 종전대로 매번 새 건으로 쌓인다.
-function leadKey(sessionId?: string): string | undefined {
+// 중앙 접수함에서 같은 대화를 한 건으로 묶는 키. ':' 뒤(ref)는 헤드리스 어드민 API가 원본을 찾는 열쇠다.
+// 세션이 없는 접수(계산기·진단·문의 폼)는 상담 문서 id로 "c:<id>"를 쓴다 — 건마다 따로 쌓이는 것은 같고,
+// 접수함에서 상태·상세·서면을 사이트 원본에 이어 준다. 둘 다 없으면(저장 실패) 키 없이 올린다.
+function leadKey(sessionId?: string, caseId?: string): string | undefined {
   const sid = String(sessionId ?? "").trim().slice(0, 64);
-  return sid ? `퇴사히어로:${sid}` : undefined;
+  if (sid) return `퇴사히어로:${sid}`;
+  const cid = String(caseId ?? "").trim();
+  return /^[A-Za-z0-9]{8,40}$/.test(cid) ? `퇴사히어로:c:${cid}` : undefined;
 }
 
 // safety(안전 신호)와 chatlog 는 각자 전용 경로에서 처리한다. 여기 라벨이 필요한 것은
@@ -285,7 +288,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       // 상담 대화·초안이 실려 오므로 넉넉히 — 접수함 상한(2만 자) 안에서 자른다.
       detail: [`[${label}]`, summary].filter(Boolean).join("\n").slice(0, 12000),
       source,
-      extKey: leadKey(body.sessionId),
+      extKey: leadKey(body.sessionId, caseId),
       link: caseId
         ? `https://toesahero.com/admin/consultations/${encodeURIComponent(caseId)}`
         : "https://toesahero.com/admin/consultations",

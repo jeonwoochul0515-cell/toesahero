@@ -5,8 +5,8 @@
 //   - 이 API: 사무실이 검토·발송할 답장. 최상급 모델 + 판례 근거. 20~40초 걸려도 품질을 택한다.
 //
 // 인증: 서버 간 공유 비밀(x-admin-id / x-admin-key). 중앙 접수함(lead-inbox)이 호출한다.
-// 경로는 중앙상담함 계약(/api/admin/chat/draft)을 따르되, 실시간 세션(sid)을 아직 안 쓰므로
-// 대화 텍스트를 직접 받는다. 나중에 sid 조회를 붙일 때 같은 경로를 그대로 쓴다.
+// 경로는 중앙상담함 계약(/api/admin/chat/draft)을 따른다. 접수함은 {sid}만 보내므로 대화는 Firestore에서 읽고,
+// 예전처럼 대화 텍스트(conversation·messages)를 직접 보내도 된다.
 
 import {
   searchCases,
@@ -16,16 +16,18 @@ import {
   type LawcaddyEnv,
 } from "../../_lawcaddy";
 import { searchPrecedents, formatPrecedents } from "../../_precedent";
+import { fsClient } from "../../_firestore";
+import { checkAdmin, sessionMessages, SID_RE, str, type AdminApiEnv } from "../../_adminApi";
 
-interface Env extends LawcaddyEnv {
+interface Env extends LawcaddyEnv, AdminApiEnv {
   ANTHROPIC_API_KEY?: string;
-  TOESAHERO_ADMIN_ID?: string;
-  TOESAHERO_ADMIN_KEY?: string;
 }
 
 type Msg = { role: string; content: string };
 
 type RequestBody = {
+  /** 접수함이 보내는 대화 세션 id — 있으면 대화를 Firestore에서 읽는다 */
+  sid?: string;
   /** 대화 전문(줄바꿈 구분) — 접수함 detail을 그대로 넣어도 된다 */
   conversation?: string;
   /** 또는 구조화된 메시지 배열 */
@@ -96,15 +98,8 @@ function toText(body: RequestBody): string {
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 서버 간 호출만 허용 — 브라우저에서 직접 부를 수 있으면 안 된다
-  const id = (env.TOESAHERO_ADMIN_ID ?? "").trim();
-  const key = (env.TOESAHERO_ADMIN_KEY ?? "").trim();
-  if (!id || !key) return json({ ok: false, reason: "not_configured" }, 503);
-  if (
-    request.headers.get("x-admin-id") !== id ||
-    request.headers.get("x-admin-key") !== key
-  ) {
-    return json({ ok: false, reason: "forbidden" }, 403);
-  }
+  const denied = await checkAdmin(request, env);
+  if (denied) return denied;
 
   const apiKey = (env.ANTHROPIC_API_KEY ?? "").trim();
   if (!apiKey) return json({ ok: false, reason: "not_configured" }, 503);
@@ -114,6 +109,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     body = (await request.json()) as RequestBody;
   } catch {
     return json({ ok: false, reason: "invalid_json" }, 400);
+  }
+
+  if (typeof body.sid === "string" && body.sid) {
+    if (!SID_RE.test(body.sid)) return json({ ok: false, reason: "invalid_input" }, 400);
+    try {
+      const msgs = await sessionMessages(await fsClient(env), body.sid);
+      body.messages = msgs.map((m) => ({ role: str(m.data.role, 10), content: str(m.data.text, 4000) }));
+    } catch (e) {
+      console.error("[draft] firestore", e instanceof Error ? e.message.slice(0, 200) : "");
+      return json({ ok: false, reason: "upstream" }, 502);
+    }
   }
 
   const conversation = toText(body);

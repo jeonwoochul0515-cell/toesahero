@@ -175,6 +175,87 @@ export async function createDoc(
   if (!resp.ok) throw new Error(`createDoc 실패: ${resp.status} ${await resp.text()}`);
 }
 
+// ── 어드민 조회용(헤드리스 어드민 API) — 한 요청 안에서 토큰 1개로 여러 번 읽는다 ──
+// 위 getDoc 은 결제 경로가 쓰므로 건드리지 않는다. 여기는 map·array·double 까지 풀어 읽는다.
+type DeepValue = Record<string, unknown>;
+
+export function decodeDeep(v: DeepValue): unknown {
+  if ("stringValue" in v) return v.stringValue;
+  if ("integerValue" in v) return Number(v.integerValue);
+  if ("doubleValue" in v) return Number(v.doubleValue);
+  if ("booleanValue" in v) return v.booleanValue;
+  if ("timestampValue" in v) return v.timestampValue;
+  if ("mapValue" in v) {
+    const f = ((v.mapValue as { fields?: Record<string, DeepValue> }) ?? {}).fields ?? {};
+    const out: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(f)) out[k] = decodeDeep(x);
+    return out;
+  }
+  if ("arrayValue" in v) {
+    const vals = ((v.arrayValue as { values?: DeepValue[] }) ?? {}).values ?? [];
+    return vals.map(decodeDeep);
+  }
+  return null;
+}
+
+export type FsRow = { id: string; data: Record<string, unknown> };
+
+function toRow(doc: { name: string; fields?: Record<string, DeepValue> }): FsRow {
+  const data: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(doc.fields ?? {})) data[k] = decodeDeep(v);
+  return { id: doc.name.slice(doc.name.lastIndexOf("/") + 1), data };
+}
+
+export type FsClient = {
+  get(path: string): Promise<FsRow | null>;
+  /** 단일 등가 조건(선택) + 정렬(선택) 조회. 복합 색인이 필요 없는 조합만 쓴다. */
+  query(
+    collectionId: string,
+    opts: { eq?: [string, string]; orderDesc?: string; limit: number }
+  ): Promise<FsRow[]>;
+};
+
+export async function fsClient(env: FirestoreEnv): Promise<FsClient> {
+  const sa = parseServiceAccount(env);
+  const token = await getAccessToken(sa);
+  const base = baseUrl(projectId(env, sa));
+  const auth = { Authorization: `Bearer ${token}` };
+  return {
+    async get(path) {
+      const resp = await fetch(`${base}/${path}`, { headers: auth });
+      if (resp.status === 404) return null;
+      if (!resp.ok) throw new Error(`get 실패: ${resp.status}`);
+      return toRow((await resp.json()) as { name: string; fields?: Record<string, DeepValue> });
+    },
+    async query(collectionId, opts) {
+      const structuredQuery: Record<string, unknown> = {
+        from: [{ collectionId }],
+        limit: opts.limit,
+      };
+      if (opts.eq) {
+        structuredQuery.where = {
+          fieldFilter: {
+            field: { fieldPath: opts.eq[0] },
+            op: "EQUAL",
+            value: { stringValue: opts.eq[1] },
+          },
+        };
+      }
+      if (opts.orderDesc) {
+        structuredQuery.orderBy = [{ field: { fieldPath: opts.orderDesc }, direction: "DESCENDING" }];
+      }
+      const resp = await fetch(`${base}:runQuery`, {
+        method: "POST",
+        headers: { ...auth, "content-type": "application/json" },
+        body: JSON.stringify({ structuredQuery }),
+      });
+      if (!resp.ok) throw new Error(`query 실패: ${resp.status}`);
+      const rows = (await resp.json()) as Array<{ document?: { name: string; fields?: Record<string, DeepValue> } }>;
+      return rows.filter((r) => r.document).map((r) => toRow(r.document!));
+    },
+  };
+}
+
 // 문서 일부 필드만 갱신(updateMask). 지정한 필드만 덮어쓴다.
 export async function patchDoc(
   env: FirestoreEnv,
