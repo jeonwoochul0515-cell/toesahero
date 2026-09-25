@@ -37,7 +37,6 @@ type Inputs = {
   overtimeMonths: number; // 야근수당 미지급 기간(개월)
   unpaidSalaryMonths: number; // 체불(미지급) 월급 개월수
   delayMonths: number; // 미지급 후 경과 개월 (지연이자 §37, 연 20%)
-  reason: "voluntary" | "boss_pressure" | "bullying" | "layoff" | "no_pay";
   companySize: "under5" | "under30" | "under300" | "over300";
 };
 
@@ -79,12 +78,8 @@ function calc(inputs: Inputs) {
   const delayDays = Math.max(0, (inputs.delayMonths || 0) * 30 - 14);
   const delayInterest = Math.round(owedBase * 0.2 * (delayDays / 365));
 
-  // 실업급여 — 비자발적 사유(권고사직·괴롭힘·정리해고·2개월+ 체불)
-  const eligibleUI =
-    inputs.reason === "boss_pressure" ||
-    inputs.reason === "bullying" ||
-    inputs.reason === "layoff" ||
-    inputs.reason === "no_pay";
+  // 퇴직금을 체크했지만 1년 미만이라 빠진 경우 (안내용)
+  const severanceUnder1y = inputs.severanceUnpaid && totalMonths > 0 && totalYears < 1;
 
   // 5인 미만이라 제외된 항목이 입력돼 있는지 (안내용)
   const excludedBySize =
@@ -100,7 +95,7 @@ function calc(inputs: Inputs) {
     overtimeTotal,
     unpaidSalary,
     delayInterest,
-    eligibleUI,
+    severanceUnder1y,
     is5plus,
     excludedBySize,
   };
@@ -126,6 +121,8 @@ function NumField({
   unit?: string;
   full?: boolean;
 }) {
+  // min/max를 실제로 강제한다 — 음수·범위 초과가 합계에 그대로 들어가던 문제(2026-09-25).
+  const [error, setError] = useState("");
   const input = (
     <input
       type="number"
@@ -134,7 +131,21 @@ function NumField({
       max={max}
       step={step}
       value={value === 0 ? "" : value}
-      onChange={(e) => onValue(e.target.value === "" ? 0 : Number(e.target.value))}
+      aria-invalid={error ? true : undefined}
+      onChange={(e) => {
+        const raw = e.target.value === "" ? 0 : Number(e.target.value);
+        let n = Number.isFinite(raw) ? raw : 0;
+        let msg = "";
+        if (min !== undefined && n < min) {
+          n = min;
+          msg = `${fmt(min)} 이상으로 입력해 주세요.`;
+        } else if (max !== undefined && n > max) {
+          n = max;
+          msg = `${fmt(max)} 이하로 입력해 주세요.`;
+        }
+        setError(msg);
+        onValue(n);
+      }}
     />
   );
   return (
@@ -148,6 +159,7 @@ function NumField({
       ) : (
         input
       )}
+      {error && <span className="calc-field-err">{error}</span>}
     </label>
   );
 }
@@ -192,7 +204,6 @@ export function CalcPage() {
     overtimeMonths: 0,
     unpaidSalaryMonths: 0,
     delayMonths: 0,
-    reason: "voluntary",
     companySize: "under30",
   });
   const [submitting, setSubmitting] = useState(false);
@@ -201,6 +212,9 @@ export function CalcPage() {
   // 변호사가 회신할 연락처 — 미수집 시 신청이 들어와도 연락할 방법이 없어 필수로 받는다.
   const [applicantName, setApplicantName] = useState("");
   const [applicantPhone, setApplicantPhone] = useState("");
+  // alert는 앱 안 브라우저에서 막히기도 해 "눌러도 반응 없음"이 됐다 — 칸 아래에 적는다.
+  const [nameErr, setNameErr] = useState("");
+  const [phoneErr, setPhoneErr] = useState("");
 
   const result = useMemo(() => calc(inputs), [inputs]);
 
@@ -263,14 +277,13 @@ export function CalcPage() {
     }
     const name = applicantName.trim();
     const phone = applicantPhone.replace(/[^0-9]/g, "");
-    if (!name) {
-      alert("성함을 입력해 주세요. 변호사 회신에 필요합니다.");
-      return;
-    }
-    if (!/^01[016789][0-9]{7,8}$/.test(phone)) {
-      alert("휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)");
-      return;
-    }
+    const nErr = name ? "" : "성함을 입력해 주세요. 변호사 회신에 필요합니다.";
+    const pErr = /^01[016789][0-9]{7,8}$/.test(phone)
+      ? ""
+      : "휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)";
+    setNameErr(nErr);
+    setPhoneErr(pErr);
+    if (nErr || pErr) return;
     setSubmitting(true);
     try {
       // AI 내용증명 생성 호출
@@ -284,7 +297,7 @@ export function CalcPage() {
         inputs.unpaidSalaryMonths
       }개월, 연간 상여금 ${fmt(inputs.annualBonus)}원, 미지급 경과 ${
         inputs.delayMonths
-      }개월(지연이자), 퇴사 사유: ${inputs.reason}, 회사 규모: ${inputs.companySize}`;
+      }개월(지연이자), 회사 규모: ${inputs.companySize}`;
       const computedItems = visibleItems.map((i) => ({
         label: i.label,
         amount: i.amount,
@@ -495,21 +508,6 @@ export function CalcPage() {
             <h2>3. 사안 정보</h2>
             <div className="calc-fields">
               <label className="full">
-                퇴사 사유 (실업급여 자격 판단)
-                <select
-                  value={inputs.reason}
-                  onChange={(e) =>
-                    onChange("reason", e.target.value as Inputs["reason"])
-                  }
-                >
-                  <option value="voluntary">자발적 퇴사</option>
-                  <option value="boss_pressure">권고사직</option>
-                  <option value="bullying">직장 내 괴롭힘</option>
-                  <option value="layoff">정리해고/계약만료</option>
-                  <option value="no_pay">임금 체불 (2개월 이상)</option>
-                </select>
-              </label>
-              <label className="full">
                 회사 규모
                 <select
                   value={inputs.companySize}
@@ -564,13 +562,20 @@ export function CalcPage() {
                 </div>
               )}
 
-              {result.eligibleUI && (
-                <div className="calc-extra">
-                  <Icon name="bulb" size={16} /> 입력하신 사유로 <strong>실업급여 신청 가능성</strong>이
-                  있습니다. 권고사직 처리·이직확인서 사유 정정 등 변호사
-                  자문이 필요합니다.
+              {result.severanceUnder1y && (
+                <div className="calc-extra" style={{ borderColor: "var(--orange)" }}>
+                  <Icon name="warning" size={16} /> 근속이 <strong>1년 미만</strong>이라
+                  퇴직금 대상이 아니어서 합산에서 뺐습니다(근퇴법 §4·§8).
                 </div>
               )}
+
+              <div className="calc-extra">
+                <Icon name="bulb" size={16} /> 실업급여는 회사가 아니라 고용보험에서 받는 돈이라
+                여기 합계에 넣지 않습니다.{" "}
+                <Link to="/unemployment-calc" style={{ color: "inherit", fontWeight: 800 }}>
+                  실업급여 계산기에서 따로 확인하기 →
+                </Link>
+              </div>
 
               <div className="calc-fields" style={{ marginTop: 18 }}>
                 <label className="full" style={{ color: "var(--cream)" }}>
@@ -581,7 +586,9 @@ export function CalcPage() {
                     onChange={(e) => setApplicantName(e.target.value)}
                     placeholder="홍길동"
                     autoComplete="name"
+                    aria-invalid={nameErr ? true : undefined}
                   />
+                  {nameErr && <span className="calc-field-err">{nameErr}</span>}
                 </label>
                 <label className="full" style={{ color: "var(--cream)" }}>
                   휴대전화 (필수 · 변호사 회신용)
@@ -592,7 +599,9 @@ export function CalcPage() {
                     onChange={(e) => setApplicantPhone(e.target.value)}
                     placeholder="010-1234-5678"
                     autoComplete="tel"
+                    aria-invalid={phoneErr ? true : undefined}
                   />
+                  {phoneErr && <span className="calc-field-err">{phoneErr}</span>}
                 </label>
               </div>
 
@@ -677,8 +686,8 @@ export function CalcPage() {
         </div>
 
         <p className="calc-foot">
-          <Icon name="lock" size={14} /> 입력하신 정보는 Firebase에 안전하게 저장되며, 변호사 비밀유지 의무
-          하에 처리됩니다. 본 사이트는 변호사법 제23조에 따른 광고물이며, 본
+          <Icon name="lock" size={14} /> 입력하신 정보는 암호화된 서버에 보관되며, 법률사무소 청송law만 열람하고
+          변호사 비밀유지 의무에 따라 처리됩니다. 본 사이트는 변호사법 제23조에 따른 광고물이며, 본
           계산기는 일반적 정보 제공이지 법률 자문이 아닙니다.
         </p>
       </main>
