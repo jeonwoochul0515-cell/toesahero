@@ -117,7 +117,7 @@ export function Pricing({ openChat }: Props) {
           <a
             href="/diagnose"
             className="btn"
-            style={{ background: "var(--yellow)", fontWeight: 800 }}
+            style={{ background: "var(--yellow)", fontWeight: 800, maxWidth: "100%", whiteSpace: "normal" }}
           >
             <Icon name="compass" size={18} /> 어떤 절차가 맞는지 모르겠다면 — 1분 셀프 진단
           </a>

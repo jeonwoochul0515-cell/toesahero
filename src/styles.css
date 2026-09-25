@@ -217,9 +217,68 @@ nav.top .links a:hover {
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
 }
+.nav-menu-btn {
+  display: none;
+}
 @media (max-width: 1000px) {
   nav.top .links {
     display: none;
+  }
+  nav.top .inner {
+    position: relative;
+  }
+  nav.top .links.open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--cream);
+    border-bottom: 2.5px solid var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+  nav.top .links.open a {
+    padding: 14px 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .nav-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    font-size: 22px;
+    background: transparent;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 480px) {
+  nav.top .inner {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  nav.top .logo {
+    gap: 6px;
+    font-size: 17px;
+  }
+  nav.top .inner > .btn.primary {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+  nav.top .inner > .btn.primary svg {
+    display: none;
+  }
+  .nav-menu-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
