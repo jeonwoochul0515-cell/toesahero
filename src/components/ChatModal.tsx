@@ -933,7 +933,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
       ...m,
       {
         who: "them",
-        text: `${name}님, 연락처를 전달했습니다. 변호사 ${REVIEWING_LAWYER}가 영업일에 ${phone} 로 연락드리겠습니다.`,
+        text: `${name}님, 연락처를 전달했습니다. 변호사 ${REVIEWING_LAWYER}가 영업일 기준 24시간 이내에 ${phone} 로 연락드리겠습니다.`,
         expression: "cheer",
       },
     ]);
