@@ -59,7 +59,7 @@ function calc(inputs: Inputs) {
   // 퇴직금 — 근로자퇴직급여 보장법 §8: 1년 이상 근속 시 전 사업장 적용.
   // 1일 평균임금 = 퇴직 전 3개월 임금 총액(월급×3 + 연간상여금×3/12) ÷ 그 기간 총일수(92일로 근사).
   // 퇴직금 = 1일 평균임금 × 30 × 근속연수. 예전 "월급 × 근속연수"는 약간 과대 산정됐다(개선 지시서 4-5).
-  // TODO(변호사 확인): 3개월 총일수를 92일로 근사하는 대략치 표기
+  // 대략치 표기는 대표 확인(2026-09-25).
   const threeMonthWages = monthlySalary * 3 + ((inputs.annualBonus || 0) * 3) / 12;
   const avgDailyWage = threeMonthWages / 92;
   const severance =
@@ -72,7 +72,8 @@ function calc(inputs: Inputs) {
 
   // 연장근로수당 — 근기법 §56: 가산분(0.5배)은 상시 5인 이상만. 5인 미만도 실제 일한 시간의
   // 기본 1.0배는 임금이라 청구할 수 있다(개선 지시서 4-3). 통상시급 × 배율 × 시간 × 개월
-  // TODO(변호사 확인): 5인 미만 연장근로 1.0배 청구 안내
+  // 근거: 시행령 별표1에 §56 없음(가산 미적용), §43 전액 지급은 적용. 노동부 해석 근로기준정책과-2668(2022.8.26)
+  //   — 5인 미만도 소정근로시간은 1일 8시간 범위라 그 초과분은 소정근로 밖의 근로다.
   const overtimePerMonth = Math.round(
     hourlyWage * (is5plus ? 1.5 : 1.0) * (inputs.monthlyOvertimeHours || 0)
   );
@@ -81,15 +82,17 @@ function calc(inputs: Inputs) {
   // 미지급 임금(체불) — 전 사업장. 월급 × 체불 개월 (임금채권 시효 3년)
   const unpaidSalary = monthlySalary * (inputs.unpaidSalaryMonths || 0);
 
-  // 지연이자(지연손해금) — 근기법 §37, 연 20% (개선 지시서 4-4).
-  // 퇴직했으면 퇴직 금품(§37①1호)으로 보아 14일 경과 다음 날부터.
-  // 재직 중이면 정기 임금(§37①2호, 2025.10.23 시행)으로 보아 지급일 다음 날부터, 퇴직금은 아직 지급 사유가 없어 제외.
-  // TODO(변호사 확인): §37①1호·2호 기산점 구분
-  const owedBase = inputs.employed
-    ? unpaidSalary + overtimeTotal + annualLeave
-    : unpaidSalary + overtimeTotal + severance + annualLeave;
-  const delayDays = Math.max(0, (inputs.delayMonths || 0) * 30 - (inputs.employed ? 0 : 14));
-  const delayInterest = Math.round(owedBase * 0.2 * (delayDays / 365));
+  // 지연이자(지연손해금) — 근기법 §37, 연 20%. 법제처 원문 확인(2026-09-25).
+  // - 밀린 월급·야근수당(정기 임금, §43): 월급날 다음 날부터(§37①2호). 그 뒤 퇴직해도
+  //   월급날 기준을 그대로 쓴다(§37②). 2025.10.23 시행, 그 뒤 월급날이 지난 임금부터 적용(부칙 §2).
+  // - 퇴직금·퇴직 때 정산하는 연차수당(§36 금품 청산): 퇴직 후 14일이 지난 다음 날부터(§37①1호).
+  // - 재직 중이면 퇴직금은 아직 지급 사유가 없어 뺀다. 재직 중 연차수당은 정기 임금으로 본다.
+  const elapsedDays = (inputs.delayMonths || 0) * 30;
+  const wageBase = unpaidSalary + overtimeTotal + (inputs.employed ? annualLeave : 0);
+  const exitBase = inputs.employed ? 0 : severance + annualLeave;
+  const delayInterest = Math.round(
+    (0.2 / 365) * (wageBase * elapsedDays + exitBase * Math.max(0, elapsedDays - 14))
+  );
 
   // 퇴직금을 체크했지만 1년 미만이라 빠진 경우 (안내용)
   const severanceUnder1y = inputs.severanceUnpaid && totalMonths > 0 && totalYears < 1;
@@ -677,10 +680,10 @@ export function CalcPage() {
                   일수) × 30 × 근속연수. 근퇴법 §8 — 1년 이상·전 사업장. 여기 금액은 대략치
                 </li>
                 <li>
-                  <strong>지연이자</strong>: <strong>연 20%</strong>. 퇴직했으면 퇴직 후 14일이
-                  지난 다음 날부터, 재직 중 밀린 월급은 지급일 다음 날부터(근기법 §37, 2025.10.23
-                  시행). 재직 중에는 퇴직금에 붙지 않습니다. 지연이자는 노동청 진정으로는 받을 수
-                  없고 민사로 청구합니다
+                  <strong>지연이자</strong>: <strong>연 20%</strong>. 밀린 월급은 월급날 다음
+                  날부터(퇴직한 뒤에도 같음), 퇴직금과 퇴직 때 받을 연차수당은 퇴직 후 14일이 지난
+                  다음 날부터 붙습니다(근기법 §37). 월급날 기준은 2025.10.23 이후 밀린 월급부터
+                  적용됩니다. 지연이자는 보통 민사(지급명령·소송)로 청구합니다
                 </li>
                 <li>
                   <strong>연차수당</strong>: 통상일급 × 미사용일수 (일급 = 월급 ÷
