@@ -1,4 +1,4 @@
-// 사직서 양식 3종 무료 제공 페이지 — 복사 기능 + 상담 연결 (SEO 콘텐츠)
+// 사직서 양식 3종 제공 페이지 — 복사 기능 + 상담 연결 (SEO 콘텐츠)
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
@@ -88,9 +88,9 @@ const TEMPLATES: Template[] = [
 
 export function ResignationLetterPage() {
   const seo = usePageMeta({
-    title: "사직서 양식 무료 다운로드 — 상황별 3종",
+    title: "사직서 양식 다운로드 — 상황별 3종",
     description:
-      "일반 사직서, 즉시 퇴사 요청, 권고사직 확인서까지 상황별 사직서 양식을 한글파일(hwpx)로 무료 다운로드하거나 복사해 쓰실 수 있습니다. 권고사직인 경우 이직사유 기재가 실업급여에 직결됩니다.",
+      "일반 사직서, 즉시 퇴사 요청, 권고사직 확인서까지 상황별 사직서 양식을 한글파일(hwpx)로 내려받거나 복사해 쓰실 수 있습니다. 권고사직인 경우 이직사유 기재가 실업급여에 직결됩니다.",
     canonical: "/resignation-letter",
     keywords: [
       "사직서양식",
@@ -98,7 +98,6 @@ export function ResignationLetterPage() {
       "사직서 양식 다운로드",
       "사직서 양식 hwp",
       "사직서 한글파일",
-      "사직서 무료 양식",
       "권고사직서 양식",
       "권고사직",
       "퇴사대행",
@@ -128,7 +127,8 @@ export function ResignationLetterPage() {
       <header className="page-static-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <div style={{ fontSize: 44, marginTop: 8 }}><Icon name="doc" size={40} /></div>
-        <h1 className="page-static-title">사직서 양식 무료 다운로드</h1>
+        {/* "무료" 표현은 쓰지 않는다 — 변협 광고규정 §4-12와 사무소 규칙, 대표 결정 2026-09-25 */}
+        <h1 className="page-static-title">사직서 양식 다운로드</h1>
         <p className="page-static-sub">
           상황에 맞는 사직서를 골라 한글파일로 내려받거나 복사한 뒤 빈칸만 채우세요. 특히 회사가
           권고사직을 요청한 경우, 이직사유를 서면에 남기는 게 나중에 실업급여를 받을 수 있는지를
