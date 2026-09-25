@@ -279,6 +279,10 @@ export function CheckoutPage() {
         nav(`/checkout/${caseId}?pkg=${fixed}`, { replace: true });
         return;
       }
+      if (data.error === "case_not_found") {
+        alert("접수번호를 찾을 수 없습니다. 받으신 결제 링크를 다시 확인하시거나 1660-4452로 연락 주세요.");
+        return;
+      }
       if (data.error === "already_paid") {
         alert("이 사건은 이미 결제가 완료되었습니다. 두 번 결제하지 않으셔도 됩니다.");
         return;

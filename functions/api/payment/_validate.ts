@@ -52,11 +52,12 @@ export function validateConfirm(
 // 주문 생성 전 사건-패키지 대조. 사무실이 상담 건에 패키지를 정해 결제 링크를 보냈는데(B안, 2026-09-25)
 // 손님이 주소의 pkg를 바꿔 더 싼 패키지로 결제하는 것을 막는다.
 // caseDoc: consultations/{caseId} 디코딩 결과(없으면 null). 정해진 패키지가 없으면 요청대로 진행한다.
+// 없는 접수번호는 거절한다 — 그대로 두면 결제 반영 때 그 경로에 사건 문서가 새로 생긴다.
 export function checkCasePackage(
   caseDoc: Record<string, unknown> | null,
   requested: PackageId
 ): { ok: true } | { ok: false; status: number; error: string; packageId?: PackageId } {
-  if (!caseDoc) return { ok: true };
+  if (!caseDoc) return { ok: false, status: 404, error: "case_not_found" };
   if (caseDoc.paymentStatus === "paid") {
     return { ok: false, status: 409, error: "already_paid" };
   }

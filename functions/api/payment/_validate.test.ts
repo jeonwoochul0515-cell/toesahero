@@ -83,8 +83,12 @@ describe("패키지 가격표", () => {
 });
 
 describe("checkCasePackage", () => {
-  it("사건 문서가 없으면 요청대로 진행", () => {
-    expect(checkCasePackage(null, "basic")).toEqual({ ok: true });
+  it("없는 접수번호면 404 case_not_found", () => {
+    expect(checkCasePackage(null, "basic")).toEqual({
+      ok: false,
+      status: 404,
+      error: "case_not_found",
+    });
   });
   it("사무실이 정한 패키지가 없으면 진행", () => {
     expect(checkCasePackage({ status: "new" }, "basic")).toEqual({ ok: true });
