@@ -547,6 +547,17 @@ export function ChatModal({ open, onClose, greeting }: Props) {
         .reduce((sum, m) => sum + m.text.length, 0),
     [messages]
   );
+  // 돈 청구·분쟁 이야기가 나온 대화에 "베이직 199,000원"을 붙이면 맞지 않는 패키지를 권하게 된다
+  // (개선 지시서 2-3). 그런 대화에서는 가격을 빼고 변호사가 절차를 정한다고만 알린다(B안).
+  const beyondBasic = useMemo(
+    () =>
+      messages.some(
+        (m) =>
+          m.who === "me" &&
+          /월급|임금|급여|퇴직금|연차|야근|수당|체불|괴롭힘|해고|손해\s*배상|손배|위약금|산재/.test(m.text)
+      ),
+    [messages]
+  );
   const showDraftButton =
     !draftSubmitted &&
     userTurnCount >= 2 &&
@@ -1175,7 +1186,9 @@ export function ChatModal({ open, onClose, greeting }: Props) {
               보내드립니다.
               <br />
               <span className="draft-cta-note">
-                (베이직 199,000원 패키지 · 발송 전 변호사가 검토합니다)
+                {beyondBasic
+                  ? "(맞는 절차와 비용은 변호사가 사안을 보고 안내드립니다 · 발송 전 변호사가 검토합니다)"
+                  : "(베이직 199,000원 패키지 · 발송 전 변호사가 검토합니다)"}
               </span>
             </p>
             <button
