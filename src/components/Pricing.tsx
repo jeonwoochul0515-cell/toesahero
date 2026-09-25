@@ -1,5 +1,6 @@
 import { saveConsultation } from "../firebase";
 import { Icon } from "./Icon";
+import { PAYMENT_COPY } from "../config/payment";
 
 type Tier = {
   id: string;
@@ -27,7 +28,7 @@ const tiers: Tier[] = [
       "퇴직 절차 체크리스트",
       "카톡 상담 (영업일 응답)",
     ],
-    cta: "상담 신청",
+    cta: PAYMENT_COPY.cardCta,
   },
   {
     id: "pro",
@@ -48,7 +49,7 @@ const tiers: Tier[] = [
       "실업급여 절차 안내",
       "퇴사 후 서류 확보 지원 (이직확인서·경력증명서·원천징수)",
     ],
-    cta: "상담 신청",
+    cta: PAYMENT_COPY.cardCta,
   },
   {
     id: "max",
@@ -66,7 +67,7 @@ const tiers: Tier[] = [
       "형사고소 검토",
       "전담 변호사 배정",
     ],
-    cta: "변호사 상담",
+    cta: PAYMENT_COPY.cardCta,
   },
 ];
 
@@ -108,7 +109,7 @@ export function Pricing({ openChat }: Props) {
             상담 후 사안에 적합한 절차를 안내드립니다. 아래 금액은 위임계약을 맺을 때 기준이 되는 보수이며, 사안에 따라 변동될 수 있습니다.
             <br />
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
-              ※ 표시 금액은 <strong>부가세가 포함된 금액</strong>입니다. 결제 금액 외에 더 붙지 않습니다.
+              ※ {PAYMENT_COPY.fees}
             </span>
           </p>
         </div>
@@ -165,27 +166,14 @@ export function Pricing({ openChat }: Props) {
                   </li>
                 ))}
               </ul>
+              {/* B안(상담 후 결제) — 카드에서 바로 결제로 보내지 않고 상담으로 잇는다(2026-09-25). */}
               <button
-                className={`btn ${t.pop ? "primary" : ""}`}
+                className="btn primary"
                 style={{ width: "100%", marginTop: "auto" }}
                 onClick={() => handleClick(t)}
               >
                 {t.cta}
               </button>
-              <a
-                href={`/checkout?pkg=${t.id}`}
-                className="btn"
-                style={{
-                  width: "100%",
-                  marginTop: 6,
-                  fontSize: 12,
-                  padding: "9px 14px",
-                  background: "var(--gray-1)",
-                  color: "var(--ink-2)",
-                }}
-              >
-                위임 진행 / 결제 안내 →
-              </a>
               {t.id === "pro" && (
                 <a
                   href="/calc"
@@ -219,7 +207,7 @@ export function Pricing({ openChat }: Props) {
           </div>
           <div className="foot-row">
             <span className="foot-key">결제 방식</span>
-            <span className="foot-val">위임계약 시 안내</span>
+            <span className="foot-val">{PAYMENT_COPY.howToPay}</span>
           </div>
           <div className="foot-row" style={{ marginTop: 8, paddingTop: 12, borderTop: "1px dashed var(--ink-2)" }}>
             <span className="foot-val" style={{ fontSize: 12, color: "var(--muted)" }}>

@@ -1,6 +1,7 @@
 // 세그먼트별 랜딩(괴롭힘/5인미만/부당해고/임금체불/퇴직금) — SEO·전환용. 설정 기반 단일 컴포넌트
 import { Link } from "react-router-dom";
 import { usePageMeta, faqJsonLd, breadcrumbJsonLd } from "../hooks/usePageMeta";
+import { PAYMENT_COPY } from "../config/payment";
 import { Icon, type IconName } from "../components/Icon";
 
 type Seg =
@@ -24,7 +25,7 @@ type Config = {
   points: Point[];
   faqs?: QA[];
   price?: string; // 정액 상품 안내 (있을 때만 노출)
-  pkg?: "basic" | "pro" | "max"; // 결제 화면(/checkout?pkg=)으로 이어지는 상품
+  pkg?: "basic" | "pro" | "max"; // 이 사안에 해당하는 상품(있으면 상담 신청 버튼을 보인다)
   priceNote?: string; // 큰 소송 등 별도 견적 안내
   relatedPosts?: { slug: string; title: string }[]; // 관련 칼럼(내부링크·OSMU)
 };
@@ -504,15 +505,21 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
             <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>
               부가세 포함 금액입니다. 인지대·송달료 등 실비는 별도이며, 결과를 보장하지 않습니다.
             </p>
-            {/* 가격을 보고도 결제로 갈 길이 없었다(2026-09-15 점검). 이 사안의 절차로 바로 잇는다. */}
+            {/* 가격을 보고도 다음 단계로 갈 길이 없었다(2026-09-15 점검).
+                B안(상담 후 결제, 2026-09-25) — 결제가 아니라 연락처를 받는 진단으로 잇는다. */}
             {c.pkg ? (
-              <Link
-                to={`/checkout?pkg=${c.pkg}`}
-                className="btn primary"
-                style={{ display: "block", marginTop: 12, padding: 13, textAlign: "center" }}
-              >
-                이 절차로 위임 진행 / 결제 안내 →
-              </Link>
+              <>
+                <Link
+                  to="/diagnose"
+                  className="btn primary"
+                  style={{ display: "block", marginTop: 12, padding: 13, textAlign: "center" }}
+                >
+                  {PAYMENT_COPY.cardCta} →
+                </Link>
+                <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>
+                  {PAYMENT_COPY.howToPay}
+                </p>
+              </>
             ) : null}
           </div>
         ) : null}

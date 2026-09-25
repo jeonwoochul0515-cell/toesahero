@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { saveNoticeConsultation } from "../firebase";
 import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
+import { PAYMENT_COPY } from "../config/payment";
 import { Icon } from "../components/Icon";
 
 // 검색·AI 답변엔진용 FAQ — 질문형 제목 + 두괄식 답. 화면과 JSON-LD에 1:1로 쓴다.
@@ -623,7 +624,8 @@ export function CalcPage() {
                 )}
               </button>
               <p className="calc-cta-note">
-                "표준 절차" 패키지(390,000원) 위임은 변호사 검토 후 안내됩니다.
+                돈을 받아내는 일은 "표준 절차" 패키지(390,000원)에 해당할 수 있습니다.
+                {PAYMENT_COPY.howToPay}
               </p>
               <div className="calc-fallback-cta">
                 <a

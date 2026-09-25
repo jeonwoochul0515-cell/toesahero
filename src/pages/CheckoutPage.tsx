@@ -8,6 +8,8 @@ import {
 } from "../firebase";
 import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
 import { PrivacyConsent } from "../components/PrivacyConsent";
+import { usePageMeta } from "../hooks/usePageMeta";
+import { PAYMENT_COPY } from "../config/payment";
 import { Icon } from "../components/Icon";
 
 type PackageInfo = {
@@ -65,6 +67,13 @@ export function CheckoutPage() {
   const nav = useNavigate();
   const requestedPkg = (searchParams.get("pkg") ?? "basic") as PackageInfo["id"];
   const pkg = PACKAGES[requestedPkg] ?? PACKAGES.basic;
+  // 제목이 홈과 같아 탭·공유 미리보기에서 결제 화면인지 알 수 없었다(개선 지시서 2-9).
+  const seo = usePageMeta({
+    title: `위임 신청·결제 (${pkg.name})`,
+    description: `퇴사히어로 ${pkg.name} 위임 신청·결제 화면입니다.`,
+    canonical: "/checkout",
+    noIndex: true,
+  });
 
   const [user, setUser] = useState<AppUser | null>(null);
   const [doc1, setDoc1] = useState<ConsultationDoc | null>(null);
@@ -295,6 +304,7 @@ export function CheckoutPage() {
 
   return (
     <div className="checkout-page">
+      {seo}
       <header className="calc-header">
         <Link to="/" className="my-back">← 홈으로</Link>
         <h1 className="calc-title">위임 신청 · 결제</h1>
@@ -360,6 +370,20 @@ export function CheckoutPage() {
 
         {!confirmResult && doc1?.paymentStatus !== "paid" && (
           <>
+            {/* B안(상담 후 결제) — 결제는 막지 않고, 접수번호 없이 온 손님에게 순서만 알린다. */}
+            {!caseId && (
+              <div className="checkout-result" style={{ margin: "0 auto 16px", padding: "18px 18px" }}>
+                {PAYMENT_COPY.checkoutNotice}
+                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+                  <Link to="/diagnose" className="btn primary">
+                    상담 신청(1분 진단)
+                  </Link>
+                  <a className="btn" href="tel:1660-4452">
+                    전화 1660-4452
+                  </a>
+                </div>
+              </div>
+            )}
             <div className="checkout-summary">
               <h2>{pkg.name}</h2>
               <p className="checkout-desc">{pkg.desc}</p>

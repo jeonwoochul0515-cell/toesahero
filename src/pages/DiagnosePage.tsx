@@ -1,9 +1,10 @@
 // 3~5문항 셀프 진단으로 사안을 분류해 패키지를 자동 추천하고 결제/상담으로 연결하는 페이지
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { saveConsultation } from "../firebase";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
+import { PAYMENT_COPY } from "../config/payment";
 import { Icon } from "../components/Icon";
 
 type Tier = "basic" | "pro" | "max";
@@ -96,7 +97,6 @@ function recommend(a: Record<string, string>): { tier: Tier; reason: string; dam
 }
 
 export function DiagnosePage() {
-  const nav = useNavigate();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<ReturnType<typeof recommend> | null>(null);
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -168,14 +168,6 @@ export function DiagnosePage() {
     }
     setResult(r);
     setSubmitting(false);
-  };
-
-  const goCheckout = () => {
-    if (!result) return;
-    const path = caseId
-      ? `/checkout/${caseId}?pkg=${result.tier}`
-      : `/checkout?pkg=${result.tier}`;
-    nav(path);
   };
 
   return (
@@ -298,9 +290,26 @@ export function DiagnosePage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>
-              <button className="btn primary" style={{ padding: 15 }} onClick={goCheckout}>
-                이 절차로 위임 진행 / 결제 안내 →
-              </button>
+              {/* B안(상담 후 결제) — 진단 때 연락처를 받았으니 결제로 보내지 않고 다음 순서를 알린다. */}
+              <div
+                style={{
+                  padding: "14px 16px",
+                  border: "2px solid var(--ink)",
+                  borderRadius: 12,
+                  background: "var(--yellow)",
+                  fontSize: 14,
+                  lineHeight: 1.65,
+                }}
+              >
+                <strong>접수되었습니다.</strong>
+                {caseId && (
+                  <>
+                    {" "}접수번호 <strong>#{caseId.slice(0, 8)}</strong>.
+                  </>
+                )}{" "}
+                변호사가 이 절차가 맞는지 확인하고 남기신 번호로
+                연락드립니다. {PAYMENT_COPY.howToPay}
+              </div>
               <a
                 href="https://pf.kakao.com/_zkzIX"
                 target="_blank"
