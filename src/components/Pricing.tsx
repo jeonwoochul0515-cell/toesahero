@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { saveConsultation } from "../firebase";
 import { Icon } from "./Icon";
 import { PAYMENT_COPY } from "../config/payment";
@@ -79,7 +80,21 @@ type Props = {
   openChat: () => void;
 };
 
+// 손님 말로 고르는 상황 → 해당 패키지 카드 (개선 지시서 2-2)
+const SITUATIONS: Array<{ id: string; label: string; tier: string }> = [
+  { id: "quit", label: "그냥 그만두고 싶어요 (통보·연락 대신)", tier: "basic" },
+  { id: "money", label: "못 받은 돈이 있어요 (월급·퇴직금·연차·야근)", tier: "pro" },
+  { id: "dispute", label: "괴롭힘·해고·손해배상 협박을 받았어요", tier: "max" },
+];
+
 export function Pricing({ openChat }: Props) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const pick = (tier: string) => {
+    setPicked(tier);
+    document
+      .getElementById(`price-${tier}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
   const handleClick = (t: Tier) => {
     void saveConsultation({
       source: "form",
@@ -146,9 +161,30 @@ export function Pricing({ openChat }: Props) {
           </p>
         </div>
 
+        <div className="price-picker reveal">
+          <strong>어떤 상황이세요?</strong>
+          <div className="price-picker-options">
+            {SITUATIONS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                aria-pressed={picked === s.tier}
+                className={picked === s.tier ? "on" : undefined}
+                onClick={() => pick(s.tier)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="price-grid reveal">
           {tiers.map((t) => (
-            <div key={t.id} className={`price-card ${t.pop ? "pop" : ""}`}>
+            <div
+              key={t.id}
+              id={`price-${t.id}`}
+              className={`price-card ${t.pop ? "pop" : ""} ${picked === t.id ? "picked" : ""}`}
+            >
               {t.pop && <div className="price-pop">표준 절차</div>}
               <div className="price-tag">{t.tag}</div>
               <h3 className="price-name">{t.name}</h3>

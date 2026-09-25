@@ -1694,6 +1694,42 @@ body[data-mascot="false"] .mascot {
     grid-template-columns: 1fr;
   }
 }
+.price-picker {
+  max-width: 720px;
+  margin: 0 auto 24px;
+  text-align: center;
+}
+.price-picker > strong {
+  display: block;
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.price-picker-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.price-picker-options button {
+  padding: 10px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  max-width: 100%;
+  white-space: normal;
+}
+.price-picker-options button.on {
+  background: var(--yellow);
+  box-shadow: 3px 3px 0 0 var(--ink);
+}
+.price-card.picked {
+  outline: 4px solid var(--orange);
+  outline-offset: 4px;
+}
 .price-card {
   background: var(--paper);
   border: 2.5px solid var(--ink);
