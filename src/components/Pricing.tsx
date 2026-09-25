@@ -112,7 +112,7 @@ export function Pricing({ openChat, picked = null }: Props) {
           <p className="lead" style={{ margin: "0 auto" }}>
             <strong>노무사·일반 업체가 다룰 수 없는 영역까지 변호사가 직접 처리합니다.</strong>
             <br />
-            상담 후 사안에 적합한 절차를 안내드립니다. 아래 금액은 위임계약을 맺을 때 기준이 되는 보수이며, 사안에 따라 변동될 수 있습니다.
+            상담 후 사안에 맞는 패키지를 정해 드립니다. 아래 금액은 패키지별로 정해진 보수입니다.
             <br />
             <span style={{ fontSize: 13, color: "var(--muted)" }}>
               ※ {PAYMENT_COPY.fees}
@@ -212,7 +212,7 @@ export function Pricing({ openChat, picked = null }: Props) {
           </div>
           <div className="foot-row" style={{ marginTop: 8, paddingTop: 12, borderTop: "1px dashed var(--ink-2)" }}>
             <span className="foot-val" style={{ fontSize: 12, color: "var(--muted)" }}>
-              본 사이트는 변호사법 제23조에 따른 광고물입니다. 표시된 보수액은 일반적 위임 기준이며, 사안의 난이도·특수성에 따라 협의 후 결정됩니다. 결과를 보장하지 않습니다.
+              본 사이트는 변호사법 제23조에 따른 광고물입니다. 표시된 보수액은 패키지별 정액이며, 어떤 패키지로 진행할지는 상담 후 정합니다. 결과를 보장하지 않습니다.
             </span>
           </div>
         </div>
