@@ -76,8 +76,21 @@ function calc(inputs: Inputs) {
   // 고용보험 피보험단위기간이 180일에 못 미치면 수급 요건 자체가 서지 않는다.
   // 월 단위 입력이라 정확한 일수는 알 수 없으므로 6개월 미만을 경고 기준으로 쓴다.
   const monthsTooShort = totalMonths < 6;
-  const likelyEligible = hasInput && inputs.reason !== "voluntary" && !monthsTooShort;
-  return { dailyBenefit, days, total, likelyEligible, totalMonths, hasInput, monthsTooShort };
+  // 만 15세 미만·100세 초과는 입력 실수로 보고 계산하지 않는다.
+  const ageInvalid = inputs.age < 15 || inputs.age > 100;
+  const voluntary = inputs.reason === "voluntary";
+  const likelyEligible = hasInput && !voluntary && !monthsTooShort && !ageInvalid;
+  return {
+    dailyBenefit,
+    days,
+    total,
+    likelyEligible,
+    totalMonths,
+    hasInput,
+    monthsTooShort,
+    ageInvalid,
+    voluntary,
+  };
 }
 
 function NumField({
@@ -99,6 +112,10 @@ function NumField({
   unit?: string;
   full?: boolean;
 }) {
+  // 입력한 글자를 그대로 보여 준다 — 0을 치면 빈칸이 되던 문제(2026-09-25).
+  // 최댓값만 즉시 자른다. 최솟값은 치는 중간(예: 나이 "3"→"35")에 걸리므로 오류 문구만 띄운다.
+  const [text, setText] = useState(value === 0 ? "" : String(value));
+  const [error, setError] = useState("");
   const input = (
     <input
       type="number"
@@ -106,8 +123,29 @@ function NumField({
       min={min}
       max={max}
       step={step}
-      value={value === 0 ? "" : value}
-      onChange={(e) => onValue(e.target.value === "" ? 0 : Number(e.target.value))}
+      value={text}
+      aria-invalid={error ? true : undefined}
+      onChange={(e) => {
+        const raw = e.target.value;
+        let n = raw === "" ? 0 : Number(raw);
+        if (!Number.isFinite(n)) n = 0;
+        let shown = raw;
+        let msg = "";
+        if (max !== undefined && n > max) {
+          n = max;
+          shown = String(max);
+          msg = `${fmt(max)} 이하로 입력해 주세요.`;
+        } else if (min !== undefined && n < min) {
+          if (min <= 0) {
+            n = min;
+            shown = raw === "" ? "" : String(min);
+          }
+          msg = `${fmt(min)} 이상으로 입력해 주세요.`;
+        }
+        setText(shown);
+        setError(msg);
+        onValue(n);
+      }}
     />
   );
   return (
@@ -121,6 +159,7 @@ function NumField({
       ) : (
         input
       )}
+      {error && <span className="calc-field-err">{error}</span>}
     </label>
   );
 }
@@ -279,6 +318,7 @@ export function UnemploymentCalcPage() {
                 value={inputs.monthlySalary}
                 onValue={(n) => onChange("monthlySalary", n)}
                 min={0}
+                max={100000000}
                 step={100000}
                 unit="원"
               />
@@ -326,9 +366,33 @@ export function UnemploymentCalcPage() {
           <aside className="calc-result">
             <div className="calc-result-card">
               <h3>예상 실업급여 총액</h3>
-              <div className="calc-total">
-                {fmt(result.total)}<span>원</span>
-              </div>
+              {result.likelyEligible || !result.hasInput ? (
+                <div className="calc-total">
+                  {fmt(result.total)}<span>원</span>
+                </div>
+              ) : (
+                <>
+                  {/* 수급이 어려운 조건에서 큰 총액을 그대로 보이면 받을 수 있다고 오해한다. */}
+                  <div className="calc-total" style={{ fontSize: 26 }}>
+                    수급 요건 확인 필요
+                  </div>
+                  {!result.ageInvalid && (
+                    <p className="calc-disclaimer">
+                      요건을 갖춘 경우의 예상액: 약 {fmt(result.total)}원
+                    </p>
+                  )}
+                </>
+              )}
+              {result.ageInvalid && (
+                <p className="calc-warn">만 나이를 확인해 주세요(15~100세).</p>
+              )}
+              {!result.ageInvalid && inputs.age >= 65 && (
+                <p className="calc-warn">
+                  만 65세가 넘은 뒤 새로 고용된 경우에는 실업급여가 적용되지 않습니다.
+                  65세 전부터 계속 일해 왔다면 받을 수 있습니다.
+                  {/* TODO(변호사 확인): 고용보험법 §10② 적용 제외 안내 문구 */}
+                </p>
+              )}
               {!result.hasInput && (
                 <p className="calc-warn">
                   월 평균 세전 급여를 넣으시면 예상액이 계산됩니다.
@@ -357,10 +421,11 @@ export function UnemploymentCalcPage() {
                 </li>
               </ul>
 
-              {result.likelyEligible ? (
+              {/* 사유 문구는 사유로만 가른다 — 가입기간이 짧을 때 권고사직에도 "자발적 퇴사" 문구가 뜨던 문제. */}
+              {!result.voluntary ? (
                 <div className="calc-extra">
                   <Icon name="bulb" size={16} /> 입력하신 사유는 <strong>비자발적 이직</strong>에
-                  해당해 수급자격 가능성이 있습니다. 이직확인서 사유 정정 등 확인이 필요합니다.
+                  해당할 수 있습니다. 이직확인서 사유 정정 등 확인이 필요합니다.
                 </div>
               ) : (
                 <div className="calc-extra" style={{ borderColor: "var(--orange)" }}>
