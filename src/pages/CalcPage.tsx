@@ -10,7 +10,7 @@ import { Icon } from "../components/Icon";
 const FAQ_ITEMS = [
   {
     q: "퇴직금은 어떻게 계산하나요?",
-    a: "퇴직 직전 3개월 평균임금 30일분에 근속연수를 곱해 계산합니다. 1년 이상 근무했다면 5인 미만 사업장을 포함한 모든 사업장에서 청구할 수 있고, 정기 상여금이 있다면 평균임금에 포함해 더 커질 수 있습니다.",
+    a: "퇴직 직전 3개월 평균임금 30일분에 근속연수를 곱해 계산합니다. 4주 평균 주 15시간 이상, 1년 이상 근무했다면 5인 미만 사업장을 포함한 모든 사업장에서 청구할 수 있고, 정기 상여금이 있다면 평균임금에 포함해 더 커질 수 있습니다.",
   },
   {
     q: "회사가 퇴직금을 안 주면 어떻게 하나요?",
@@ -22,7 +22,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "5인 미만 사업장인데 연차수당도 받을 수 있나요?",
-    a: "연차수당과 연장근로 가산수당은 상시 5인 이상 사업장에만 적용됩니다. 다만 퇴직금과 밀린 월급, 지연이자는 5인 미만 사업장이라도 전부 청구할 수 있습니다.",
+    a: "연차수당과 연장근로 가산수당은 상시 5인 이상 사업장에만 적용됩니다. 다만 퇴직금과 밀린 월급, 지연이자, 실제 일한 야근 시간의 기본 임금(1.0배)은 5인 미만 사업장이라도 청구할 수 있습니다.",
   },
 ];
 
@@ -39,6 +39,7 @@ type Inputs = {
   overtimeMonths: number; // 야근수당 미지급 기간(개월)
   unpaidSalaryMonths: number; // 체불(미지급) 월급 개월수
   delayMonths: number; // 미지급 후 경과 개월 (지연이자 §37, 연 20%)
+  employed: boolean; // 지금도 재직 중 — 지연이자 기산점과 퇴직금 지연이자 여부가 달라진다
   companySize: "under5" | "under30" | "under300" | "over300";
 };
 
@@ -56,28 +57,38 @@ function calc(inputs: Inputs) {
   const totalYears = totalMonths / 12;
 
   // 퇴직금 — 근로자퇴직급여 보장법 §8: 1년 이상 근속 시 전 사업장 적용.
-  // 평균임금 기준(통상임금 아님). 월급 + 연간상여금 월할(/12)로 평균임금 근사.
-  const avgMonthlyWage = monthlySalary + Math.round((inputs.annualBonus || 0) / 12);
+  // 1일 평균임금 = 퇴직 전 3개월 임금 총액(월급×3 + 연간상여금×3/12) ÷ 그 기간 총일수(92일로 근사).
+  // 퇴직금 = 1일 평균임금 × 30 × 근속연수. 예전 "월급 × 근속연수"는 약간 과대 산정됐다(개선 지시서 4-5).
+  // TODO(변호사 확인): 3개월 총일수를 92일로 근사하는 대략치 표기
+  const threeMonthWages = monthlySalary * 3 + ((inputs.annualBonus || 0) * 3) / 12;
+  const avgDailyWage = threeMonthWages / 92;
   const severance =
     inputs.severanceUnpaid && totalYears >= 1
-      ? Math.round(avgMonthlyWage * totalYears)
+      ? Math.round(avgDailyWage * 30 * totalYears)
       : 0;
 
   // 미사용 연차수당 — 근기법 §60: 상시 5인 이상만. 통상일급 × 미사용일수
   const annualLeave = is5plus ? dailyWage * (inputs.unusedAnnualLeave || 0) : 0;
 
-  // 연장근로 가산수당 — 근기법 §56: 상시 5인 이상만 1.5배 가산. 통상시급 × 1.5 × 시간 × 개월
-  const overtimePerMonth = is5plus
-    ? Math.round(hourlyWage * 1.5 * (inputs.monthlyOvertimeHours || 0))
-    : 0;
+  // 연장근로수당 — 근기법 §56: 가산분(0.5배)은 상시 5인 이상만. 5인 미만도 실제 일한 시간의
+  // 기본 1.0배는 임금이라 청구할 수 있다(개선 지시서 4-3). 통상시급 × 배율 × 시간 × 개월
+  // TODO(변호사 확인): 5인 미만 연장근로 1.0배 청구 안내
+  const overtimePerMonth = Math.round(
+    hourlyWage * (is5plus ? 1.5 : 1.0) * (inputs.monthlyOvertimeHours || 0)
+  );
   const overtimeTotal = overtimePerMonth * (inputs.overtimeMonths || 0);
 
   // 미지급 임금(체불) — 전 사업장. 월급 × 체불 개월 (임금채권 시효 3년)
   const unpaidSalary = monthlySalary * (inputs.unpaidSalaryMonths || 0);
 
-  // 지연이자(지연손해금) — 근기법 §37: 미지급 14일 경과분에 연 20%. (퇴직금·체불임금 등)
-  const owedBase = unpaidSalary + overtimeTotal + severance + annualLeave;
-  const delayDays = Math.max(0, (inputs.delayMonths || 0) * 30 - 14);
+  // 지연이자(지연손해금) — 근기법 §37, 연 20% (개선 지시서 4-4).
+  // 퇴직했으면 퇴직 금품(§37①1호)으로 보아 14일 경과 다음 날부터.
+  // 재직 중이면 정기 임금(§37①2호, 2025.10.23 시행)으로 보아 지급일 다음 날부터, 퇴직금은 아직 지급 사유가 없어 제외.
+  // TODO(변호사 확인): §37①1호·2호 기산점 구분
+  const owedBase = inputs.employed
+    ? unpaidSalary + overtimeTotal + annualLeave
+    : unpaidSalary + overtimeTotal + severance + annualLeave;
+  const delayDays = Math.max(0, (inputs.delayMonths || 0) * 30 - (inputs.employed ? 0 : 14));
   const delayInterest = Math.round(owedBase * 0.2 * (delayDays / 365));
 
   // 퇴직금을 체크했지만 1년 미만이라 빠진 경우 (안내용)
@@ -87,6 +98,7 @@ function calc(inputs: Inputs) {
   const excludedBySize =
     !is5plus &&
     ((inputs.unusedAnnualLeave || 0) > 0 || (inputs.monthlyOvertimeHours || 0) > 0);
+  const overtimeBaseOnly = !is5plus && (inputs.monthlyOvertimeHours || 0) > 0;
 
   return {
     dailyWage,
@@ -100,6 +112,7 @@ function calc(inputs: Inputs) {
     severanceUnder1y,
     is5plus,
     excludedBySize,
+    overtimeBaseOnly,
   };
 }
 
@@ -206,6 +219,7 @@ export function CalcPage() {
     overtimeMonths: 0,
     unpaidSalaryMonths: 0,
     delayMonths: 0,
+    employed: false,
     companySize: "under30",
   });
   const [submitting, setSubmitting] = useState(false);
@@ -224,7 +238,7 @@ export function CalcPage() {
   const items: Array<{ id: string; label: string; amount: number; show: boolean }> = [
     {
       id: "severance",
-      label: "퇴직금",
+      label: "퇴직금 (대략치)",
       amount: result.severance,
       show: result.severance > 0,
     },
@@ -300,7 +314,7 @@ export function CalcPage() {
         inputs.unpaidSalaryMonths
       }개월, 연간 상여금 ${fmt(inputs.annualBonus)}원, 미지급 경과 ${
         inputs.delayMonths
-      }개월(지연이자), 회사 규모: ${inputs.companySize}`;
+      }개월(지연이자), 재직 여부: ${inputs.employed ? "재직 중" : "퇴직"}, 회사 규모: ${inputs.companySize}`;
       const computedItems = visibleItems.map((i) => ({
         label: i.label,
         amount: i.amount,
@@ -506,6 +520,18 @@ export function CalcPage() {
                 min={0}
                 max={36}
               />
+              <label
+                className="full"
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <input
+                  type="checkbox"
+                  checked={inputs.employed}
+                  onChange={(e) => onChange("employed", e.target.checked)}
+                  style={{ width: "auto" }}
+                />
+                지금도 이 회사에 다니고 있다 (지연이자 계산 기준이 달라집니다)
+              </label>
             </div>
 
             <h2>3. 사안 정보</h2>
@@ -559,8 +585,11 @@ export function CalcPage() {
 
               {result.excludedBySize && (
                 <div className="calc-extra" style={{ borderColor: "var(--orange)" }}>
-                  <Icon name="warning" size={16} /> <strong>상시 5인 미만 사업장</strong>은 연차수당(근기법 §60)·
-                  연장근로 가산수당(§56)이 법정 적용되지 않아 합산에서 제외했습니다.
+                  <Icon name="warning" size={16} /> <strong>상시 5인 미만 사업장</strong>은 연차수당(근기법 §60)이
+                  적용되지 않아 합산에서 뺐습니다.
+                  {result.overtimeBaseOnly && (
+                    <> 야근수당은 가산분(0.5배) 없이 실제 일한 시간의 기본 임금(1.0배)만 넣었습니다.</>
+                  )}
                   <strong> 퇴직금·체불임금은 5인 미만도 청구 가능</strong>합니다.
                 </div>
               )}
@@ -644,12 +673,14 @@ export function CalcPage() {
               <h4>참고 산정 기준 (근로기준법·근퇴법)</h4>
               <ul>
                 <li>
-                  <strong>퇴직금</strong>: 30일분 <strong>평균임금</strong>(월급+상여
-                  월할) × 근속연수. 근퇴법 §8 — 1년 이상·전 사업장
+                  <strong>퇴직금</strong>: 1일 평균임금(퇴직 전 3개월 임금 총액 ÷ 그 기간
+                  일수) × 30 × 근속연수. 근퇴법 §8 — 1년 이상·전 사업장. 여기 금액은 대략치
                 </li>
                 <li>
-                  <strong>지연이자</strong>: 미지급 14일 경과분에 <strong>연 20%</strong>.
-                  근기법 §37 (2025.10 재직 중 정기임금까지 확대)
+                  <strong>지연이자</strong>: <strong>연 20%</strong>. 퇴직했으면 퇴직 후 14일이
+                  지난 다음 날부터, 재직 중 밀린 월급은 지급일 다음 날부터(근기법 §37, 2025.10.23
+                  시행). 재직 중에는 퇴직금에 붙지 않습니다. 지연이자는 노동청 진정으로는 받을 수
+                  없고 민사로 청구합니다
                 </li>
                 <li>
                   <strong>연차수당</strong>: 통상일급 × 미사용일수 (일급 = 월급 ÷
@@ -657,14 +688,14 @@ export function CalcPage() {
                 </li>
                 <li>
                   <strong>야근수당</strong>: 통상시급 × 1.5 × 야근시간. 근기법 §56
-                  — <strong>5인 이상만</strong> 가산
+                  — 가산(0.5배)은 <strong>5인 이상만</strong>, 5인 미만은 1.0배
                 </li>
                 <li>
                   <strong>임금체불</strong>: 월급 × 미지급 개월. 임금채권 시효 3년
                 </li>
                 <li>
-                  <strong>5인 미만 사업장</strong>: 연차수당·가산수당 미적용 /
-                  퇴직금·체불임금은 적용
+                  <strong>5인 미만 사업장</strong>: 연차수당·가산분 미적용 /
+                  퇴직금·체불임금·야근 기본임금은 적용
                 </li>
               </ul>
             </div>

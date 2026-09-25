@@ -9,8 +9,13 @@ type CalcItem = {
   value: number;
   desc: string;
   example: string;
+  // 회사가 주는 돈이 아니라 합계에서 뺀다(실업급여는 고용보험).
+  separate?: boolean;
 };
 
+// 예시값은 모두 월급 2,400,000원 기준으로 맞춘다(개선 지시서 4-1, 2026-09-25).
+// 시급 = 2,400,000 ÷ 209 ≈ 11,483원, 일급 = 시급 × 8 ≈ 91,866원.
+// TODO(변호사 확인): 예시값·괴롭힘 위자료 5,000,000원 예시
 const items: CalcItem[] = [
   {
     id: "salary",
@@ -24,15 +29,15 @@ const items: CalcItem[] = [
     id: "severance",
     label: "퇴직금 못 받음",
     icon: "bank",
-    value: 3_500_000,
-    desc: "근로기준법 §34 미지급분",
-    example: "1년 이상 근무",
+    value: 2_400_000,
+    desc: "근로자퇴직급여 보장법 §8·§9 미지급분",
+    example: "1년 근무 기준(대략치)",
   },
   {
     id: "annual",
     label: "연차수당 미지급",
     icon: "palm",
-    value: 850_000,
+    value: 919_000,
     desc: "사용 못한 연차 환산",
     example: "10일 기준",
   },
@@ -40,8 +45,8 @@ const items: CalcItem[] = [
     id: "overtime",
     label: "야근수당 떼임",
     icon: "moon",
-    value: 1_200_000,
-    desc: "통상임금 1.5배 청구",
+    value: 517_000,
+    desc: "통상시급 1.5배 청구",
     example: "월 평균 30시간",
   },
   {
@@ -54,11 +59,12 @@ const items: CalcItem[] = [
   },
   {
     id: "ui",
-    label: "실업급여 받기",
+    label: "실업급여 (고용보험)",
     icon: "mail",
-    value: 3_200_000,
-    desc: "권고사직 처리 협상",
-    example: "120일 기준",
+    value: 7_925_760,
+    desc: "이직확인서 사유가 사실과 다를 때 정정 대응",
+    example: "2026년 하한액 120일 기준",
+    separate: true,
   },
 ];
 
@@ -79,7 +85,7 @@ export function Calculator() {
   };
 
   const total = items
-    .filter((i) => picked.has(i.id))
+    .filter((i) => picked.has(i.id) && !i.separate)
     .reduce((a, b) => a + b.value, 0);
 
   const handleAsk = async () => {
@@ -121,7 +127,7 @@ export function Calculator() {
               </strong>
             </p>
             <div className="calc-total">
-              <div className="calc-total-label">선택 항목 단순 합산 (참고용)</div>
+              <div className="calc-total-label">선택 항목 단순 합산 (참고용 · 실업급여 제외)</div>
               <div className="calc-total-value">
                 <span className="amount-num">{fmt(total)}</span>
                 <span className="amount-unit">원</span>
@@ -174,6 +180,7 @@ export function Calculator() {
                 <button
                   key={it.id}
                   className={`calc-item ${on ? "on" : ""}`}
+                  aria-pressed={on}
                   onClick={() => toggle(it.id)}
                 >
                   <div className="calc-check">
@@ -188,7 +195,9 @@ export function Calculator() {
                       {it.desc} · {it.example}
                     </div>
                   </div>
-                  <div className="calc-value">+{fmt(it.value)}원</div>
+                  <div className="calc-value">
+                    {it.separate ? `별도 ${fmt(it.value)}원` : `+${fmt(it.value)}원`}
+                  </div>
                 </button>
               );
             })}
