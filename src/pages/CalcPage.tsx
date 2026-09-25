@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveNoticeConsultation } from "../firebase";
 import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
+import { PrivacyConsent } from "../components/PrivacyConsent";
 import { Icon } from "../components/Icon";
 
 // 검색·AI 답변엔진용 FAQ — 질문형 제목 + 두괄식 답. 화면과 JSON-LD에 1:1로 쓴다.
@@ -215,6 +216,7 @@ export function CalcPage() {
   // alert는 앱 안 브라우저에서 막히기도 해 "눌러도 반응 없음"이 됐다 — 칸 아래에 적는다.
   const [nameErr, setNameErr] = useState("");
   const [phoneErr, setPhoneErr] = useState("");
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
 
   const result = useMemo(() => calc(inputs), [inputs]);
 
@@ -283,7 +285,7 @@ export function CalcPage() {
       : "휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)";
     setNameErr(nErr);
     setPhoneErr(pErr);
-    if (nErr || pErr) return;
+    if (nErr || pErr || !privacyAgreed) return;
     setSubmitting(true);
     try {
       // AI 내용증명 생성 호출
@@ -604,12 +606,13 @@ export function CalcPage() {
                   {phoneErr && <span className="calc-field-err">{phoneErr}</span>}
                 </label>
               </div>
+              <PrivacyConsent checked={privacyAgreed} onChange={setPrivacyAgreed} dark />
 
               <button
                 className="btn primary"
                 style={{ width: "100%", marginTop: 12, fontSize: 16, padding: 16 }}
                 onClick={() => void requestNotice()}
-                disabled={submitting || visibleItems.length === 0}
+                disabled={submitting || visibleItems.length === 0 || !privacyAgreed}
               >
                 {submitting ? (
                   "1차 초안 생성 중..."

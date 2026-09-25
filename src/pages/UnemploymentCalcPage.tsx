@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { saveConsultation } from "../firebase";
 import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
+import { PrivacyConsent } from "../components/PrivacyConsent";
 import { Icon } from "../components/Icon";
 
 // 검색·AI 답변엔진용 FAQ — 질문형 제목 + 두괄식 답. 화면과 JSON-LD에 1:1로 쓴다.
@@ -201,6 +202,7 @@ export function UnemploymentCalcPage() {
   // 변호사가 회신할 연락처 — 미수집 시 신청이 들어와도 연락할 방법이 없어 필수로 받는다.
   const [applicantName, setApplicantName] = useState("");
   const [applicantPhone, setApplicantPhone] = useState("");
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   // 회사 쪽 사정으로 막힌 항목 — 하나라도 있으면 다툴 여지가 있어 상담으로 잇는다
   const [blocks, setBlocks] = useState<string[]>([]);
   const toggleBlock = (id: string) =>
@@ -223,6 +225,7 @@ export function UnemploymentCalcPage() {
       alert("휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)");
       return;
     }
+    if (!privacyAgreed) return;
     setSubmitting(true);
     try {
       const id = await saveConsultation({
@@ -492,12 +495,13 @@ export function UnemploymentCalcPage() {
                   />
                 </label>
               </div>
+              <PrivacyConsent checked={privacyAgreed} onChange={setPrivacyAgreed} dark />
 
               <button
                 className="btn primary"
                 style={{ width: "100%", marginTop: 12, fontSize: 16, padding: 16 }}
                 onClick={() => void requestConsult()}
-                disabled={submitting}
+                disabled={submitting || !privacyAgreed}
               >
                 {submitting
                   ? "접수 중..."

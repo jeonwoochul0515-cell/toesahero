@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveConsultation } from "../firebase";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { PrivacyConsent } from "../components/PrivacyConsent";
 import { Icon } from "../components/Icon";
 
 type Tier = "basic" | "pro" | "max";
@@ -103,6 +104,7 @@ export function DiagnosePage() {
   // 익명 진단 방지 — 연락처 없이는 결과 제출 불가 (2026-08-20, 채팅 게이트와 동일 원칙)
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const phoneOk = phone.replace(/[^0-9]/g, "").length >= 9;
 
   const seo = usePageMeta({
@@ -125,7 +127,7 @@ export function DiagnosePage() {
   const allAnswered = QUESTIONS.every((q) => answers[q.key]);
 
   const submit = async () => {
-    if (!allAnswered || submitting || !phoneOk) return;
+    if (!allAnswered || submitting || !phoneOk || !privacyAgreed) return;
     setSubmitting(true);
     const r = recommend(answers);
     // 같은 세션에서 같은 답변을 다시 제출하면 중복 저장·중복 문자알림을 만들지 않는다
@@ -246,12 +248,13 @@ export function DiagnosePage() {
                   autoComplete="tel"
                 />
               </div>
+              <PrivacyConsent checked={privacyAgreed} onChange={setPrivacyAgreed} />
             </div>
             <button
               className="btn primary"
               style={{ width: "100%", padding: 16, fontSize: 16, marginTop: 8 }}
               onClick={() => void submit()}
-              disabled={!allAnswered || submitting || !phoneOk}
+              disabled={!allAnswered || submitting || !phoneOk || !privacyAgreed}
             >
               {submitting
                 ? "분석 중..."
@@ -259,6 +262,8 @@ export function DiagnosePage() {
                 ? "모든 항목을 선택해 주세요"
                 : !phoneOk
                 ? "연락처를 입력해 주세요"
+                : !privacyAgreed
+                ? "개인정보 동의에 체크해 주세요"
                 : "진단 결과 보기"}
             </button>
           </>

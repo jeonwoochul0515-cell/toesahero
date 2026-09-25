@@ -7,6 +7,7 @@ import {
   type ConsultationDoc,
 } from "../firebase";
 import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
+import { PrivacyConsent } from "../components/PrivacyConsent";
 import { Icon } from "../components/Icon";
 
 type PackageInfo = {
@@ -69,6 +70,7 @@ export function CheckoutPage() {
   const [doc1, setDoc1] = useState<ConsultationDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [agreed, setAgreed] = useState(false);
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   // 로그인 없이 결제 가능 — 이름·연락처를 직접 입력받아 주문에 저장한다 (2026-08-20).
   const [buyerName, setBuyerName] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
@@ -210,8 +212,8 @@ export function CheckoutPage() {
   }, [searchParams]);
 
   const startPayment = async () => {
-    if (!agreed) {
-      alert("위임 약관에 동의해 주셔야 결제 진행이 가능합니다.");
+    if (!agreed || !privacyAgreed) {
+      alert("위임 동의와 개인정보 수집·이용 동의에 체크해 주셔야 결제 진행이 가능합니다.");
       return;
     }
     if (!TOSS_CLIENT_KEY || !window.TossPayments) {
@@ -417,6 +419,7 @@ export function CheckoutPage() {
                   autoComplete="tel"
                 />
               </div>
+              <PrivacyConsent checked={privacyAgreed} onChange={setPrivacyAgreed} withTerms />
             </div>
 
             <div className="checkout-terms">
@@ -462,7 +465,7 @@ export function CheckoutPage() {
               className="btn primary"
               style={{ width: "100%", fontSize: 17, padding: 18, marginTop: 20 }}
               onClick={() => void startPayment()}
-              disabled={!agreed || confirming}
+              disabled={!agreed || !privacyAgreed || confirming}
             >
               {confirming ? (
                 "결제 처리 중..."

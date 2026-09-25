@@ -3521,6 +3521,54 @@ body[data-mascot="false"] .mascot {
 }
 
 /* 접수 동의 체크칸 — 민감정보 전달은 손님이 직접 체크해야 한다(기본 해제) */
+.privacy-consent {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--gray-2);
+  border-radius: 10px;
+  background: var(--paper);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-align: left;
+}
+.privacy-consent label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.privacy-consent input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--ink);
+}
+.privacy-consent ul {
+  margin: 6px 0 4px 26px;
+  padding: 0;
+}
+.privacy-consent p {
+  margin: 0 0 0 26px;
+}
+.privacy-consent a {
+  color: inherit;
+  text-decoration: underline;
+}
+.privacy-consent.dark {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--cream);
+}
+.privacy-consent.dark label {
+  color: var(--cream);
+}
+.privacy-consent.dark input[type="checkbox"] {
+  accent-color: var(--yellow);
+}
 .chat-consent {
   padding: 10px 16px 4px;
   display: flex;
