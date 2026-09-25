@@ -1,15 +1,11 @@
 import { Mascot } from "./Mascot";
 import { Icon } from "./Icon";
 
+// 홈 줄이기(2026-09-25) — 경력은 3줄만. 전체 이력은 공식 홈페이지(chang-hee.kim)에 있다.
 const credentials = [
   "법률사무소 청송law 대표 변호사",
-  "가맹거래사 (이중 자격)",
-  "동아대학교 법학전문대학원 겸임교수",
   "前 부산지방고용노동청 전문위원회 위원",
-  "前 부산지방검찰청 형사조정위원",
-  "前 부산가정법원 위탁보호위원",
-  "공무원연금공단 법률상담변호사",
-  "법제처 법제자문관",
+  "동아대학교 법학전문대학원 겸임교수",
 ];
 
 export function Lawyer() {
@@ -54,9 +50,6 @@ export function Lawyer() {
               <br />
               10여 년간 1,000건 이상의 사건을 다루면서{" "}
               <strong>가장 자주 본 패턴은 '혼자 결정 내리시는 분들'</strong>이었습니다.
-              특히 퇴사 단계에서는 절차에 대한 이해 없이 진행할 경우 근로자가 보장받을 수 있는 권리를 충분히 검토하지 못한 채 퇴직하게 되는 경우가 적지 않습니다.
-              <br />
-              <br />
               그래서{" "}
               <strong
                 style={{
@@ -66,7 +59,7 @@ export function Lawyer() {
               >
                 변호사가 처음부터 끝까지 직접 운영하는 퇴사 자문 서비스
               </strong>
-              를 시작했습니다. <strong>노무사·일반 업체가 「변호사법 제109조」에 따라 다룰 수 없는 분쟁 영역(고소·민사 청구·형사 검토)</strong>까지 변호사가 직접 책임지는 것이 본 서비스의 핵심입니다. 변호사 비밀유지 의무 적용.
+              를 시작했습니다. 변호사 비밀유지 의무 적용.
             </p>
             <div className="lawyer-creds">
               {credentials.map((c, i) => (
@@ -89,7 +82,7 @@ export function Lawyer() {
                 rel="me noopener noreferrer"
                 className="btn"
               >
-                변호사 프로필 보기 <Icon name="external" size={16} />
+                전체 이력 보기 <Icon name="external" size={16} />
               </a>
               <a href="tel:1660-4452" className="btn primary">
                 <Icon name="phone" size={16} /> 1660-4452 직통

@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { saveConsultation } from "../firebase";
 import { Icon } from "./Icon";
 import { PAYMENT_COPY } from "../config/payment";
+import type { TierId } from "./Situations";
 
 type Tier = {
   id: string;
@@ -78,23 +78,14 @@ const tiers: Tier[] = [
 
 type Props = {
   openChat: () => void;
+  // 홈 "어떤 상황이세요?"에서 고른 패키지 — 해당 카드를 강조한다
+  picked?: TierId | null;
 };
 
-// 손님 말로 고르는 상황 → 해당 패키지 카드 (개선 지시서 2-2)
-const SITUATIONS: Array<{ id: string; label: string; tier: string }> = [
-  { id: "quit", label: "그냥 그만두고 싶어요 (통보·연락 대신)", tier: "basic" },
-  { id: "money", label: "못 받은 돈이 있어요 (월급·퇴직금·연차·야근)", tier: "pro" },
-  { id: "dispute", label: "괴롭힘·해고·손해배상 협박을 받았어요", tier: "max" },
-];
+// 카드마다 먼저 보이는 혜택 수 — 나머지는 "자세히 보기"로 접는다(홈 줄이기, 2026-09-25)
+const PERKS_VISIBLE = 3;
 
-export function Pricing({ openChat }: Props) {
-  const [picked, setPicked] = useState<string | null>(null);
-  const pick = (tier: string) => {
-    setPicked(tier);
-    document
-      .getElementById(`price-${tier}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
+export function Pricing({ openChat, picked = null }: Props) {
   const handleClick = (t: Tier) => {
     void saveConsultation({
       source: "form",
@@ -139,45 +130,6 @@ export function Pricing({ openChat }: Props) {
           </a>
         </div>
 
-        <div
-          className="reveal"
-          style={{
-            maxWidth: 720,
-            margin: "0 auto 40px",
-            padding: "18px 22px",
-            background: "var(--paper)",
-            border: "2.5px solid var(--ink)",
-            borderRadius: 14,
-            boxShadow: "4px 4px 0 0 var(--ink)",
-          }}
-        >
-          <strong style={{ fontSize: 16, display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <Icon name="scale" size={20} /> "퇴사하면 손해배상 청구하겠다"는 협박을 받고 계신가요?
-          </strong>
-          <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)" }}>
-            회사의 <strong>손해배상·위약금 협박 대응</strong>은 노무사·일반 업체가
-            대리할 수 없는 <strong>변호사 전속 영역</strong>입니다. 위축되지 마세요.
-            변호사가 직접 사실관계와 계약서를 검토해 대응합니다.
-          </p>
-        </div>
-
-        <div className="price-picker reveal">
-          <strong>어떤 상황이세요?</strong>
-          <div className="price-picker-options">
-            {SITUATIONS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                aria-pressed={picked === s.tier}
-                className={picked === s.tier ? "on" : undefined}
-                onClick={() => pick(s.tier)}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="price-grid reveal">
           {tiers.map((t) => (
             <div
@@ -195,13 +147,26 @@ export function Pricing({ openChat }: Props) {
                 <span className="price-per">/ 1건</span>
               </div>
               <ul className="price-list">
-                {t.perks.map((p, i) => (
+                {t.perks.slice(0, PERKS_VISIBLE).map((p, i) => (
                   <li key={i}>
                     <span className="check">✓</span>
                     {p}
                   </li>
                 ))}
               </ul>
+              {t.perks.length > PERKS_VISIBLE && (
+                <details className="price-more">
+                  <summary>자세히 보기 ({t.perks.length - PERKS_VISIBLE}개 더)</summary>
+                  <ul className="price-list">
+                    {t.perks.slice(PERKS_VISIBLE).map((p, i) => (
+                      <li key={i}>
+                        <span className="check">✓</span>
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
               {/* B안(상담 후 결제) — 카드에서 바로 결제로 보내지 않고 상담으로 잇는다(2026-09-25). */}
               <button
                 className="btn primary"
@@ -252,13 +217,6 @@ export function Pricing({ openChat }: Props) {
           </div>
         </div>
 
-        {/* 괴롭힘·부당해고로 오신 분이 갈 곳을 이어준다 — 전용 상품은 분쟁 대응으로 합쳤다. */}
-        <p className="labor-harassment-note" style={{ textAlign: "center", marginTop: 24 }}>
-          직장 내 괴롭힘·부당해고는 <strong>분쟁 대응(790,000원)</strong>, 밀린 임금·퇴직금 청구는{" "}
-          <strong>표준 절차(390,000원)</strong>에서 다룹니다.{" "}
-          <a href="/harassment">괴롭힘</a> · <a href="/unfair-dismissal">부당해고</a> ·{" "}
-          <a href="/unpaid-wages">임금체불</a> 자세히 보기 →
-        </p>
       </div>
     </section>
   );

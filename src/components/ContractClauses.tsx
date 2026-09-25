@@ -46,7 +46,7 @@ export function ContractClauses({ openChat }: Props) {
     <section
       id="contract-check"
       className="wrap reveal"
-      style={{ padding: "72px 0", scrollMarginTop: 80 }}
+      style={{ paddingTop: 72, paddingBottom: 72, scrollMarginTop: 80 }}
     >
       <div style={{ textAlign: "center", marginBottom: 12 }}>
         <span

@@ -108,6 +108,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 - 홈: ${SITE_HOST}/
 - 자주 묻는 질문: ${SITE_HOST}/faq
 - 임금·퇴직금 계산기: ${SITE_HOST}/calc
+- 계약서 퇴사 조항 점검: ${SITE_HOST}/contract-check
 - 법률 칼럼(블로그): ${SITE_HOST}/blog
 - RSS: ${SITE_HOST}/rss.xml
 

@@ -248,7 +248,8 @@ export function HiroChat() {
       // 화면 위아래 40%를 제외한 가운데 띠 기준 — 화면보다 키 큰 섹션도 확실히 잡힌다
       { rootMargin: "-40% 0px -40% 0px", threshold: 0 }
     );
-    for (const id of ["labor", "contract-check", "calc", "process", "lawyer", "pricing"]) {
+    // "calc"는 홈에서 계산기가 빠지고 링크 한 줄만 남아(2026-09-25) 안내말을 걸지 않는다.
+    for (const id of ["labor", "contract-check", "process", "lawyer", "pricing"]) {
       const el = document.getElementById(id);
       if (el) io.observe(el);
     }

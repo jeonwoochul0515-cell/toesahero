@@ -42,11 +42,9 @@ export function pageIntro(path: string): string | null {
 export function sectionIntro(id: string): string | null {
   switch (id) {
     case "labor":
-      return "직장 내 괴롭힘, 부당해고, 임금체불 — 전부 변호사님이 당신 대신 다투는 사안들이에요. 혹시 지금 겪고 계신 일이 이 중에 있나요?";
+      return "그냥 그만두고 싶은지, 못 받은 돈이 있는지, 괴롭힘·해고 같은 분쟁인지 골라 보세요. 헷갈리면 지금 상황을 저한테 말씀해 주셔도 돼요.";
     case "contract-check":
       return "계약서의 무서운 조항들 보고 계시죠. 30일 통보, 손해배상, 지급보류 — 겁주는 것만큼 전부 효력이 있는 건 아니에요. 어떤 조항이 걸리세요?";
-    case "calc":
-      return "여기서 월급이랑 근속기간만 넣으면 퇴직금·연차수당·미지급 임금이 바로 계산돼요. 결과가 나오면 저한테 보여주시면 같이 정리해 드릴게요.";
     case "process":
       return "위임부터 종결까지 어떻게 진행되는지 보여드리는 부분이에요. 궁금한 단계가 있으면 콕 집어 물어보세요.";
     case "lawyer":

@@ -1694,37 +1694,168 @@ body[data-mascot="false"] .mascot {
     grid-template-columns: 1fr;
   }
 }
-.price-picker {
-  max-width: 720px;
-  margin: 0 auto 24px;
-  text-align: center;
+/* ── 홈 줄이기 A안 (2026-09-25) ───────────────────────────────── */
+.situ-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
 }
-.price-picker > strong {
-  display: block;
-  font-size: 17px;
-  margin-bottom: 10px;
+.situ-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px;
+  text-align: left;
+  background: var(--cream);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
 }
-.price-picker-options {
+.situ-card:hover,
+.situ-card.on {
+  background: var(--yellow);
+}
+.situ-card:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
+}
+.situ-icon {
+  display: inline-flex;
+}
+.situ-title {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+.situ-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.situ-pkg {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.situ-topics {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-}
-.price-picker-options button {
-  padding: 10px 14px;
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  background: var(--paper);
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 22px;
   font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-  cursor: pointer;
-  max-width: 100%;
-  white-space: normal;
 }
-.price-picker-options button.on {
-  background: var(--yellow);
-  box-shadow: 3px 3px 0 0 var(--ink);
+.situ-topics span {
+  color: var(--muted);
+  font-weight: 700;
+}
+.situ-topics a {
+  color: var(--ink);
+  font-weight: 700;
+}
+.price-more {
+  margin: -4px 0 12px;
+  font-size: 14px;
+}
+.price-more summary {
+  cursor: pointer;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.price-more .price-list {
+  margin-top: 10px;
+}
+.proc-line {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.proc-line li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+}
+.proc-line .proc-num {
+  flex: none;
+  font-size: 22px;
+  line-height: 1;
+}
+.proc-line-text {
+  flex: 1;
+  line-height: 1.5;
+}
+.proc-line .proc-time {
+  flex: none;
+  white-space: nowrap;
+}
+.more-tools {
+  padding: 28px 0;
+}
+.more-tools-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.more-tool {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.more-tool span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink-2);
+}
+.more-tool strong {
+  font-size: 15px;
+  color: var(--ink);
+}
+@media (max-width: 760px) {
+  .situ-grid,
+  .more-tools-row {
+    grid-template-columns: 1fr;
+  }
+  /* 휴대폰에서 사진·카드가 화면을 반 이상 차지하던 것을 줄인다 */
+  .lawyer-portrait {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .price-card {
+    padding: 22px 18px;
+  }
+  .price-num {
+    font-size: 36px;
+  }
+  .assure-card {
+    padding: 16px;
+  }
+  .proc-line li {
+    flex-wrap: wrap;
+  }
 }
 .price-card.picked {
   outline: 4px solid var(--orange);
@@ -3842,18 +3973,6 @@ body[data-mascot="false"] .mascot {
 }
 
 /* 괴롭힘 전용 상품을 없앤 뒤, 괴롭힘으로 오신 분을 분쟁 대응으로 이어주는 안내 (2026-09-06) */
-.labor-harassment-note {
-  margin: 14px auto 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.labor-harassment-note a {
-  color: var(--ink);
-  font-weight: 800;
-  text-decoration: underline;
-  white-space: nowrap;
-}
 
 /* 어드민 조회 실패 안내 — "0건"과 시각적으로 구분한다 (2026-09-06) */
 .admin-empty.admin-error {

@@ -11,6 +11,7 @@ import { DiagnosePage } from "./pages/DiagnosePage";
 import { SegmentLandingPage } from "./pages/SegmentLandingPage";
 import { ForeignWorkerPage } from "./pages/ForeignWorkerPage";
 import { FAQPage } from "./pages/FAQPage";
+import { ContractCheckPage } from "./pages/ContractCheckPage";
 import { NotFound } from "./pages/NotFound";
 import { AdminAuthProvider } from "./admin/AdminAuthContext";
 
@@ -156,6 +157,7 @@ export const routes: RouteRecord[] = [
       { path: "blog", element: <BlogList /> },
       { path: "blog/:slug", element: <BlogPost /> },
       { path: "faq", element: <FAQPage /> },
+      { path: "contract-check", element: <ContractCheckPage /> },
       {
         element: <AdminAuthLayout />,
         children: [

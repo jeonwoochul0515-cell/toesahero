@@ -59,7 +59,8 @@ function Cell({ level, text }: { level: Level; text: string }) {
   );
 }
 
-export function Compare() {
+// limit: 홈에서는 핵심 3줄만(통보·교섭·손배 협박), FAQ 페이지는 전체를 보인다.
+export function Compare({ limit }: { limit?: number } = {}) {
   return (
     <section id="compare" style={{ background: "var(--paper)" }}>
       <div className="wrap">
@@ -84,7 +85,7 @@ export function Compare() {
               <span>변호사 직접</span>
             </div>
           </div>
-          {rows.map((r, i) => (
+          {rows.slice(0, limit ?? rows.length).map((r, i) => (
             <div className="cmp-row" key={i}>
               <div className="cmp-label">{r.label}</div>
               <Cell {...r.self} />
