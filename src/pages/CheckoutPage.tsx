@@ -204,7 +204,7 @@ export function CheckoutPage() {
         if (reflectFailed) console.warn("[payment] reflect failed", data);
         setConfirmResult(
           [
-            "결제가 정상 처리되었습니다. 담당변호사 김창희가 영업일 기준으로 연락드립니다.",
+            "결제가 정상 처리되었습니다. 담당변호사 김창희가 영업일에 연락드립니다.",
             ...(reflectFailed
               ? ["사무실 접수 처리가 조금 늦어질 수 있습니다. 하루가 지나도 연락이 없으면 1660-4452로 알려 주십시오."]
               : []),
@@ -364,7 +364,7 @@ export function CheckoutPage() {
                     </div>
                   </li>
                   <li>
-                    담당변호사 김창희가 영업일 기준으로 연락드립니다. 급하시면 1660-4452로
+                    담당변호사 김창희가 영업일에 연락드립니다. 급하시면 1660-4452로
                     전화 주셔도 됩니다.
                   </li>
                 </ol>

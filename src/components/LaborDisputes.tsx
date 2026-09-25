@@ -26,7 +26,7 @@ const CARDS: Card[] = [
     to: "/severance-pay",
     icon: "bank",
     title: "퇴직금 미지급",
-    desc: "1년 이상 일했으면 당연한 권리. 5인 미만도, 알바도 예외 아닙니다.",
+    desc: "주 15시간 이상·1년 이상 일했으면 당연한 권리. 5인 미만도, 알바도 예외 아닙니다.",
   },
   {
     to: "/harassment",

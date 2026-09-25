@@ -54,7 +54,7 @@ export function NotFound() {
             <h2>변호사와 직접 상담</h2>
             <p>
               사안이 시급하시면 카카오톡 채널 또는 전화로 직접 문의해 주세요.
-              영업일 기준 변호사가 직접 답변드립니다.
+              영업일에 변호사가 직접 답변드립니다.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <a
