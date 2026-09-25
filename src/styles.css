@@ -3521,6 +3521,19 @@ body[data-mascot="false"] .mascot {
 }
 
 /* 접수 동의 체크칸 — 민감정보 전달은 손님이 직접 체크해야 한다(기본 해제) */
+.my-case-pay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--yellow);
+  font-size: 14px;
+}
 .privacy-consent {
   margin-top: 12px;
   padding: 10px 12px;

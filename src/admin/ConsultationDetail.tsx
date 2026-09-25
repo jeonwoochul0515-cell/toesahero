@@ -39,6 +39,7 @@ export function ConsultationDetail() {
   const [draftEdit, setDraftEdit] = useState("");
   const [noticeEdit, setNoticeEdit] = useState("");
   const [saving, setSaving] = useState(false);
+  const [payLink, setPayLink] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [emailTo, setEmailTo] = useState("");
@@ -150,6 +151,30 @@ export function ConsultationDetail() {
       setSavedAt(new Date().toLocaleTimeString("ko-KR"));
     } catch (e) {
       console.warn("[admin] 저장 실패", e);
+      setSaveError("저장하지 못했습니다. 연결을 확인하고 다시 눌러 주세요.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // B안(상담 후 결제, 2026-09-25) — 변호사가 정한 패키지를 기록하고 이 손님 전용 결제 링크를 복사한다.
+  // 기록된 패키지는 서버 주문 생성에서도 강제되어, 손님이 주소를 바꿔 다른 금액으로 결제할 수 없다.
+  const copyPaymentLink = async (pkgId: "basic" | "pro" | "max") => {
+    setSaving(true);
+    setSaveError(null);
+    const link = `https://toesahero.com/checkout/${row.id}?pkg=${pkgId}`;
+    try {
+      await updateConsultation(row.id, { packageId: pkgId });
+      setRow({ ...row, packageId: pkgId });
+      setPayLink(link);
+      try {
+        await navigator.clipboard.writeText(link);
+        setSavedAt(`${new Date().toLocaleTimeString("ko-KR")} 결제 링크 복사됨`);
+      } catch {
+        setSavedAt("복사가 막혀 있습니다 — 아래 링크를 길게 눌러 복사하세요");
+      }
+    } catch (e) {
+      console.warn("[admin] 결제 패키지 저장 실패", e);
       setSaveError("저장하지 못했습니다. 연결을 확인하고 다시 눌러 주세요.");
     } finally {
       setSaving(false);
@@ -801,7 +826,43 @@ export function ConsultationDetail() {
         )}
 
         <div className="admin-detail-card admin-detail-actions">
-          <h3>상태 변경</h3>
+          <h3>결제 링크 보내기</h3>
+          {row.paymentStatus === "paid" ? (
+            <p>결제 완료 — {PAY_PKG_LABEL[row.packageId ?? ""] ?? row.packageId ?? "패키지 미상"}</p>
+          ) : (
+            <>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: "4px 0 10px" }}>
+                상담 후 맞는 절차를 고르면 이 손님 전용 결제 링크가 복사됩니다. 카톡·문자에 붙여 보내세요.
+                {row.packageId && (
+                  <>
+                    {" "}지금 정해진 절차: <strong>{PAY_PKG_LABEL[row.packageId] ?? row.packageId}</strong>
+                  </>
+                )}
+              </p>
+              <div className="admin-status-buttons">
+                {(["basic", "pro", "max"] as const).map((id) => (
+                  <button
+                    key={id}
+                    disabled={saving}
+                    onClick={() => void copyPaymentLink(id)}
+                    className={`admin-status-btn ${row.packageId === id ? "current" : ""}`}
+                  >
+                    {PAY_PKG_LABEL[id]} 링크 복사
+                  </button>
+                ))}
+              </div>
+              {payLink && (
+                <input
+                  readOnly
+                  value={payLink}
+                  onFocus={(e) => e.currentTarget.select()}
+                  style={{ width: "100%", marginTop: 8, fontSize: 12 }}
+                />
+              )}
+            </>
+          )}
+
+          <h3 style={{ marginTop: 24 }}>상태 변경</h3>
           <div className="admin-status-buttons">
             {STATUS_OPTIONS.map((opt) => (
               <button
@@ -841,6 +902,12 @@ export function ConsultationDetail() {
     </div>
   );
 }
+
+const PAY_PKG_LABEL: Record<string, string> = {
+  basic: "기본 절차 199,000원",
+  pro: "표준 절차 390,000원",
+  max: "분쟁 대응 790,000원",
+};
 
 function DList({ items }: { items: Array<[string, string]> }) {
   return (

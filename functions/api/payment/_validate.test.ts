@@ -1,6 +1,6 @@
 // 결제 승인 검증 로직(validateConfirm) 단위 테스트.
 import { describe, it, expect } from "vitest";
-import { validateConfirm } from "./_validate";
+import { validateConfirm, checkCasePackage } from "./_validate";
 import { PACKAGE_PRICE, isPackageId } from "./_packages";
 
 const baseOrder = {
@@ -79,5 +79,32 @@ describe("패키지 가격표", () => {
     expect(isPackageId("vip")).toBe(false);
     expect(isPackageId(null)).toBe(false);
     expect(isPackageId(undefined)).toBe(false);
+  });
+});
+
+describe("checkCasePackage", () => {
+  it("사건 문서가 없으면 요청대로 진행", () => {
+    expect(checkCasePackage(null, "basic")).toEqual({ ok: true });
+  });
+  it("사무실이 정한 패키지가 없으면 진행", () => {
+    expect(checkCasePackage({ status: "new" }, "basic")).toEqual({ ok: true });
+  });
+  it("정한 패키지와 같으면 진행", () => {
+    expect(checkCasePackage({ packageId: "pro" }, "pro")).toEqual({ ok: true });
+  });
+  it("정한 패키지와 다르면 409 package_mismatch", () => {
+    expect(checkCasePackage({ packageId: "pro" }, "basic")).toEqual({
+      ok: false,
+      status: 409,
+      error: "package_mismatch",
+      packageId: "pro",
+    });
+  });
+  it("이미 결제된 사건이면 409 already_paid", () => {
+    expect(checkCasePackage({ packageId: "pro", paymentStatus: "paid" }, "pro")).toEqual({
+      ok: false,
+      status: 409,
+      error: "already_paid",
+    });
   });
 });

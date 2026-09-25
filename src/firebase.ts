@@ -593,7 +593,13 @@ export async function updateConsultation(
   patch: Partial<
     Pick<
       ConsultationDoc,
-      "status" | "notes" | "draftLetter" | "draftStatus" | "noticeLetter" | "noticeStatus"
+      | "status"
+      | "notes"
+      | "draftLetter"
+      | "draftStatus"
+      | "noticeLetter"
+      | "noticeStatus"
+      | "packageId"
     >
   >
 ): Promise<void> {

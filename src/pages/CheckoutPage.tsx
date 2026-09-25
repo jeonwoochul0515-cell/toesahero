@@ -66,7 +66,10 @@ export function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const nav = useNavigate();
   const requestedPkg = (searchParams.get("pkg") ?? "basic") as PackageInfo["id"];
-  const pkg = PACKAGES[requestedPkg] ?? PACKAGES.basic;
+  const [doc1, setDoc1] = useState<ConsultationDoc | null>(null);
+  // 사무실이 상담 건에 패키지를 정해 두었으면 주소의 pkg보다 그것을 따른다(서버도 같은 규칙으로 막는다).
+  const fixedPkg = doc1?.packageId && PACKAGES[doc1.packageId as PackageInfo["id"]];
+  const pkg = fixedPkg || (PACKAGES[requestedPkg] ?? PACKAGES.basic);
   // 제목이 홈과 같아 탭·공유 미리보기에서 결제 화면인지 알 수 없었다(개선 지시서 2-9).
   const seo = usePageMeta({
     title: `위임 신청·결제 (${pkg.name})`,
@@ -76,7 +79,6 @@ export function CheckoutPage() {
   });
 
   const [user, setUser] = useState<AppUser | null>(null);
-  const [doc1, setDoc1] = useState<ConsultationDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [agreed, setAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
@@ -264,7 +266,23 @@ export function CheckoutPage() {
         orderId?: string;
         amount?: number;
         message?: string;
+        error?: string;
+        packageId?: PackageInfo["id"] | null;
       };
+      if (data.error === "package_mismatch" && data.packageId && PACKAGES[data.packageId] && caseId) {
+        alert(
+          `변호사가 안내한 절차는 「${PACKAGES[data.packageId].name}」입니다. 해당 절차로 다시 보여 드립니다.`
+        );
+        // 화면은 불러 둔 사건 문서의 패키지를 주소보다 앞세우므로 그것부터 서버 값으로 맞춘다.
+        const fixed = data.packageId;
+        setDoc1((d) => (d ? { ...d, packageId: fixed } : d));
+        nav(`/checkout/${caseId}?pkg=${fixed}`, { replace: true });
+        return;
+      }
+      if (data.error === "already_paid") {
+        alert("이 사건은 이미 결제가 완료되었습니다. 두 번 결제하지 않으셔도 됩니다.");
+        return;
+      }
       if (resp.status === 503) {
         alert(
           "지금은 카드 결제를 받을 수 없습니다. 1660-4452로 전화 주시면 계좌 안내를 도와드리겠습니다."

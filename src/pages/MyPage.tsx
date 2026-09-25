@@ -251,6 +251,18 @@ export function MyPage() {
                     <time className="my-case-time">{fmtDate(c.createdAt)}</time>
                   </header>
 
+                  {/* B안(상담 후 결제) — 변호사가 절차를 정한 사건에만 결제 버튼을 켠다. */}
+                  {!paid && c.packageId && PKG_LABEL[c.packageId] && (
+                    <div className="my-case-pay">
+                      <span>
+                        변호사가 안내한 절차: <strong>{PKG_LABEL[c.packageId]}</strong>
+                      </span>
+                      <Link to={`/checkout/${c.id}?pkg=${c.packageId}`} className="btn primary">
+                        결제하기
+                      </Link>
+                    </div>
+                  )}
+
                   <ol className="my-timeline">
                     {STAGES.map((st, i) => {
                       const state =
@@ -395,3 +407,9 @@ export function MyPage() {
     </div>
   );
 }
+
+const PKG_LABEL: Record<string, string> = {
+  basic: "기본 절차 199,000원",
+  pro: "표준 절차 390,000원",
+  max: "분쟁 대응 790,000원",
+};
