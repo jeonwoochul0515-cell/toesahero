@@ -76,13 +76,12 @@
       "Claude-User",
       "PerplexityBot",
       "Applebot",
-      "Google-Extended"
-    ],
-    "block": [
+      "Google-Extended",
       "GPTBot",
       "ClaudeBot",
       "Applebot-Extended"
     ],
+    "block": [],
     "blockLevel": "RECOMMENDED",
     "samplePaths": null
   },
