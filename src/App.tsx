@@ -1,6 +1,6 @@
 // 앱 라우트 정의 — vite-react-ssg 프리렌더용 RouteRecord 배열
 import { lazy, Suspense } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
 import { HiroChat } from "./components/HiroChat";
@@ -88,6 +88,7 @@ const BlogAdmin = lazy(() =>
 // 모든 라우트를 감싸는 루트 레이아웃 — lazy chunk 로딩 경계.
 // 히로(호객꾼 캐릭터)는 전 화면에서 먼저 말을 걸어야 하므로 여기에 전역 마운트한다(마운트 후에만 렌더 — 프리렌더 HTML에 흔적 없음).
 function RootLayout() {
+  const isHome = useLocation().pathname === "/";
   return (
     <Suspense fallback={null}>
       <Outlet />
@@ -102,10 +103,13 @@ function RootLayout() {
       </p>
       {/* 사무소 주소·대표전화 — index.html JSON-LD streetAddress·telephone과 같은 표준 표기여야 한다.
           전체 Footer는 홈에만 있어 나머지 화면에 주소(일부는 전화도)가 없었다(2026-10-04 site-qa D11). */}
-      <p className="site-define" style={{ fontSize: 12, opacity: 0.75 }}>
-        부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩) ·{" "}
-        <a href="tel:1660-4452">1660-4452</a>
-      </p>
+      {/* 홈은 전체 Footer에 주소가 있어 두 번 보이지 않게 뺀다. */}
+      {!isHome && (
+        <p className="site-define" style={{ fontSize: 12, opacity: 0.75 }}>
+          부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩) ·{" "}
+          <a href="tel:1660-4452">1660-4452</a>
+        </p>
+      )}
       {/* 변호사법 제23조 광고물 고지 — 전체 Footer를 쓰지 않는 화면(/diagnose,
           /foreign-workers)에도 반드시 나가야 한다(2026-09-11 site-qa H02). */}
       <p className="site-define" style={{ fontSize: 12, opacity: 0.75 }}>
