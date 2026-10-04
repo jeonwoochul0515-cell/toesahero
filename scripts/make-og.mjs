@@ -49,7 +49,10 @@ const browser = await puppeteer.launch({ headless: 'new' })
 const page = await browser.newPage()
 await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 1 })
 let n = 0
+// 이미 있는 그림은 건너뛴다(빌드마다 돌기 때문). 전부 다시 만들려면 --all.
+const ALL = process.argv.includes('--all')
 for (const p of posts) {
+  if (!ALL && existsSync(join(OUT, p.slug + '.jpg'))) continue
   const cut = firstWebtoon(p.body || '')
   const imgPath = cut ? join(PROJ, 'public/webtoon', cut + '.jpg') : null
   const imgData = imgPath && existsSync(imgPath) ? b64(imgPath) : null
