@@ -65,7 +65,7 @@ function buildHtml(letterText: string, kind: LetterKind, clientName?: string): s
             <td>
               <h1 style="margin:0 0 4px;font-size:22px;color:#0a0a0a;letter-spacing:-0.02em;font-weight:900;">법률사무소 청송law</h1>
               <p style="margin:0;font-size:12px;color:#444;line-height:1.5;">
-                대표 변호사 김창희 · 부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩)<br />
+                담당변호사 김창희 · 부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩)<br />
                 ☎ 1660-4452 · lawchungsong@daum.net
               </p>
               ${clientLine}
