@@ -79,7 +79,7 @@ export function PrintLetter() {
         <header className="print-letter-header">
           <div className="print-firm-name">법률사무소 청송law</div>
           <div className="print-firm-sub">
-            대표 변호사 김창희 · 부산광역시 연제구 법원남로15번길 10, 202호
+            대표 변호사 김창희 · 부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩)
             <br />
             ☎ 1660-4452 · lawchungsong@daum.net
           </div>

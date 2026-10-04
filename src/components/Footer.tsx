@@ -154,7 +154,7 @@ export function Footer({ openChat }: Props) {
               </a>
               <a href="mailto:lawchungsong@daum.net">lawchungsong@daum.net</a>
               <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                부산 연제구 법원남로15번길 10, 202호
+                부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩)
               </span>
             </div>
             <div>
@@ -176,7 +176,7 @@ export function Footer({ openChat }: Props) {
             </span>
             <span>
               법률사무소 청송law · 대표변호사 김창희 · 사업자등록번호
-              102-78-00061 · 부산광역시 연제구 법원남로15번길 10, 202호(거제동,
+              102-78-00061 · 부산 연제구 법원남로15번길 10, 202호 (거제동,
               미르코아빌딩) · 대표전화 1660-4452
             </span>
             <span>
