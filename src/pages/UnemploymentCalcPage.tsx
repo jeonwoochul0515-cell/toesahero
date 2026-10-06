@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { saveConsultation } from "../firebase";
+import { NAVER_CONV, naverConversion } from "../lib/naverWcs";
 import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
 import { Icon } from "../components/Icon";
@@ -255,6 +256,7 @@ export function UnemploymentCalcPage() {
         },
       });
       if (id) {
+        void naverConversion(NAVER_CONV.lead);
         setSubmitted(id);
       } else {
         alert("저장에 실패했습니다. 카카오톡 채널로 직접 문의해 주세요.");

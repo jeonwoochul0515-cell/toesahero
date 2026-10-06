@@ -12,6 +12,7 @@ import {
   watchAuth,
   type AppUser,
 } from "../firebase";
+import { NAVER_CONV, naverConversion } from "../lib/naverWcs";
 import { Icon } from "./Icon";
 import { Mascot, type MascotPose } from "./Mascot";
 import {
@@ -758,6 +759,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
           // 접수 실패도 대화를 막지는 않는다. 안내 후 계속 상담할 수 있게 한다.
           autoContactDeliveryFailed = true;
         } else {
+          void naverConversion(NAVER_CONV.lead);
           setContactSaved(true);
           nowSaved = true;
           preMsgs = [
@@ -926,6 +928,7 @@ export function ChatModal({ open, onClose, greeting }: Props) {
       );
       return;
     }
+    void naverConversion(NAVER_CONV.lead);
     setContact(phone);
     setContactSaved(true);
     setContactSheetOpen(false);

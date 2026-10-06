@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { saveConsultation } from "../firebase";
+import { NAVER_CONV, naverConversion } from "../lib/naverWcs";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
 import { PAYMENT_COPY } from "../config/payment";
@@ -158,6 +159,7 @@ export function DiagnosePage() {
         ...(r.damageThreat ? { damageThreat: true } : {}),
       });
       setCaseId(id);
+      if (id) void naverConversion(NAVER_CONV.lead);
       try {
         sessionStorage.setItem(dedupKey, id ?? "null");
       } catch {

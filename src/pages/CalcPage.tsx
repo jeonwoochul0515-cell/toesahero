@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveNoticeConsultation } from "../firebase";
+import { NAVER_CONV, naverConversion } from "../lib/naverWcs";
 import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
 import { PAYMENT_COPY } from "../config/payment";
@@ -365,6 +366,7 @@ export function CalcPage() {
       });
       if (id || notified) {
         // 저장은 실패해도 사무실에 문자가 닿았다면 접수는 살아 있다.
+        void naverConversion(NAVER_CONV.lead);
         setSubmitted({ id });
       } else {
         alert(

@@ -1,9 +1,10 @@
 // 앱 라우트 정의 — vite-react-ssg 프리렌더용 RouteRecord 배열
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { RouteRecord } from "vite-react-ssg";
 import { Home } from "./Home";
 import { HiroChat } from "./components/HiroChat";
+import { bindNaverClickConversions, naverPageView } from "./lib/naverWcs";
 import { CalcPage } from "./pages/CalcPage";
 import { UnemploymentCalcPage } from "./pages/UnemploymentCalcPage";
 import { ResignationLetterPage } from "./pages/ResignationLetterPage";
@@ -88,7 +89,13 @@ const BlogAdmin = lazy(() =>
 // 모든 라우트를 감싸는 루트 레이아웃 — lazy chunk 로딩 경계.
 // 히로(호객꾼 캐릭터)는 전 화면에서 먼저 말을 걸어야 하므로 여기에 전역 마운트한다(마운트 후에만 렌더 — 프리렌더 HTML에 흔적 없음).
 function RootLayout() {
-  const isHome = useLocation().pathname === "/";
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
+  // 네이버 광고 전환 추적 — 경로가 바뀔 때마다 조회 1건, 전화·카톡 클릭은 문서 전체에서 한 번 묶는다.
+  useEffect(() => {
+    bindNaverClickConversions();
+    if (!pathname.startsWith("/admin")) void naverPageView();
+  }, [pathname]);
   return (
     <Suspense fallback={null}>
       <Outlet />
