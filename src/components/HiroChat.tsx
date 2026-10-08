@@ -63,7 +63,7 @@ function hasChatHistory(): boolean {
 }
 
 // 집중·민감 흐름이라 도크를 띄우지 않는 화면
-const HIDDEN = /^\/(admin|delegation)(\/|$)/;
+const HIDDEN = /^\/(admin|delegation|sign)(\/|$)/;
 
 export function HiroChat() {
   const location = useLocation();

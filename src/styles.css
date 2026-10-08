@@ -4314,3 +4314,29 @@ body[data-mascot="false"] .mascot {
   font-size: 0.85em;
   font-weight: 700;
 }
+
+/* ── 위임계약서 전자서명(/sign/<토큰>) ── */
+.esign-office { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.esign-lead { font-size: 15px; line-height: 1.6; margin: 0 0 12px; }
+.esign-body {
+  white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere;
+  max-height: 60vh; overflow-y: auto; padding: 14px; background: #fff;
+  border: 2px solid var(--ink); border-radius: 10px; font-size: 14.5px; line-height: 1.75;
+}
+.esign-terms-box { margin-top: 16px; padding-top: 12px; border-top: 1.5px dashed var(--ink); font-weight: 700; }
+.esign-hash { margin: 8px 0 0; font-size: 11px; color: var(--muted); word-break: break-all; }
+.esign-hint { font-size: 13px; color: var(--muted); margin: 6px 0 10px; }
+.esign-warn { font-size: 13px; color: #b42318; margin: 4px 0 0; }
+.esign-fields { border: 0; min-width: 0; }
+.esign-fields:disabled { opacity: .45; }
+.esign-label { display: grid; gap: 6px; font-size: 14px; font-weight: 700; margin-top: 10px; }
+.esign-canvas {
+  width: 100%; aspect-ratio: 600 / 220; max-width: 600px; display: block;
+  border: 2px dashed var(--ink); border-radius: 12px; background: #fff; touch-action: none; cursor: crosshair;
+}
+.esign-agree { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 15px; font-weight: 700; line-height: 1.5; }
+.esign-agree input { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+.esign-dl { display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; margin: 0; font-size: 14px; }
+.esign-dl dt { color: var(--muted); }
+.esign-dl dd { margin: 0; overflow-wrap: anywhere; }
+.esign-sig-img { display: block; max-width: 300px; width: 100%; margin-top: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }

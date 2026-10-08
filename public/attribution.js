@@ -27,7 +27,8 @@
             if (v) data[TRACK_PARAMS[i]] = String(v).slice(0, 100);
         }
         data.ref = (document.referrer || '').slice(0, 200);
-        data.landing = (location.pathname + location.search).slice(0, 200);
+        // 전자계약 서명 링크는 토큰을 남기지 않는다(접수 문자·접수함에 실리지 않게)
+        data.landing = (location.pathname.indexOf('/sign/') === 0 ? '/sign/' : location.pathname + location.search).slice(0, 200);
         data.at = new Date().toISOString().slice(0, 16).replace('T', ' ');
         return data;
     }

@@ -9,7 +9,14 @@
         dataLayer.push(arguments);
       }
       gtag("js", new Date());
-      gtag("config", "G-BYBWCGYRT4");
+      // 전자계약 토큰이 든 주소(/sign/<토큰>, /admin/esign/<토큰>/print)는 토큰을 분석 도구에 넘기지 않는다
+      gtag(
+        "config",
+        "G-BYBWCGYRT4",
+        /^\/(sign|admin\/esign)\//.test(location.pathname)
+          ? { page_location: location.origin + location.pathname.replace(/[A-Za-z0-9_-]{43}/, "-") }
+          : {}
+      );
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -85,6 +85,15 @@ const ReviewsAdmin = lazy(() =>
 const BlogAdmin = lazy(() =>
   import("./admin/BlogAdmin").then((m) => ({ default: m.BlogAdmin }))
 );
+const ESignAdmin = lazy(() =>
+  import("./admin/ESignAdmin").then((m) => ({ default: m.ESignAdmin }))
+);
+const ESignPrint = lazy(() =>
+  import("./admin/ESignPrint").then((m) => ({ default: m.ESignPrint }))
+);
+const ESignPage = lazy(() =>
+  import("./pages/ESignPage").then((m) => ({ default: m.ESignPage }))
+);
 
 // 모든 라우트를 감싸는 루트 레이아웃 — lazy chunk 로딩 경계.
 // 히로(호객꾼 캐릭터)는 전 화면에서 먼저 말을 걸어야 하므로 여기에 전역 마운트한다(마운트 후에만 렌더 — 프리렌더 HTML에 흔적 없음).
@@ -94,7 +103,8 @@ function RootLayout() {
   // 네이버 광고 전환 추적 — 경로가 바뀔 때마다 조회 1건, 전화·카톡 클릭은 문서 전체에서 한 번 묶는다.
   useEffect(() => {
     bindNaverClickConversions();
-    if (!pathname.startsWith("/admin")) void naverPageView();
+    // 서명 링크(/sign/<토큰>)는 주소에 토큰이 있어 광고 분석으로 보내지 않는다
+    if (!pathname.startsWith("/admin") && !pathname.startsWith("/sign/")) void naverPageView();
   }, [pathname]);
   return (
     <Suspense fallback={null}>
@@ -169,6 +179,7 @@ export const routes: RouteRecord[] = [
       { path: "checkout/:id", element: <CheckoutPage /> },
       { path: "checkout", element: <CheckoutPage /> },
       { path: "delegation", element: <DelegationSignPage /> },
+      { path: "sign/:token", element: <ESignPage /> },
       { path: "terms", element: <Navigate to="/terms.html" replace /> },
       { path: "privacy", element: <Navigate to="/privacy.html" replace /> },
       { path: "blog", element: <BlogList /> },
@@ -184,6 +195,14 @@ export const routes: RouteRecord[] = [
             element: (
               <RequireAdmin>
                 <PrintLetter />
+              </RequireAdmin>
+            ),
+          },
+          {
+            path: "admin/esign/:token/print",
+            element: (
+              <RequireAdmin>
+                <ESignPrint />
               </RequireAdmin>
             ),
           },
@@ -212,6 +231,7 @@ export const routes: RouteRecord[] = [
               { path: "reviews", element: <ReviewsAdmin /> },
               { path: "blog", element: <BlogAdmin /> },
               { path: "chats", element: <ChatLogs /> },
+              { path: "esign", element: <ESignAdmin /> },
             ],
           },
         ],

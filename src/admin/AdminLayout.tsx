@@ -21,6 +21,7 @@ export function AdminLayout() {
           <NavLink to="/admin/blog">블로그</NavLink>
           <NavLink to="/admin/reviews">후기 관리</NavLink>
           <NavLink to="/admin/chats">채팅 로그</NavLink>
+          <NavLink to="/admin/esign">전자계약</NavLink>
         </nav>
         <div className="admin-user">
           <span>{user?.email ?? user?.displayName ?? "어드민"}</span>

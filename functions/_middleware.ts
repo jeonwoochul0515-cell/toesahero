@@ -14,7 +14,8 @@ function isClientRoute(pathname: string): boolean {
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
     pathname === "/delegation" ||
-    pathname.startsWith("/delegation/")
+    pathname.startsWith("/delegation/") ||
+    pathname.startsWith("/sign/")
   );
 }
 
@@ -48,6 +49,10 @@ export const onRequest: PagesFunction = async ({ request, next }) => {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-cache, no-store, must-revalidate",
+        // 전자계약 서명 링크(/sign/<토큰>) — 검색에 올리지 않고, 주소(토큰)가 다른 사이트로 새지 않게 한다
+        ...(pathname.startsWith("/sign/")
+          ? { "x-robots-tag": "noindex, nofollow", "referrer-policy": "no-referrer" }
+          : {}),
       },
     });
   }
