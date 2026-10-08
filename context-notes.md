@@ -604,3 +604,11 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - 서명 링크 토큰이 GA(page_location)·네이버 wcs·attribution.js landing·Referer로 새지 않게 막았다(index.html·App.tsx·attribution.js·_middleware.ts). 관리자 인쇄 주소(/admin/esign/<토큰>/print)도 GA에서 가림.
 - 테스트 `functions/api/esign.test.ts`(22건). 화면 캡처 `docs/shots/esign-20261008/`(가상 의뢰인).
 - 발견만 하고 안 고친 것: `src/admin/ConsultationDetail.tsx`의 통보문 메일 발송이 `/api/send-letter`에 Authorization을 안 실어 보내 서버 requireAdmin에서 401이 날 것으로 보인다(getIdToken import만 있고 미사용).
+
+## 2026-10-09 AIO 정비(사실 일치·광고 문구)
+
+- 경력 줄은 chang-hee.kim/attorney.html 원문 표기만 쓴다("부산북부지청 괴롭힘 판단 전문위원"). "전문위원회 위원" 같은 풀어쓴 직함 금지.
+- 1660-4452는 "대표전화"로 적는다("변호사 직통" 아님).
+- llms.txt(functions/llms.txt.ts) 운영 주체에 chang-hee.kim 줄, Person JSON-LD sameAs에 https://chang-hee.kim 추가(팀장 지시).
+- 함정: blog-daily.yml이 origin/main을 빌드해 재배포한다. 로컬 wrangler 배포만 하고 push를 안 하면 다음 자동발행 때 옛 화면으로 돌아간다(10-05에 실제로 10-04 수정분이 되돌아갔다). 배포 뒤 반드시 push.
+- 상담료 표기("초기 카톡 문의 후 안내")는 사무소 기본 20만원과 다르게 두었다 — 대표 확인 대기.
