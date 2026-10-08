@@ -129,3 +129,20 @@ export async function sendAlimtalk(
   const sms = await postMessage(apiKey, apiSecret, base);
   return sms.ok ? { ok: true } : { ok: false, reason: `ata_${ata.reason}/sms_${sms.reason}` };
 }
+
+// 손님에게 보내는 문자(LMS) 1건 — 알림톡 템플릿이 없는 안내(전자계약 서명 요청 등)에 쓴다.
+// 설정이 없으면 보내지 않고 이유만 돌려준다. 발송 실패가 호출부를 깨지 않게 예외를 삼킨다.
+export async function sendLms(
+  env: NotifyEnv,
+  to: string,
+  text: string
+): Promise<{ ok: boolean; reason?: string }> {
+  if (!env.SOLAPI_API_KEY || !env.SOLAPI_API_SECRET || !env.SOLAPI_SENDER) {
+    return { ok: false, reason: "solapi_not_configured" };
+  }
+  return postMessage(env.SOLAPI_API_KEY, env.SOLAPI_API_SECRET, {
+    to: to.replace(/[^0-9]/g, ""),
+    from: env.SOLAPI_SENDER.replace(/[^0-9]/g, ""),
+    text: truncateToLmsBytes(text),
+  });
+}

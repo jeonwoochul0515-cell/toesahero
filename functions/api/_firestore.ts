@@ -211,7 +211,7 @@ export type FsClient = {
   /** 단일 등가 조건(선택) + 정렬(선택) 조회. 복합 색인이 필요 없는 조합만 쓴다. */
   query(
     collectionId: string,
-    opts: { eq?: [string, string]; orderDesc?: string; limit: number }
+    opts: { eq?: [string, string]; orderDesc?: string; limit: number; select?: string[] }
   ): Promise<FsRow[]>;
 };
 
@@ -232,6 +232,9 @@ export async function fsClient(env: FirestoreEnv): Promise<FsClient> {
         from: [{ collectionId }],
         limit: opts.limit,
       };
+      if (opts.select) {
+        structuredQuery.select = { fields: opts.select.map((fieldPath) => ({ fieldPath })) };
+      }
       if (opts.eq) {
         structuredQuery.where = {
           fieldFilter: {
@@ -277,4 +280,46 @@ export async function patchDoc(
     body: JSON.stringify({ fields: encodeFields(fields) }),
   });
   if (!resp.ok) throw new Error(`patchDoc 실패: ${resp.status} ${await resp.text()}`);
+}
+
+// ── 조건부 갱신(전자서명) — 읽은 뒤 아무도 안 바꿨을 때만 쓴다 ──
+// 같은 서명 링크로 두 번 동시에 제출해도 한 번만 저장되게 하려고 updateTime 전제조건을 건다.
+// 전제가 깨지면 Firestore 가 FAILED_PRECONDITION(400/409/412)으로 거절하고, 여기서는 false 를 돌려준다.
+export async function getDocWithTime(
+  env: FirestoreEnv,
+  path: string
+): Promise<{ data: Record<string, unknown>; updateTime: string } | null> {
+  const sa = parseServiceAccount(env);
+  const token = await getAccessToken(sa);
+  const resp = await fetch(`${baseUrl(projectId(env, sa))}/${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (resp.status === 404) return null;
+  if (!resp.ok) throw new Error(`getDoc 실패: ${resp.status}`);
+  const doc = (await resp.json()) as { fields?: Record<string, DeepValue>; updateTime?: string };
+  const data: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(doc.fields ?? {})) data[k] = decodeDeep(v);
+  return { data, updateTime: String(doc.updateTime ?? "") };
+}
+
+export async function patchDocIfUnchanged(
+  env: FirestoreEnv,
+  path: string,
+  fields: Fields,
+  updateTime: string
+): Promise<boolean> {
+  const sa = parseServiceAccount(env);
+  const token = await getAccessToken(sa);
+  const mask = Object.keys(fields)
+    .map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`)
+    .join("&");
+  const url = `${baseUrl(projectId(env, sa))}/${path}?${mask}&currentDocument.updateTime=${encodeURIComponent(updateTime)}`;
+  const resp = await fetch(url, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ fields: encodeFields(fields) }),
+  });
+  if (resp.ok) return true;
+  if (resp.status === 400 || resp.status === 409 || resp.status === 412) return false;
+  throw new Error(`patchDocIfUnchanged 실패: ${resp.status}`);
 }
