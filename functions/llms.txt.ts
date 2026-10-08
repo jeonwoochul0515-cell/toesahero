@@ -96,6 +96,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 - 법률사무소 청송law / 담당변호사 김창희
 - 소재지: 부산 연제구 법원남로15번길 10, 202호 (거제동, 미르코아빌딩)
 - 연락처: 1660-4452 / lawchungsong@daum.net
+- 사무소 홈페이지: https://chang-hee.kim (김창희 변호사 소개: https://chang-hee.kim/attorney.html)
 - 본 사이트는 변호사법 제23조에 따른 광고물이며 대한변호사협회 「변호사 광고에 관한 규정」을 준수합니다.
 
 ## 서비스 패키지

@@ -394,7 +394,7 @@ export function UnemploymentCalcPage() {
               {!result.ageInvalid && inputs.age >= 65 && (
                 <p className="calc-warn">
                   만 65세가 넘은 뒤 새로 고용된 경우에는 실업급여가 적용되지 않습니다.
-                  65세 전부터 계속 일해 왔다면 받을 수 있습니다.
+                  65세 전부터 계속 일해 왔다면 다른 요건에 따라 받을 수 있습니다.
                   {/* 고용보험법 §10③(2026.3.17 개정 전 §10②) — 법제처 원문 확인 2026-09-25 */}
                 </p>
               )}

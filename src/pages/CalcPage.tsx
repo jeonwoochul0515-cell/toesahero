@@ -576,7 +576,7 @@ export function CalcPage() {
               <ul className="calc-items">
                 {visibleItems.length === 0 ? (
                   <li className="calc-empty">
-                    입력 정보로는 청구 가능 항목이 없습니다.
+                    입력하신 정보로는 합산된 항목이 없습니다. 실제 청구 가능 여부는 서류를 봐야 정확합니다.
                   </li>
                 ) : (
                   visibleItems.map((it) => (

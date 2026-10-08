@@ -4,7 +4,7 @@ import { Icon } from "./Icon";
 // 홈 줄이기(2026-09-25) — 경력은 3줄만. 전체 이력은 공식 홈페이지(chang-hee.kim)에 있다.
 const credentials = [
   "법률사무소 청송law 담당변호사",
-  "前 부산지방고용노동청 전문위원회 위원",
+  "前 부산지방고용노동청 부산북부지청 괴롭힘 판단 전문위원",
   "동아대학교 법학전문대학원 겸임교수",
 ];
 
@@ -85,7 +85,7 @@ export function Lawyer() {
                 전체 이력 보기 <Icon name="external" size={16} />
               </a>
               <a href="tel:1660-4452" className="btn primary">
-                <Icon name="phone" size={16} /> 1660-4452 직통
+                <Icon name="phone" size={16} /> 1660-4452 대표전화
               </a>
               <a
                 href="https://www.klaw.or.kr/search"

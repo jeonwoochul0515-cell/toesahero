@@ -149,7 +149,7 @@ export function Hero({ heroCopy = "boss", openChat }: Props) {
               </div>
               <div className="trust-item">
                 <strong>1660-4452</strong>
-                <span>변호사 직통</span>
+                <span>대표전화</span>
               </div>
             </div>
           </div>
