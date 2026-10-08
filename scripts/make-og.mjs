@@ -3,8 +3,15 @@
 import { createRequire } from 'module'
 import { readFileSync, readdirSync, existsSync, mkdirSync } from 'fs'
 import { resolve, join } from 'path'
-const require = createRequire('C:/Users/jeonw/tools/headless-tools/package.json')
-const puppeteer = require('puppeteer')
+// 전역 도구가 없는 곳(GitHub Actions 등)에서는 그림 만들기를 건너뛰고 빌드를 계속한다.
+// 이미 커밋된 public/og 그림은 그대로 쓰인다.
+let puppeteer
+try {
+  puppeteer = createRequire('C:/Users/jeonw/tools/headless-tools/package.json')('puppeteer')
+} catch (e) {
+  console.log(`[og] 전역 puppeteer 없음 — 공유 그림 생성 건너뜀 (${e.code || e.message})`)
+  process.exit(0)
+}
 
 const PROJ = 'C:/Users/jeonw/.antigravity/퇴사히어로/design_handoff_toesahero'
 const OUT = join(PROJ, 'public/og')
