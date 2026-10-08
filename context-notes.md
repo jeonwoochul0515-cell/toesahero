@@ -593,3 +593,14 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - `_middleware.ts`: `/api/*`의 404는 404.html로 바꾸지 않고 JSON 그대로 돌려준다(접수함이 not_found를 읽는다).
 - 독립 검토(codex) 2패킷: ①정렬 전 limit 지적 → 색인 없이 한도만 올림(부분 수용) ②자른 뒤 가림 → 가린 뒤 자르기로 수정, 재검토 PASS.
 - 배포·시크릿 설정은 하지 않았다. 배포 후 Pages env에 `TOESA_ADMIN_ID/KEY`를 접수함 값과 같게 넣어야 동작한다.
+
+## 2026-10-08 위임계약서 전자서명 (/sign/<토큰>, /admin/esign)
+
+- 원칙은 받아드림 worker/contracts.ts 이식. 저장은 Firestore `esign_contracts/{토큰}`(서버 서비스계정만). 브라우저 접근은 firestore.rules 마지막 catch-all(false)이 막아 규칙 변경·색인 추가 없음(createdAt 단일 필드 정렬만 씀).
+- 해시는 본문만이 아니라 제목·본문·착수금·성공보수를 묶은 글(`contractText`)의 SHA-256. 서명 때 저장본 재계산 + 손님 화면 해시 둘 다 대조. 고치는 API 없음(무효 → 새로 만들기).
+- 중복 서명 차단은 Firestore `currentDocument.updateTime` 전제조건(`patchDocIfUnchanged`). 문자 발송도 같은 방식으로 `smsClaimAt`을 먼저 잡는다(동시 클릭 2통 방지, codex 지적).
+- 90일 가림은 손님 링크에서만(주소·생년월일·서명 그림). 관리자 서명본은 그대로. 생년월일은 받아드림에 없던 칸이라 같이 가린다.
+- 착수금이 있어도 사이트 결제와 잇지 않았다. 기존 토스 결제는 서버 가격표(패키지 3종)로만 금액을 정하고, 실 키 전환(M5)도 미완이라 임의 금액 결제를 붙이면 돈 경로가 새로 열린다. 완료 화면·사무실 알림에 "결제는 사무실이 따로 안내"로 둔다.
+- 서명 링크 토큰이 GA(page_location)·네이버 wcs·attribution.js landing·Referer로 새지 않게 막았다(index.html·App.tsx·attribution.js·_middleware.ts). 관리자 인쇄 주소(/admin/esign/<토큰>/print)도 GA에서 가림.
+- 테스트 `functions/api/esign.test.ts`(22건). 화면 캡처 `docs/shots/esign-20261008/`(가상 의뢰인).
+- 발견만 하고 안 고친 것: `src/admin/ConsultationDetail.tsx`의 통보문 메일 발송이 `/api/send-letter`에 Authorization을 안 실어 보내 서버 requireAdmin에서 401이 날 것으로 보인다(getIdToken import만 있고 미사용).
