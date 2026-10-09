@@ -15,11 +15,52 @@ service cloud.firestore {
       return isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
+    // 블로그 자동 발행 전용 계정. 글(posts) 읽기·쓰기만 되고 상담·대화·주문은 못 본다.
+    // 계정을 만든 뒤 blog_publishers/<그 계정 uid> 문서를 관리자가 만들어 준다.
+    function isBlogPublisher() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/blog_publishers/$(request.auth.uid));
+    }
+
+    // 칸이 없거나 null 이거나, n 글자 이하 문자열.
+    function strOk(d, k, n) {
+      return !(k in d) || d[k] == null || (d[k] is string && d[k].size() <= n);
+    }
+
+    // 손님이 상담 문서를 만들 때 쓸 수 있는 칸과 크기(2026-10-09 보안점검 10번·S3).
+    // 결제 칸(paymentStatus·paymentAmount 등)·담당자·메모는 손님이 쓰지 못한다 — 서버·관리자만.
+    function validNewConsultation(d) {
+      return d.keys().hasOnly(['source', 'message', 'uid', 'userName', 'userEmail', 'contact',
+                               'pickedItems', 'estimatedAmount', 'meta', 'sessionId', 'damageThreat',
+                               'browseEvent', 'conversationLog', 'draftLetter', 'draftStatus',
+                               'noticeLetter', 'noticeStatus', 'status', 'createdAt', 'userAgent', 'path'])
+        && d.createdAt == request.time
+        && strOk(d, 'message', 10000)
+        && strOk(d, 'userName', 100)
+        && strOk(d, 'userEmail', 200)
+        && strOk(d, 'contact', 50)
+        && strOk(d, 'sessionId', 100)
+        && strOk(d, 'conversationLog', 200000)
+        && strOk(d, 'draftLetter', 30000)
+        && strOk(d, 'noticeLetter', 30000)
+        && strOk(d, 'userAgent', 1000)
+        && strOk(d, 'path', 300)
+        && (!('status' in d) || d.status == 'new')
+        && (!('draftStatus' in d) || d.draftStatus == 'pending_review')
+        && (!('noticeStatus' in d) || d.noticeStatus == 'pending_review')
+        && (!('pickedItems' in d) || (d.pickedItems is list && d.pickedItems.size() <= 30))
+        && (!('estimatedAmount' in d) || d.estimatedAmount is number)
+        && (!('meta' in d) || (d.meta is map && d.meta.size() <= 30))
+        && (!('damageThreat' in d) || d.damageThreat is bool)
+        && (!('browseEvent' in d) || d.browseEvent is bool);
+    }
+
     // 익명/카카오/이메일 로그인 사용자 모두 상담 요청 생성 가능.
     // 어드민과 본인(uid 일치)만 읽기. 어드민만 수정/삭제.
     match /consultations/{docId} {
       allow create: if request.resource.data.keys().hasAll(['source', 'createdAt'])
                     && request.resource.data.source in ['chat', 'form', 'floating', 'draft', 'notice']
+                    && validNewConsultation(request.resource.data)
                     && (
                       !('uid' in request.resource.data)
                       || request.resource.data.uid == null
@@ -36,6 +77,10 @@ service cloud.firestore {
     // 채팅 메시지 로그.
     match /chat_messages/{docId} {
       allow create: if request.resource.data.keys().hasAll(['text', 'role', 'createdAt', 'consent'])
+                    && request.resource.data.keys().hasOnly(['text', 'role', 'uid', 'sessionId', 'consent', 'createdAt'])
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() <= 10000
+                    && strOk(request.resource.data, 'sessionId', 100)
                     && request.resource.data.consent == true
                     && request.resource.data.role in ['me', 'them']
                     && (
@@ -68,17 +113,34 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // 블로그. 어드민만 작성/수정/삭제. status='published' 인 글만 공개.
+    // 블로그. 어드민·발행 전용 계정만 작성/수정, 삭제는 어드민만. status='published' 인 글만 공개.
     match /posts/{docId} {
-      allow read: if isAdmin() || resource.data.status == 'published';
-      allow create, update, delete: if isAdmin();
+      allow read: if isAdmin() || isBlogPublisher() || resource.data.status == 'published';
+      allow create, update: if isAdmin() || isBlogPublisher();
+      allow delete: if isAdmin();
+    }
+
+    // 블로그 발행 전용 계정 명단. 본인 확인만 읽고, 어드민만 넣고 뺀다.
+    match /blog_publishers/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 관리자 접속기록(2년 보관). 서버(서비스계정)만 쓰고 어드민만 읽는다. 고치거나 지울 수 없다.
+    match /admin_access_logs/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     // 사건 증거 파일 메타. 의뢰인 본인이 생성, 본인·어드민만 읽기. 수정/삭제는 어드민.
+    // url 은 우리 저장소(Firebase Storage) 주소만 받는다(보안점검 9번 — 가짜 링크로 관리자 유인 방지).
     match /case_files/{docId} {
       allow create: if isSignedIn()
                     && request.resource.data.uid == request.auth.uid
-                    && request.resource.data.keys().hasAll(['caseId', 'uid', 'name', 'url', 'createdAt']);
+                    && request.resource.data.keys().hasAll(['caseId', 'uid', 'name', 'url', 'createdAt'])
+                    && request.resource.data.url is string
+                    && request.resource.data.url.matches('https://firebasestorage[.]googleapis[.]com/.*');
       allow read: if isAdmin() || isOwner();
       // 잘못 올린 자료(다른 사람 개인정보가 찍힌 사진 등)는 본인이 지울 수 있어야 한다.
       // Storage 쪽은 이미 본인 삭제가 열려 있어, 여기만 막으면 목록에 유령 항목이 남는다.
