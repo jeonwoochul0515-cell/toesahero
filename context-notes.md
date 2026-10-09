@@ -612,3 +612,11 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - llms.txt(functions/llms.txt.ts) 운영 주체에 chang-hee.kim 줄, Person JSON-LD sameAs에 https://chang-hee.kim 추가(팀장 지시).
 - 함정: blog-daily.yml이 origin/main을 빌드해 재배포한다. 로컬 wrangler 배포만 하고 push를 안 하면 다음 자동발행 때 옛 화면으로 돌아간다(10-05에 실제로 10-04 수정분이 되돌아갔다). 배포 뒤 반드시 push.
 - 상담료 표기("초기 카톡 문의 후 안내")는 사무소 기본 20만원과 다르게 두었다 — 대표 확인 대기.
+
+## 2026-10-09 보안 수정(보안점검-2026-10-09 권장안)
+- 횟수 제한·관리자 열쇠 잠금은 Firestore `rate_limits` 문서로 센다(functions/api/_guard.ts). KV·D1 바인딩이 없어서다. 저장소 장애 시 손님 쪽은 통과(fail-open).
+- 관리자 접속기록은 `admin_access_logs`(서버만 쓰고 어드민만 읽음, 지우는 코드 없음 — 2년 보관). 관리자 화면은 /api/admin-log, 중앙 접수함 API는 checkAdmin, send-letter·esign/admin은 각자 남긴다.
+- 출처 검사는 https://toesahero.com 정확 일치. 미리보기(*.pages.dev)·localhost에서는 손님 API가 403이다.
+- 보관 기한 정리: /api/admin/retention + .github/workflows/retention-monthly.yml(매달 1일). 기본은 건수만. 실제 삭제는 Cloudflare 환경변수 RETENTION_DELETE_ENABLED=true(대표 확인 뒤). 수임·종료·결제 건은 지우지 않는다.
+- 블로그 발행 전용 역할: Firestore `blog_publishers/<uid>` 문서가 있으면 posts 읽기·생성·수정만 된다. 계정 분리는 대표 콘솔 작업.
+- Firestore 규칙 시험은 Rules test API로 배포 없이 돌렸다. 주의: 시험 API는 "/"로 시작하는 문자열을 path 타입으로 읽어 문자열 검사에서 실패한다(실제 저장과 다름).
