@@ -323,3 +323,41 @@ export async function patchDocIfUnchanged(
   if (resp.status === 400 || resp.status === 409 || resp.status === 412) return false;
   throw new Error(`patchDocIfUnchanged 실패: ${resp.status}`);
 }
+
+// ── 직접 REST 를 부르는 곳(보관 기한 정리)용 — 토큰과 문서 기본 주소 ──
+export async function serviceAuth(env: FirestoreEnv): Promise<{ token: string; base: string }> {
+  const sa = parseServiceAccount(env);
+  return { token: await getAccessToken(sa), base: baseUrl(projectId(env, sa)) };
+}
+
+// ── 횟수 세기(반복 시도 차단) — 문서의 숫자 칸 n 을 1 올리고, 올린 뒤 값을 돌려준다 ──
+// commit 의 increment 변환은 원자적이라 여러 서버가 동시에 세도 숫자가 어긋나지 않는다.
+// 문서가 없으면 새로 만든다. expireAt 은 Firestore TTL 정책을 켜면 자동 정리에 쓰인다.
+export async function incrementCounter(
+  env: FirestoreEnv,
+  path: string,
+  expireAtIso: string
+): Promise<number> {
+  const sa = parseServiceAccount(env);
+  const token = await getAccessToken(sa);
+  const pid = projectId(env, sa);
+  const name = `projects/${pid}/databases/(default)/documents/${path}`;
+  const resp = await fetch(`${baseUrl(pid)}:commit`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      writes: [
+        {
+          update: { name, fields: { expireAt: { timestampValue: expireAtIso } } },
+          updateMask: { fieldPaths: ["expireAt"] },
+          updateTransforms: [{ fieldPath: "n", increment: { integerValue: "1" } }],
+        },
+      ],
+    }),
+  });
+  if (!resp.ok) throw new Error(`incrementCounter 실패: ${resp.status}`);
+  const data = (await resp.json()) as {
+    writeResults?: { transformResults?: { integerValue?: string }[] }[];
+  };
+  return Number(data.writeResults?.[0]?.transformResults?.[0]?.integerValue ?? "0");
+}

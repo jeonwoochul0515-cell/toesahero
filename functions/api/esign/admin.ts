@@ -10,6 +10,7 @@ import {
   patchDocIfUnchanged,
 } from "../_firestore";
 import { requireAdmin, type AdminAuthEnv } from "../_admin-auth";
+import { auditLog } from "../_guard";
 import { sendLms, type NotifyEnv } from "../_notify";
 import {
   COLLECTION,
@@ -42,6 +43,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return json({ ok: false, error: "invalid_json" }, 400);
   }
   if (!body || typeof body !== "object") return json({ ok: false, error: "invalid_json" }, 400);
+
+  // 관리자 접속기록 — 계약서(의뢰인 이름·연락처) 열람·생성·무효·문자 발송을 한 줄씩 남긴다.
+  await auditLog(env, request, {
+    action: `esign-${String(body.action ?? "").slice(0, 20)}`,
+    target: typeof body.token === "string" ? body.token.slice(0, 8) : null,
+    via: "esign-admin",
+  });
 
   try {
     switch (body.action) {

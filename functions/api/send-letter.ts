@@ -5,6 +5,7 @@
 // 발송 후 Firestore의 draftStatus/noticeStatus 를 'sent'로 업데이트합니다.
 
 import { requireAdmin, type AdminAuthEnv } from "./_admin-auth";
+import { auditLog } from "./_guard";
 
 interface Env extends AdminAuthEnv {
   RESEND_API_KEY?: string;
@@ -171,6 +172,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const data = (await upstream.json()) as { id?: string };
+  await auditLog(env, request, { action: `send-${body.kind}`, target: body.caseId, via: "send-letter" });
   return jsonResponse({ ok: true, emailId: data.id ?? null });
 };
 

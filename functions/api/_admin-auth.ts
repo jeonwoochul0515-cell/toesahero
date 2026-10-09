@@ -4,6 +4,7 @@
 // (2026-09-12 예행연습 점검에서 발견).
 
 import { getDoc, type FirestoreEnv } from "./_firestore";
+import { sameSiteOrigin } from "./_guard";
 
 export interface AdminAuthEnv extends FirestoreEnv {
   // 브라우저에 이미 공개되는 값이라 비밀이 아니다. 토큰 검증 호출에만 쓴다.
@@ -11,13 +12,9 @@ export interface AdminAuthEnv extends FirestoreEnv {
   FIREBASE_WEB_API_KEY?: string;
 }
 
-// 같은 사이트에서 온 요청만 받는다. notify.ts 와 같은 기준을 쓴다.
-const ALLOWED_ORIGIN =
-  /^https?:\/\/([a-z0-9-]+\.)?toesahero\.com(\/|$)|^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|^https:\/\/[a-z0-9-]+\.toesahero\.pages\.dev(\/|$)/i;
-
+// 같은 사이트에서 온 요청만 받는다. 출처는 https://toesahero.com 정확 일치(2026-10-09 보안점검).
 export function originAllowed(request: Request): boolean {
-  const origin = request.headers.get("origin") ?? request.headers.get("referer") ?? "";
-  return ALLOWED_ORIGIN.test(origin);
+  return sameSiteOrigin(request);
 }
 
 export type AdminCheck =

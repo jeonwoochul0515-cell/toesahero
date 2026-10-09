@@ -3,6 +3,7 @@
 // 이 API는 조회와 상태 변경만 한다. 결제 승인·환불 같은 돈이 움직이는 쓰기는 넣지 않는다.
 
 import { fsClient, type FirestoreEnv, type FsClient, type FsRow } from "./_firestore";
+import { auditLog, clientIp, isLocked, recordFailure } from "./_guard";
 
 export interface AdminApiEnv extends FirestoreEnv {
   TOESA_ADMIN_ID?: string;
@@ -40,11 +41,44 @@ export async function checkAdmin(request: Request, env: AdminApiEnv): Promise<Re
   const id = (env.TOESA_ADMIN_ID || env.TOESAHERO_ADMIN_ID || "").trim();
   const key = (env.TOESA_ADMIN_KEY || env.TOESAHERO_ADMIN_KEY || "").trim();
   if (!id || !key) return json({ ok: false, error: "not_configured" }, 503);
+  // 열쇠 실패를 IP별로 저장소에 센다. 10분 안팎에 5번 틀리면 그 IP는 10분 동안 맞는 열쇠도 받지 않는다.
+  // 단순화: 동시에 몰아 보낸 요청은 실패가 기록되기 전에 몇 번 더 시도될 수 있다(열쇠가 길어 실효는 작다).
+  const ip = clientIp(request);
+  if (await isLocked(env, "adminfail", ip)) {
+    return json({ ok: false, error: "too_many_attempts" }, 429);
+  }
   const gotId = request.headers.get("x-admin-id") ?? "";
   const gotKey = request.headers.get("x-admin-key") ?? "";
   const [a, b] = await Promise.all([safeEqual(gotId, id), safeEqual(gotKey, key)]);
-  if (!a || !b) return json({ ok: false, error: "unauthorized" }, 401);
+  if (!a || !b) {
+    await recordFailure(env, "adminfail", ip, ADMIN_FAIL_MAX, ADMIN_FAIL_WINDOW_SEC);
+    return json({ ok: false, error: "unauthorized" }, 401);
+  }
+  // 통과한 관리자 호출은 한 줄씩 접속기록에 남긴다(무엇을·어느 건).
+  await auditLog(env, request, {
+    action: `${request.method} ${new URL(request.url).pathname}`,
+    target: await auditTarget(request),
+    via: "admin-api",
+  });
   return null;
+}
+
+const ADMIN_FAIL_MAX = 5;
+const ADMIN_FAIL_WINDOW_SEC = 600;
+
+// 접속기록의 "대상" — 주소의 ref·id·sid, 없으면 POST 본문의 ref·id(본문은 복사본으로 읽는다).
+async function auditTarget(request: Request): Promise<string | null> {
+  const q = new URL(request.url).searchParams;
+  const fromQuery = q.get("ref") ?? q.get("id") ?? q.get("sid");
+  if (fromQuery) return fromQuery;
+  if (request.method !== "POST") return null;
+  try {
+    const b = (await request.clone().json()) as Record<string, unknown>;
+    const v = b?.ref ?? b?.id ?? b?.sid;
+    return typeof v === "string" ? v : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── 시각 ──

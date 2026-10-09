@@ -54,6 +54,24 @@ function stubFirestore(db: Db) {
       const u = String(url);
       fetched.push(u);
       if (u.includes("oauth2.googleapis.com")) return new Response(JSON.stringify({ access_token: "tok" }));
+      // 횟수 세기(commit + increment) — rate_limits 문서의 n 을 1 올린다
+      if (u.endsWith(":commit")) {
+        const w = JSON.parse(String(init?.body)).writes[0];
+        const id = String(w.update.name).split("/").pop() as string;
+        const col = (db.rate_limits ??= {});
+        const n = Number(col[id]?.n ?? 0) + 1;
+        col[id] = { n };
+        return new Response(JSON.stringify({ writeResults: [{ transformResults: [{ integerValue: String(n) }] }] }));
+      }
+      // 문서 새로 만들기(createDoc) — 접속기록 등
+      const created = /documents\/([^/?]+)\?documentId=([^&]+)$/.exec(u);
+      if (created && init?.method === "POST") {
+        const fields = JSON.parse(String(init.body)).fields as Record<string, Record<string, unknown>>;
+        const flat: Doc = {};
+        for (const [k, v] of Object.entries(fields)) flat[k] = Object.values(v)[0];
+        (db[created[1]] ??= {})[decodeURIComponent(created[2])] = flat;
+        return new Response("{}");
+      }
       if (u.endsWith(":runQuery")) {
         const q = JSON.parse(String(init?.body)).structuredQuery;
         const col = q.from[0].collectionId as string;
@@ -67,6 +85,13 @@ function stubFirestore(db: Db) {
       if (m && u.includes("firestore.googleapis.com")) {
         if (init?.method === "PATCH") {
           patches.push(`${m[1]}/${m[2]}:${init.body}`);
+          // 잠금 문서처럼 PATCH 로 새로 만드는 문서도 이후 GET 에서 보이게 담아 둔다
+          if (m[1] === "rate_limits") {
+            const fields = JSON.parse(String(init.body)).fields as Record<string, Record<string, unknown>>;
+            const flat: Doc = {};
+            for (const [k, v] of Object.entries(fields)) flat[k] = Object.values(v)[0];
+            (db.rate_limits ??= {})[m[2]] = { ...(db.rate_limits[m[2]] ?? {}), ...flat };
+          }
           return new Response("{}");
         }
         const d = db[m[1]]?.[m[2]];
@@ -151,7 +176,36 @@ describe("인증", () => {
     const { fetched } = stubFirestore(DB());
     const r = await get(leadDetail, `/api/admin/lead/detail?ref=${SID}`, {});
     expect(r.status).toBe(401);
-    expect(fetched.length).toBe(0);
+    // 실패 횟수 세기(rate_limits)만 닿고, 상담·대화 데이터는 읽지 않는다
+    expect(fetched.some((u) => /consultations|chat_messages|:runQuery/.test(u))).toBe(false);
+  });
+  it("같은 IP가 10분에 5번 틀리면 맞는 열쇠도 429로 막는다", async () => {
+    const db = DB();
+    stubFirestore(db);
+    const req = (h: Record<string, string>) =>
+      new Request("https://x/", { headers: { ...h, "cf-connecting-ip": "203.0.113.9" } });
+    for (let i = 0; i < 5; i++) {
+      expect((await checkAdmin(req({ ...AUTH, "x-admin-key": "wrong" }), env()))?.status).toBe(401);
+    }
+    expect((await checkAdmin(req(AUTH), env()))?.status).toBe(429);
+    // 다른 IP는 영향 없음
+    expect(
+      await checkAdmin(new Request("https://x/", { headers: { ...AUTH, "cf-connecting-ip": "198.51.100.1" } }), env())
+    ).toBeNull();
+  });
+  it("통과한 관리자 호출은 접속기록 한 줄을 남긴다(admin·행위·대상·IP 앞부분)", async () => {
+    const db = DB();
+    stubFirestore(db);
+    const r = await get(leadDetail, `/api/admin/lead/detail?ref=${SID}`);
+    expect(r.status).toBe(200);
+    const logs = Object.values(db.admin_access_logs ?? {});
+    expect(logs.length).toBe(1);
+    expect(logs[0]).toMatchObject({
+      actor: "admin",
+      action: "GET /api/admin/lead/detail",
+      target: SID,
+      via: "admin-api",
+    });
   });
 });
 
