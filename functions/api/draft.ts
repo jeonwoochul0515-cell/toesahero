@@ -1,9 +1,19 @@
 // Cloudflare Pages Function: POST /api/draft
 // 변호사 명의 공식 통보문 초안 자동 생성 — 변호사 검토 전 1차 AI 초안
 
-interface Env {
+import { clientIp, overLimit, sameSiteOrigin } from "./_guard";
+import type { FirestoreEnv } from "./_firestore";
+
+interface Env extends FirestoreEnv {
   ANTHROPIC_API_KEY?: string;
 }
+
+// 바깥에서 사무소 명의 초안을 무제한 뽑지 못하게(2026-10-09 보안점검 S1) — 출처·횟수·길이 제한.
+// 손님은 로그인 없이 쓰므로 로그인 필수는 걸지 않았다(접수가 막힌다).
+const MAX_PER_HOUR = 5;
+const MAX_TURNS = 60;
+const MAX_MSG_CHARS = 2000;
+const MAX_TOTAL_CHARS = 30000;
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -65,6 +75,12 @@ const DRAFT_SYSTEM_PROMPT = `당신은 법률사무소 청송law(담당변호사
 - 짧고 명확한 문장 (한 문장당 60자 이내 권장)`;
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+  if (!sameSiteOrigin(request)) {
+    return jsonResponse({ error: "forbidden" }, 403);
+  }
+  if (await overLimit(env, "draft", clientIp(request), MAX_PER_HOUR, 3600)) {
+    return jsonResponse({ error: "too_many_requests" }, 429);
+  }
   if (!env.ANTHROPIC_API_KEY) {
     return jsonResponse(
       {
@@ -83,11 +99,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return jsonResponse({ error: "invalid_json" }, 400);
   }
 
-  const conversation = Array.isArray(body.conversation)
-    ? body.conversation
-    : [];
+  const conversation = (Array.isArray(body.conversation) ? body.conversation : [])
+    .filter((m) => m && typeof m.content === "string")
+    .slice(-MAX_TURNS)
+    .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_MSG_CHARS) }));
   if (conversation.length === 0) {
     return jsonResponse({ error: "no_conversation" }, 400);
+  }
+  if (conversation.reduce((n, m) => n + m.content.length, 0) > MAX_TOTAL_CHARS) {
+    return jsonResponse({ error: "payload_too_large" }, 413);
   }
 
   // Render conversation as readable text for the system prompt
@@ -95,8 +115,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     .map((m) => `${m.role === "user" ? "[의뢰인]" : "[챗봇]"} ${m.content}`)
     .join("\n");
 
-  const userIntro = body.userName
-    ? `의뢰인 이름: ${body.userName}님 (카카오 본인 확인 완료)`
+  const userIntro = typeof body.userName === "string" && body.userName.trim()
+    ? `의뢰인 이름: ${body.userName.trim().slice(0, 40)}님 (카카오 본인 확인 완료)`
     : "의뢰인 이름: [본인 확인 미완료]";
 
   const userPrompt = `${userIntro}
@@ -124,18 +144,14 @@ ${conversationText}
       }),
     });
   } catch (e) {
-    return jsonResponse(
-      { error: "upstream_fetch_failed", detail: String(e) },
-      502
-    );
+    console.error("[draft] upstream fetch failed:", String(e));
+    return jsonResponse({ error: "upstream_fetch_failed" }, 502);
   }
 
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => "");
-    return jsonResponse(
-      { error: "upstream_error", status: upstream.status, body: errText },
-      502
-    );
+    console.error("[draft] upstream error:", upstream.status, errText.slice(0, 500));
+    return jsonResponse({ error: "upstream_error" }, 502);
   }
 
   const data = (await upstream.json()) as {

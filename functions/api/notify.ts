@@ -5,8 +5,10 @@
 
 import { sendAlimtalk, KAKAO_TPL, type NotifyEnv } from "./_notify";
 import { postLead, attrFields, visitNoOf } from "./_leadInbox";
+import { clientIp, overLimit, sameSiteOrigin } from "./_guard";
+import type { FirestoreEnv } from "./_firestore";
 
-interface Env extends NotifyEnv {
+interface Env extends NotifyEnv, FirestoreEnv {
   LEAD_INBOX_TOKEN?: string; // 중앙 접수함(lead-inbox) 전송 토큰
 }
 
@@ -53,60 +55,19 @@ const LABEL: Record<Exclude<RequestBody["type"], "chatlog" | "safety">, string> 
 };
 
 // 스팸 방어 — 이 엔드포인트는 호출 1건당 문자 요금이 나가므로 봇이 두드리면 그대로 비용이 된다.
-// (Origin 화이트리스트 + IP 레이트리밋. 2026-08-16 보강 — 호스트 경계 고정, 헤더 없는 요청 차단)
-// 워커 isolate가 살아 있는 동안만 카운터가 유지되는 베스트에포트 방식이다 — 완전 차단이 아니라 감속이 목적.
+// 출처는 https://toesahero.com 정확 일치, 횟수는 서버 메모리가 아니라 저장소(Firestore)에 IP별로 센다
+// (2026-10-09 보안점검 4번 — 메모리 카운터는 서버가 여러 대라 우회가 쉬웠다).
 // 브라우저는 POST에 항상 Origin을 붙이므로(fetch 표준) 헤더 부재 = 스크립트 직접 호출로 본다.
-const ALLOWED_ORIGIN =
-  /^https?:\/\/([a-z0-9-]+\.)?toesahero\.com(\/|$)|^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|^https:\/\/[a-z0-9-]+\.toesahero\.pages\.dev(\/|$)/i;
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_PER_WINDOW = 5;
-const hits = new Map<string, number[]>();
-
-// 이미 한도에 걸린 요청은 히트로 세지 않는다 — 거부까지 세면 사용 중인 IP는 창이
-// 계속 미끄러져 차단이 영영 안 풀리고, 정작 연락처가 담긴 마지막 호출이 유실된다.
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const arr = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (arr.length >= MAX_PER_WINDOW) {
-    hits.set(ip, arr);
-    return true;
-  }
-  arr.push(now);
-  hits.set(ip, arr);
-  if (hits.size > 5000) {
-    for (const [k, v] of hits) if (!v.some((t) => now - t < WINDOW_MS)) hits.delete(k);
-  }
-  return false;
-}
+// 창은 10분 고정 창이라, 거부된 요청까지 세어도 다음 창에서 풀린다.
+const WINDOW_SEC = 10 * 60;
+const rateLimited = (env: Env, ip: string) => overLimit(env, "notify", ip, 5, WINDOW_SEC);
 
 // 대화록(chatlog) 보고는 별도 버킷 — 상담 접수 알림 한도와 경합해 대화록이 유실되지 않게 한다.
-const logHits = new Map<string, number[]>();
-function chatlogLimited(ip: string): boolean {
-  const now = Date.now();
-  const arr = (logHits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (arr.length >= 4) {
-    logHits.set(ip, arr);
-    return true;
-  }
-  arr.push(now);
-  logHits.set(ip, arr);
-  return false;
-}
+const chatlogLimited = (env: Env, ip: string) => overLimit(env, "notifylog", ip, 4, WINDOW_SEC);
 
 // 접수 누락 방지(2026-08-22): 연락처가 담긴 접수는 일반 한도(5회/10분)와 분리된 넉넉한 버킷.
 // 정상 사용자가 닿을 수 없는 상한(20회/10분)만 남겨 폭주 봇의 문자 비용만 막는다.
-const contactHits = new Map<string, number[]>();
-function contactLimited(ip: string): boolean {
-  const now = Date.now();
-  const arr = (contactHits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (arr.length >= 20) {
-    contactHits.set(ip, arr);
-    return true;
-  }
-  arr.push(now);
-  contactHits.set(ip, arr);
-  return false;
-}
+const contactLimited = (env: Env, ip: string) => overLimit(env, "notifycontact", ip, 20, WINDOW_SEC);
 
 // 접수 후 대화 보고 (2026-08-24 개정 — "문자로는 간단한 것만").
 // 전문은 중앙 접수함(lead-inbox)에 빠짐없이 저장하고, 문자는 간단 알림 한 통만 보낸다.
@@ -216,12 +177,11 @@ async function handleSafety(env: Env, body: RequestBody): Promise<Response> {
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 외부 스크립트의 직접 호출 차단
-  const origin = request.headers.get("origin") || request.headers.get("referer") || "";
-  if (!ALLOWED_ORIGIN.test(origin)) {
+  if (!sameSiteOrigin(request)) {
     return json({ ok: false, reason: "forbidden" }, 403);
   }
 
-  const ip = request.headers.get("cf-connecting-ip") || "unknown";
+  const ip = clientIp(request);
 
   let body: RequestBody;
   try {
@@ -234,14 +194,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // (기본 알림 한도 5회/10분을 소모하면 정작 상담 접수 문자가 유실될 수 있다)
   // 안전 신호는 동의·연락처와 무관하게 먼저 처리한다. 대화 전문 한도와도 분리한다.
   if (body.type === "safety") {
-    if (chatlogLimited(ip)) {
+    if (await chatlogLimited(env, ip)) {
       return json({ ok: false, reason: "too_many_requests" }, 429);
     }
     return handleSafety(env, body);
   }
 
   if (body.type === "chatlog") {
-    if (chatlogLimited(ip)) {
+    if (await chatlogLimited(env, ip)) {
       return json({ ok: false, reason: "too_many_requests" }, 429);
     }
     return handleChatLog(env, body);
@@ -249,7 +209,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   // 연락처가 담긴 접수는 절대 유실 금지 — 일반 한도 대신 넉넉한 전용 버킷만 적용한다.
   const hasContact = String(body.contact ?? "").trim().length >= 4;
-  if (hasContact ? contactLimited(ip) : rateLimited(ip)) {
+  if (await (hasContact ? contactLimited(env, ip) : rateLimited(env, ip))) {
     return json({ ok: false, reason: "too_many_requests" }, 429);
   }
 

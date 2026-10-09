@@ -1,6 +1,7 @@
 // 채팅 메시지 서버측 기록 폴백 — 클라이언트 Firestore 경로(광고차단·일시 장애)가 막혔을 때
 // 같은 도메인 경유로 chat_messages 에 기록해 실시간 대화가 유실되지 않게 한다. (접수 누락 방지 원칙)
 import { createDoc, nowTimestamp, type FirestoreEnv } from "./_firestore";
+import { clientIp, overLimit, sameSiteOrigin } from "./_guard";
 
 type Env = FirestoreEnv;
 
@@ -11,38 +12,16 @@ type RequestBody = {
   consent?: boolean;
 };
 
-const ALLOWED_ORIGIN =
-  /^https?:\/\/([a-z0-9-]+\.)?toesahero\.com(\/|$)|^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|^https:\/\/[a-z0-9-]+\.toesahero\.pages\.dev(\/|$)/i;
-
 // 폴백 경로라 평소엔 호출이 없지만, 광고차단 사용자는 메시지마다 올 수 있어 넉넉히 잡는다.
-const WINDOW_MS = 10 * 60 * 1000;
+// 횟수는 저장소(Firestore)에 IP별로 센다(2026-10-09 보안점검 4번).
+const WINDOW_SEC = 10 * 60;
 const MAX_PER_WINDOW = 60;
-const hits = new Map<string, number[]>();
-
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const arr = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (arr.length >= MAX_PER_WINDOW) {
-    hits.set(ip, arr);
-    return true;
-  }
-  arr.push(now);
-  hits.set(ip, arr);
-  if (hits.size > 5000) {
-    for (const [k, v] of hits)
-      if (!v.some((t) => now - t < WINDOW_MS)) hits.delete(k);
-  }
-  return false;
-}
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-  const origin =
-    request.headers.get("origin") || request.headers.get("referer") || "";
-  if (!ALLOWED_ORIGIN.test(origin)) {
+  if (!sameSiteOrigin(request)) {
     return json({ ok: false, reason: "forbidden" }, 403);
   }
-  const ip = request.headers.get("cf-connecting-ip") || "unknown";
-  if (rateLimited(ip)) {
+  if (await overLimit(env, "chatlog", clientIp(request), MAX_PER_WINDOW, WINDOW_SEC)) {
     return json({ ok: false, reason: "too_many_requests" }, 429);
   }
 

@@ -1,9 +1,20 @@
 // Cloudflare Pages Function: POST /api/notice
 // 표준 패키지(390K) 자동화 — 임금·연차·퇴직금 청구 내용증명 1차 초안
 
-interface Env {
+import { clientIp, overLimit, sameSiteOrigin } from "./_guard";
+import type { FirestoreEnv } from "./_firestore";
+
+interface Env extends FirestoreEnv {
   ANTHROPIC_API_KEY?: string;
 }
+
+// 바깥에서 사무소 명의 초안을 무제한 뽑지 못하게(2026-10-09 보안점검 S1) — 출처·횟수·길이 제한.
+// 계산기는 로그인 없이 쓰므로 로그인 필수는 걸지 않았다(접수가 막힌다).
+const MAX_PER_HOUR = 5;
+const MAX_ITEMS = 20;
+const MAX_LABEL_CHARS = 60;
+const MAX_FACT_CHARS = 2000;
+const MAX_AMOUNT = 100_000_000_000; // 1천억 원 — 계산기가 낼 수 없는 값은 거른다
 
 type Item = { label: string; amount: number };
 type RequestBody = {
@@ -71,6 +82,12 @@ const NOTICE_SYSTEM_PROMPT = `당신은 법률사무소 청송law(담당변호�
 - "반드시 받을 수 있다" 같은 단정적 표현 금지`;
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+  if (!sameSiteOrigin(request)) {
+    return jsonResponse({ error: "forbidden" }, 403);
+  }
+  if (await overLimit(env, "notice", clientIp(request), MAX_PER_HOUR, 3600)) {
+    return jsonResponse({ error: "too_many_requests" }, 429);
+  }
   if (!env.ANTHROPIC_API_KEY) {
     return jsonResponse(
       {
@@ -89,12 +106,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return jsonResponse({ error: "invalid_json" }, 400);
   }
 
-  const items = Array.isArray(body.items) ? body.items : [];
+  const rawItems = Array.isArray(body.items) ? body.items : [];
   const factSummary =
-    typeof body.factSummary === "string" ? body.factSummary : "";
+    typeof body.factSummary === "string" ? body.factSummary.slice(0, MAX_FACT_CHARS) : "";
 
-  if (items.length === 0) {
+  if (rawItems.length === 0) {
     return jsonResponse({ error: "no_items" }, 400);
+  }
+  if (rawItems.length > MAX_ITEMS) {
+    return jsonResponse({ error: "too_many_items" }, 400);
+  }
+  const items = rawItems.map((i) => ({
+    label: typeof i?.label === "string" ? i.label.slice(0, MAX_LABEL_CHARS) : "",
+    amount: Number(i?.amount),
+  }));
+  if (items.some((i) => !i.label || !Number.isFinite(i.amount) || i.amount < 0 || i.amount > MAX_AMOUNT)) {
+    return jsonResponse({ error: "invalid_items" }, 400);
   }
 
   const fmt = (n: number) => new Intl.NumberFormat("ko-KR").format(n);
@@ -104,8 +131,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     .join("\n");
   const total = items.reduce((a, b) => a + (b.amount || 0), 0);
 
-  const userIntro = body.userName
-    ? `의뢰인 이름: ${body.userName}님 (카카오 본인 확인 완료)`
+  const userIntro = typeof body.userName === "string" && body.userName.trim()
+    ? `의뢰인 이름: ${body.userName.trim().slice(0, 40)}님 (카카오 본인 확인 완료)`
     : "의뢰인 이름: [본인 확인 미완료]";
 
   const userPrompt = `${userIntro}
@@ -138,18 +165,14 @@ ${itemsText}
       }),
     });
   } catch (e) {
-    return jsonResponse(
-      { error: "upstream_fetch_failed", detail: String(e) },
-      502
-    );
+    console.error("[notice] upstream fetch failed:", String(e));
+    return jsonResponse({ error: "upstream_fetch_failed" }, 502);
   }
 
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => "");
-    return jsonResponse(
-      { error: "upstream_error", status: upstream.status, body: errText },
-      502
-    );
+    console.error("[notice] upstream error:", upstream.status, errText.slice(0, 500));
+    return jsonResponse({ error: "upstream_error" }, 502);
   }
 
   const data = (await upstream.json()) as {
