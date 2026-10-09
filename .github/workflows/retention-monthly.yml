@@ -1,0 +1,31 @@
+# 보관 기한 정리 — 매달 1일 한 번 /api/admin/retention 을 부른다.
+# 기본은 지울 건수만 센다. 실제 삭제는 Cloudflare 환경변수 RETENTION_DELETE_ENABLED=true 일 때만 한다.
+# 필요한 GitHub 비밀값: TOESA_ADMIN_ID, TOESA_ADMIN_KEY (Cloudflare 에 넣은 관리자 API 열쇠와 같은 값)
+name: Monthly Retention Check
+
+on:
+  schedule:
+    - cron: "0 1 1 * *" # 매달 1일 01:00 UTC = 10:00 KST
+  workflow_dispatch:
+
+jobs:
+  retention:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Call retention endpoint
+        env:
+          ADMIN_ID: ${{ secrets.TOESA_ADMIN_ID }}
+          ADMIN_KEY: ${{ secrets.TOESA_ADMIN_KEY }}
+        run: |
+          if [ -z "$ADMIN_ID" ] || [ -z "$ADMIN_KEY" ]; then
+            echo "::warning::TOESA_ADMIN_ID / TOESA_ADMIN_KEY secret not set - skipping."
+            exit 0
+          fi
+          code=$(curl -s -o out.json -w '%{http_code}' -X POST \
+            -H "x-admin-id: $ADMIN_ID" -H "x-admin-key: $ADMIN_KEY" \
+            https://toesahero.com/api/admin/retention)
+          # 공개 저장소라 실행 기록이 누구에게나 보인다 — 건수는 찍지 않고 성공 여부만 남긴다(건수는 Cloudflare 로그).
+          echo "HTTP $code"
+          test "$code" = "200"
