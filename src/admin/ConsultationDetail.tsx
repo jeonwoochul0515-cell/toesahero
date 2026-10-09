@@ -10,6 +10,7 @@ import {
   type ChatMessageDoc,
   type CaseFileDoc,
   getIdToken,
+  logAdminAction,
 } from "../firebase";
 
 const STATUS_OPTIONS: Array<{ value: NonNullable<ConsultationDoc["status"]>; label: string }> = [
@@ -550,9 +551,22 @@ export function ConsultationDetail() {
             <ul className="admin-file-list">
               {caseFiles.map((f) => (
                 <li key={f.id}>
-                  <a href={f.url} target="_blank" rel="noopener noreferrer">
-                    📄 {f.name}
-                  </a>
+                  {/* 우리 저장소 주소만 링크로 연다(손님이 아무 주소나 적어 넣을 수 있다, 보안점검 9번) */}
+                  {f.url.startsWith("https://firebasestorage.googleapis.com/") ? (
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => logAdminAction("open-case-file", f.id)}
+                      onAuxClick={(e) => {
+                        if (e.button === 1) logAdminAction("open-case-file", f.id);
+                      }}
+                    >
+                      📄 {f.name}
+                    </a>
+                  ) : (
+                    <span>📄 {f.name} (확인 안 된 주소라 열지 않음)</span>
+                  )}
                   {typeof f.size === "number" && (
                     <span className="admin-file-size">
                       {(f.size / 1024).toFixed(0)} KB

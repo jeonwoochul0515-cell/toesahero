@@ -168,6 +168,25 @@ export async function getIdToken(): Promise<string | null> {
   }
 }
 
+// 관리자 접속기록 한 줄 — 관리자 화면은 Firestore 를 브라우저에서 바로 읽어 서버에 흔적이 없으므로
+// 열람·수정 때마다 서버(/api/admin-log)에 남긴다. 화면 동작을 막지 않게 기다리지 않는다.
+export function logAdminAction(action: string, target?: string | null): void {
+  void (async () => {
+    try {
+      const token = await getIdToken();
+      if (!token) return;
+      await fetch("/api/admin-log", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action, target: target ?? null }),
+        keepalive: true,
+      });
+    } catch (e) {
+      console.warn("[firebase] admin-log failed", action, e);
+    }
+  })();
+}
+
 export async function checkIsAdmin(uid: string): Promise<boolean> {
   const database = getDb();
   if (!database) return false;
@@ -301,6 +320,7 @@ export function watchOrders(
     orderBy("createdAt", "desc"),
     limit(max)
   );
+  logAdminAction("list-orders");
   return onSnapshot(
     q,
     (snap) =>
@@ -328,6 +348,7 @@ export function watchConsultations(
     orderBy("createdAt", "desc"),
     limit(max)
   );
+  logAdminAction("list-consultations");
   return onSnapshot(
     q,
     (snap) => cb(snap.docs.map(snapToConsultation)),
@@ -347,6 +368,7 @@ export function watchConsultation(
     cb(null);
     return () => {};
   }
+  logAdminAction("view-consultation", id);
   return onSnapshot(
     doc(database, "consultations", id),
     (snap) => cb(snap.exists() ? snapToConsultation(snap) : null),
@@ -363,6 +385,7 @@ export async function fetchConsultationsBySession(
 ): Promise<ConsultationDoc[]> {
   const database = getDb();
   if (!database) return [];
+  logAdminAction("view-session-consultations", sessionId);
   try {
     const q = query(
       collection(database, "consultations"),
@@ -392,6 +415,7 @@ export function watchChatMessages(
     orderBy("createdAt", "desc"),
     limit(max)
   );
+  logAdminAction("list-chats");
   return onSnapshot(
     q,
     (snap) => cb(snap.docs.map(snapToChatMessage)),
@@ -407,6 +431,7 @@ export async function fetchChatMessagesBySession(
 ): Promise<ChatMessageDoc[]> {
   const database = getDb();
   if (!database) return [];
+  logAdminAction("view-chat", sessionId);
   try {
     const { getDocs } = await import("firebase/firestore");
     const q = query(
@@ -610,6 +635,7 @@ export async function updateConsultation(
     data.draftApprovedAt = serverTimestamp();
   }
   await updateDoc(doc(database, "consultations", id), data);
+  logAdminAction("update-consultation", id);
 }
 
 // ─── Reviews (후기 시스템) ───
@@ -958,6 +984,7 @@ export function watchCaseFiles(
     return () => {};
   }
   const q = query(collection(database, "case_files"), where("caseId", "==", caseId), limit(200));
+  logAdminAction("list-case-files", caseId);
   return onSnapshot(q, (snap) => cb(snap.docs.map(snapToCaseFile)), (e) => {
     snapshotError("case_files(caseId)")(e);
     cb([]);
