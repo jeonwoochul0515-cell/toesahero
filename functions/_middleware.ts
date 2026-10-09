@@ -4,6 +4,14 @@
 //   - 클라이언트 전용 라우트(my/checkout/admin, 프리렌더 없음) → index.html 200 (React Router 처리)
 //   - 그 외 미존재 경로 → 404.html 을 진짜 404 코드로 반환(소프트404 회피)
 
+const SECURITY_HEADERS: Record<string, string> = {
+  "x-content-type-options": "nosniff",
+  "strict-transport-security": "max-age=31536000; includeSubDomains",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-frame-options": "SAMEORIGIN",
+  "permissions-policy": "geolocation=(), microphone=(), camera=()",
+};
+
 // 프리렌더되지 않는 클라이언트 전용 라우트만 SPA 폴백 대상이다.
 function isClientRoute(pathname: string): boolean {
   return (
@@ -49,6 +57,8 @@ export const onRequest: PagesFunction = async ({ request, next }) => {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-cache, no-store, must-revalidate",
+        // public/_headers 와 같은 보안 머리 — 새로 만든 응답에는 _headers 가 붙지 않는다(2026-10-09 보안점검 7번).
+        ...SECURITY_HEADERS,
         // 전자계약 서명 링크(/sign/<토큰>) — 검색에 올리지 않고, 주소(토큰)가 다른 사이트로 새지 않게 한다
         ...(pathname.startsWith("/sign/")
           ? { "x-robots-tag": "noindex, nofollow", "referrer-policy": "no-referrer" }
