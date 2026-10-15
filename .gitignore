@@ -17,6 +17,8 @@ firebase-debug.log
 
 # 빌드타임 생성물 (prerender-posts.mjs 가 Firestore 글을 박아 넣음)
 src/generated/
+# 빌드타임 생성물 (static-lastmod.mjs 가 고정 페이지 git 수정일을 박아 넣음)
+functions/_staticLastmod.ts
 
 # tsc -b composite project artifacts
 vite.config.d.ts

@@ -1,6 +1,10 @@
 // Cloudflare Pages Function: GET /sitemap.xml
 // 동적 사이트맵 — 고정 페이지 + Firestore의 published 블로그 글을 실제 publishedAt(lastmod)과 함께 포함.
 // rss.xml.ts 와 동일 패턴(Firestore REST, posts published 공개 read).
+// 고정 페이지 lastmod는 빌드 때 git 마지막 커밋 시각으로 만든 표(_staticLastmod.ts)를 쓴다.
+// 요청 시각을 넣으면 매번 "전부 바뀜"이 되어 검색엔진이 lastmod를 믿지 않는다(2026-10-15 네이버 점검).
+
+import { STATIC_LASTMOD } from "./_staticLastmod";
 
 interface Env {
   FIREBASE_PROJECT_ID?: string;
@@ -70,6 +74,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   };
 
   const blogUrls: string[] = [];
+  let newestPost: string | null = null;
   try {
     const resp = await fetch(url, {
       method: "POST",
@@ -87,6 +92,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
           isoOrNull(f.publishedAt?.timestampValue) ||
           isoOrNull(row.document?.updateTime) ||
           nowIso;
+        if (!newestPost || lastmod > newestPost) newestPost = lastmod;
         blogUrls.push(`  <url>
     <loc>${SITE_HOST}/blog/${escapeXml(slug)}</loc>
     <lastmod>${lastmod}</lastmod>
@@ -99,14 +105,18 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     // 블로그 조회 실패해도 고정 페이지 사이트맵은 반환
   }
 
-  const staticUrls = STATIC_PAGES.map(
-    (p) => `  <url>
-    <loc>${SITE_HOST}${p.path}</loc>
-    <lastmod>${nowIso}</lastmod>
+  const staticUrls = STATIC_PAGES.map((p) => {
+    let lastmod: string | null = STATIC_LASTMOD[p.path] ?? null;
+    // 블로그 목록은 새 글이 올라오면 바뀐다 — 목록 화면 소스와 가장 최근 글 중 늦은 날짜
+    if (p.path === "/blog" && newestPost && (!lastmod || newestPost > lastmod)) lastmod = newestPost;
+    // 날짜를 모르면(얕은 복제로 빌드 등) 지어내지 않고 lastmod를 뺀다
+    return `  <url>
+    <loc>${SITE_HOST}${p.path}</loc>${lastmod ? `
+    <lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
-  </url>`
-  );
+  </url>`;
+  });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

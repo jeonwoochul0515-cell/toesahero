@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "prerender:posts": "node scripts/prerender-posts.mjs",
+    "lastmod": "node scripts/static-lastmod.mjs",
     "dev": "npm run prerender:posts && vite-react-ssg dev",
     "typecheck:functions": "tsc -p functions/tsconfig.json --noEmit",
     "test": "vitest run",
-    "build": "npm run prerender:posts && npm run og && tsc -b && npm run typecheck:functions && vite-react-ssg build",
+    "build": "npm run lastmod && npm run prerender:posts && npm run og && tsc -b && npm run typecheck:functions && vite-react-ssg build",
     "preview": "vite preview",
     "deploy": "npm run build && npm run deploy:cf && npm run deploy:indexnow",
     "deploy:cf": "wrangler pages deploy dist --project-name toesahero --branch main",
