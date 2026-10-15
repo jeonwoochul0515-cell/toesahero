@@ -1,6 +1,6 @@
 // 외국인 근로자용 영문 랜딩 — 한국 노동법·퇴사 절차를 영어로 안내하고 상담으로 연결
 import { Link } from "react-router-dom";
-import { usePageMeta } from "../hooks/usePageMeta";
+import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
 import { Icon } from "../components/Icon";
 
 const POINTS = [
@@ -35,6 +35,10 @@ export function ForeignWorkerPage() {
       "외국인 퇴사대행",
       "foreign worker resignation Korea",
     ],
+    jsonLd: breadcrumbJsonLd([
+      { name: "Home", url: "/" },
+      { name: "Foreign workers", url: "/foreign-workers" },
+    ]),
   });
 
   return (

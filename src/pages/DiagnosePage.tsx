@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { saveConsultation } from "../firebase";
 import { NAVER_CONV, naverConversion } from "../lib/naverWcs";
-import { usePageMeta } from "../hooks/usePageMeta";
+import { usePageMeta, breadcrumbJsonLd } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
 import { PAYMENT_COPY } from "../config/payment";
 import { Icon } from "../components/Icon";
@@ -123,6 +123,10 @@ export function DiagnosePage() {
       "부당해고",
       "임금체불",
     ],
+    jsonLd: breadcrumbJsonLd([
+      { name: "홈", url: "/" },
+      { name: "셀프 진단", url: "/diagnose" },
+    ]),
   });
 
   const allAnswered = QUESTIONS.every((q) => answers[q.key]);
