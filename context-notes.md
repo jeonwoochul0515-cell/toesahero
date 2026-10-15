@@ -628,3 +628,4 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - cta가 늘 0이던 원인: 이 사이트 공개 화면에 비콘이 찾는 표시(form·data-beacon="cta"·상담 링크)가 하나도 없었다(운영 /unemployment-calc에서 대상 0개 확인). 타이밍 문제 아님 — 프리렌더 HTML에 표시를 넣으면 운영 비콘으로 cta=1이 잡힌다(하이드레이션이 노드를 바꾸지 않음). 계산기 결과 아래 상담칸과 세그먼트 하단 버튼 묶음에 data-beacon="cta". 첫 화면 빠른 칸에는 일부러 안 달았다(누구나 보여서 숫자가 뜻을 잃는다).
 - 카톡 클릭은 중앙접수함 비콘이 새 신호 kakao로 센다(lead-inbox 2b4f1f2). 이 사이트는 고칠 것 없음.
 - 배포 3cc094a8(production), push 함. open-outside.js(카톡 인앱 탈출)는 이 사이트에 아직 없다 — 사이트 전체 변경이라 대표 결정 대상.
+- 2026-10-15 추가(1fb65fb, 배포 7f48458b, push 함): 대표 결정으로 open-outside.js를 public/에 두고 index.html <head>(viewport 바로 아래)에서 defer 없이 부른다. 카톡은 kakaotalk://web/openExternal, 안드로이드 다른 앱은 크롬 intent, 아이폰 다른 앱은 시도 안 함. 한 방문 한 번(sessionStorage jbj.out). 광고 주소의 n_query 등은 그대로 넘어간다.
