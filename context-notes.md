@@ -629,3 +629,14 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - 카톡 클릭은 중앙접수함 비콘이 새 신호 kakao로 센다(lead-inbox 2b4f1f2). 이 사이트는 고칠 것 없음.
 - 배포 3cc094a8(production), push 함. open-outside.js(카톡 인앱 탈출)는 이 사이트에 아직 없다 — 사이트 전체 변경이라 대표 결정 대상.
 - 2026-10-15 추가(1fb65fb, 배포 7f48458b, push 함): 대표 결정으로 open-outside.js를 public/에 두고 index.html <head>(viewport 바로 아래)에서 defer 없이 부른다. 카톡은 kakaotalk://web/openExternal, 안드로이드 다른 앱은 크롬 intent, 아이폰 다른 앱은 시도 안 함. 한 방문 한 번(sessionStorage jbj.out). 광고 주소의 n_query 등은 그대로 넘어간다.
+
+## 2026-10-15 네이버 서치어드바이저 점검 반영(어사이드 핸드오프 T1~T6)
+- 파비콘: favicon.svg에서 favicon.ico(16/32/48)·favicon-96x96.png·apple-touch-icon.png(180, 노란 바탕) 생성. head는 절대주소, rel마다 1개(icon=96 PNG, shortcut icon=ico, apple-touch-icon=PNG). terms.html·privacy.html은 public 정적 파일이라 따로 고쳤다. _routes.json exclude에 새 아이콘 3개.
+- sitemap lastmod: scripts/static-lastmod.mjs가 빌드 맨 앞에서 functions/_staticLastmod.ts(gitignore)를 만든다. 화면별 소스 목록은 그 스크립트의 SOURCES — 새 고정 페이지를 sitemap에 넣으면 여기도 한 줄 넣는다. 얕은 복제면 빈 표 → lastmod 생략(거짓 날짜 금지). 워크플로 4개 fetch-depth: 0.
+- 자동 발행 slug: scripts/blog-slug.mjs(AI slug 검사, 56자 이하, 겹치면 -N, 실패 시 column-YYYYMMDD). 기존 auto-xxxx 주소는 그대로.
+- IndexNow: 예전 CI는 재배포 전에 api.indexnow.org만 GET으로 통지(로그상 200이지만 그 시점 새 주소는 404). 이제 GITHUB_OUTPUT으로 주소를 넘기고 배포 뒤 단계에서 네이버·공용 주소에 POST. 로컬 실행은 그대로 즉시 통지.
+- 검색 제목·설명 덮어쓰기는 src/lib/postSeo.ts(글 slug별, H1·본문·og 그림은 그대로). Firestore 글을 직접 고치지 않은 이유는 그 파일 머리 주석.
+- 홈 제목 "퇴사대행(퇴직대행) 김창희 변호사 — 퇴사히어로". 이름 검색 대응 3안 중 추천안(제목·설명 반영)만 구현, 나머지(변호사 소개 화면 신설 / 사무소 사이트 쪽 강화)는 대표 결정 대기.
+- "법률사무원 퇴사"(49·0%)는 어느 주소가 노출됐는지 원자료에 검색어-주소 짝이 없어 확인 못 함. 검색 의도(법률사무소 직원의 이직)가 서비스와 달라 고치지 않았다.
+- 테스트: functions/api/esign.test.ts "문자 버튼을 연달아 눌러도 한 통만"이 7회 중 2회 429로 실패하는 기존 불안정 시험(이번 변경과 무관한 파일).
+- 이번에 발견만 한 것: auto-publish가 10/7·10/9·10/12 세 번 AI 응답 JSON 파싱 실패로 발행을 못 했다. /api/indexnow는 인증 없이 누구나 부를 수 있다(우리 도메인 주소만 통지되므로 피해는 작다). terms.html에 LegalService JSON-LD가 두 번 들어 있다.
