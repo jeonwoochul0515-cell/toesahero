@@ -620,3 +620,11 @@ HTML 안에는 글이 다 들어 있었는데(본문 9,729자) 화면에는 56%�
 - 보관 기한 정리: /api/admin/retention + .github/workflows/retention-monthly.yml(매달 1일). 기본은 건수만. 실제 삭제는 Cloudflare 환경변수 RETENTION_DELETE_ENABLED=true(대표 확인 뒤). 수임·종료·결제 건은 지우지 않는다.
 - 블로그 발행 전용 역할: Firestore `blog_publishers/<uid>` 문서가 있으면 posts 읽기·생성·수정만 된다. 계정 분리는 대표 콘솔 작업.
 - Firestore 규칙 시험은 Rules test API로 배포 없이 돌렸다. 주의: 시험 API는 "/"로 시작하는 문자열을 path 타입으로 읽어 문자열 검사에서 실패한다(실제 저장과 다름).
+
+## 2026-10-15 광고 도착 화면·측정 고치기(대표 결정 "화면·측정 셋 다 함께", ad-keywords/검색어점검_2026-10-15.md)
+- 새 화면 /recommended-resignation(SegmentLandingPage 설정 하나). 가격은 표준 절차 39만원으로 걸고 다툼이 되면 분쟁 대응 79만원 안내 — 상품표의 "사용자 측과의 교섭 자문"이 표준 절차에 있어서 고른 것. 대표 확인 대상.
+- 실업급여 계산기 근거: 고용보험법 시행규칙 별표 2 제5호(경영 사정 등으로 퇴직 권고) — 2026-10-15 korean-law로 원문 확인.
+- QuickContact(빠른 연락 칸)는 saveConsultationDetailed 그대로. 저장(id)·알림(notified) 둘 다 실패일 때만 실패 안내. 접수 메시지 머리 "[첫 화면 빠른 상담 · <화면>]".
+- cta가 늘 0이던 원인: 이 사이트 공개 화면에 비콘이 찾는 표시(form·data-beacon="cta"·상담 링크)가 하나도 없었다(운영 /unemployment-calc에서 대상 0개 확인). 타이밍 문제 아님 — 프리렌더 HTML에 표시를 넣으면 운영 비콘으로 cta=1이 잡힌다(하이드레이션이 노드를 바꾸지 않음). 계산기 결과 아래 상담칸과 세그먼트 하단 버튼 묶음에 data-beacon="cta". 첫 화면 빠른 칸에는 일부러 안 달았다(누구나 보여서 숫자가 뜻을 잃는다).
+- 카톡 클릭은 중앙접수함 비콘이 새 신호 kakao로 센다(lead-inbox 2b4f1f2). 이 사이트는 고칠 것 없음.
+- 배포 3cc094a8(production), push 함. open-outside.js(카톡 인앱 탈출)는 이 사이트에 아직 없다 — 사이트 전체 변경이라 대표 결정 대상.
