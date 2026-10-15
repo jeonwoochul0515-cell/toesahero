@@ -14,6 +14,7 @@ import { linkLawArticles } from "../lib/lawLinks";
 import { extractFaqs, faqPageJsonLd } from "../lib/postFaq";
 import { splitPostBody, stripWebtoon } from "../lib/postWebtoon";
 import { WebtoonStrip } from "../components/WebtoonStrip";
+import { POST_SEO_OVERRIDES } from "../lib/postSeo";
 
 function fmtDate(ts: PostDoc["publishedAt"]): string {
   if (!ts) return "";
@@ -51,9 +52,13 @@ export function BlogPost() {
     ? new Date(post.updatedAt.seconds * 1000).toISOString()
     : isoDate;
 
+  // 검색 결과에만 보이는 제목·설명을 글별로 덮어쓴다(화면 제목 H1은 그대로) — src/lib/postSeo.ts
+  const seoOverride = post ? POST_SEO_OVERRIDES[post.slug] : undefined;
+
   const seo = usePageMeta({
-    title: post?.title ?? "법률 칼럼",
-    description: post?.excerpt ?? "법률사무소 청송law 김창희 변호사 법률 칼럼",
+    title: seoOverride?.title ?? post?.title ?? "법률 칼럼",
+    description:
+      seoOverride?.description ?? post?.excerpt ?? "법률사무소 청송law 김창희 변호사 법률 칼럼",
     canonical: `/blog/${slug ?? ""}`,
     keywords: post?.tags ?? ["법률 칼럼", "노동법", "변호사", "김창희"],
     // 칼럼마다 고유 공유 이미지. 카톡으로 보냈을 때 어느 글인지 보이게 한다.
