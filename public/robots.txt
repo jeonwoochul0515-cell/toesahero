@@ -9,6 +9,7 @@ Disallow: /api/
 # 네이버 검색 — Yeti 봇 명시 환영
 User-agent: Yeti
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -17,6 +18,7 @@ Disallow: /api/
 # 다음 검색 — Daum 봇
 User-agent: Daum
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -25,6 +27,7 @@ Disallow: /api/
 # 구글
 User-agent: Googlebot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -33,6 +36,7 @@ Disallow: /api/
 # 빙
 User-agent: bingbot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -42,6 +46,7 @@ Disallow: /api/
 # ChatGPT
 User-agent: GPTBot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -49,6 +54,7 @@ Disallow: /api/
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -57,6 +63,7 @@ Disallow: /api/
 # ChatGPT 응답 중 실시간 fetch(RAG) — 인용 위해 허용
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -65,6 +72,7 @@ Disallow: /api/
 # Claude (Anthropic)
 User-agent: ClaudeBot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -72,6 +80,7 @@ Disallow: /api/
 
 User-agent: Claude-Web
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -80,6 +89,7 @@ Disallow: /api/
 # Claude 검색/응답(RAG) 봇 — 인용 위해 허용
 User-agent: Claude-User
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -87,6 +97,7 @@ Disallow: /api/
 
 User-agent: Claude-SearchBot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -95,6 +106,7 @@ Disallow: /api/
 # Perplexity
 User-agent: PerplexityBot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -103,6 +115,7 @@ Disallow: /api/
 # Perplexity 실시간 fetch(RAG)
 User-agent: Perplexity-User
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -111,6 +124,7 @@ Disallow: /api/
 # Google AI (Gemini/AI Overviews 학습)
 User-agent: Google-Extended
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
@@ -119,6 +133,7 @@ Disallow: /api/
 # Common Crawl (다수 LLM 학습 기반)
 User-agent: CCBot
 Allow: /
+Disallow: /__/
 Disallow: /admin/
 Disallow: /my
 Disallow: /checkout
