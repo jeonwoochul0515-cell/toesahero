@@ -2,10 +2,11 @@
 // 흐름: 주제 큐에서 미발행 주제 선택 → Claude 생성 → 변협 금지표현 자동 검사 → 통과 시 published, 위반 시 draft 저장
 // 실행: ADMIN_EMAIL=... ADMIN_PASSWORD=... ANTHROPIC_API_KEY=... node scripts/auto-publish-daily.mjs
 
-import { existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { initializeApp } from "firebase/app";
+import { pickSlug } from "./blog-slug.mjs";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import {
   getFirestore,
@@ -129,6 +130,7 @@ const SYSTEM_PROMPT = `당신은 법률사무소 청송law(담당변호사 김�
 아래 키를 가진 JSON 객체 '하나만' 출력하세요. 코드펜스(\`\`\`)나 다른 설명 텍스트를 절대 붙이지 마세요.
 {
   "title": "글 제목 (28자 내외, 검색 키워드 포함)",
+  "slug": "글 주소용 영문 키워드. 소문자 영어와 숫자를 하이픈으로 이은 2~6단어 (예: parental-leave-return-refusal)",
   "excerpt": "메타 설명 겸 요약 (공백 포함 120자 이내, 마침표로 끝)",
   "tags": ["태그1", "태그2", "태그3"],
   "body": "마크다운 본문. 제목(h1)은 넣지 말 것. 면책 문구는 넣지 말 것(시스템이 자동 추가)."
@@ -294,12 +296,11 @@ async function main() {
     throw new Error("유효한 글을 생성하지 못했습니다.");
   }
 
-  // slug 결정: 큐 주제면 그 slug, 아니면 제목 기반(중복 회피)
+  // slug 결정: 큐 주제면 그 slug, 아니면 AI가 낸 영문 키워드 주소(검사·중복 회피).
+  // 예전에는 auto-<시각> 이라 주소만 봐서는 무슨 글인지 알 수 없었다(2026-10-15 네이버 점검 T5).
+  // 이미 나간 auto-xxxx 주소는 바꾸지 않는다 — 색인·노출된 주소를 바꾸면 301과 재색인이 필요하다.
   let slug = topic?.slug;
-  if (!slug) {
-    const base = `auto-${Date.now().toString(36)}`;
-    slug = base;
-  }
+  if (!slug) slug = pickSlug(post.slug, existingSlugs);
 
   const status = banned.length === 0 ? "published" : "draft";
   const payload = {
@@ -321,8 +322,15 @@ async function main() {
   if (status === "published") {
     console.log(`✓ 발행 완료: ${slug} (id=${ref.id})`);
     console.log(`   /blog/${slug}`);
-    // 빙·네이버 등에 신규 URL 즉시 통지(색인 가속 — 보장 아님). 실패해도 발행 흐름은 유지.
-    await pingIndexNow(`https://toesahero.com/blog/${slug}`);
+    const postUrl = `https://toesahero.com/blog/${slug}`;
+    if (process.env.GITHUB_OUTPUT) {
+      // GitHub Actions: 이 시점엔 새 글 주소가 아직 404다(재빌드·배포 전). 그때 통지하면 검색엔진이 404를 본다.
+      // 주소만 넘기고, 워크플로가 배포를 마친 뒤 네이버·IndexNow에 통지한다(2026-10-15).
+      appendFileSync(process.env.GITHUB_OUTPUT, `url=${postUrl}\n`);
+    } else {
+      // 로컬 수동 실행: 예전대로 바로 통지(색인 가속 — 보장 아님). 실패해도 발행 흐름은 유지.
+      await pingIndexNow(postUrl);
+    }
   } else {
     console.warn(
       `⚠ 금지표현(${banned.join(", ")})으로 자동 발행 보류 → draft 저장 (id=${ref.id}). /admin/blog 에서 검토 필요.`

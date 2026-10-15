@@ -25,6 +25,7 @@ jobs:
       - run: npm ci
 
       - name: Generate & publish one post
+        id: publish
         env:
           ADMIN_EMAIL: ${{ secrets.BLOG_ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.BLOG_ADMIN_PASSWORD }}
@@ -71,3 +72,19 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=toesahero --branch=main --commit-message="자동발행 글 반영 재배포 ${{ github.sha }}" --commit-hash=${{ github.sha }}
+
+      # 새 글 주소 IndexNow 통지 — 배포가 끝나 주소가 실제로 열린 뒤에 보낸다(예전엔 배포 전에 보내 404를 알렸다).
+      # 네이버는 직접, 나머지(빙 등)는 IndexNow 공용 주소로. 실패해도 발행·배포는 그대로다(2026-10-15).
+      - name: IndexNow 통지 (배포 뒤)
+        if: steps.cf.outputs.ready == 'true' && steps.publish.outputs.url != ''
+        continue-on-error: true
+        env:
+          POST_URL: ${{ steps.publish.outputs.url }}
+          INDEXNOW_KEY: 938f576e2a5781026560da253ad84446
+        run: |
+          sleep 15
+          echo "열림 확인: $(curl -s -o /dev/null -w '%{http_code}' "$POST_URL")"
+          BODY="{\"host\":\"toesahero.com\",\"key\":\"$INDEXNOW_KEY\",\"keyLocation\":\"https://toesahero.com/$INDEXNOW_KEY.txt\",\"urlList\":[\"$POST_URL\"]}"
+          for EP in https://searchadvisor.naver.com/indexnow https://api.indexnow.org/indexnow; do
+            echo "IndexNow $EP: $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json; charset=utf-8' -d "$BODY" "$EP")"
+          done
