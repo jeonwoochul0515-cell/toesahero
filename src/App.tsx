@@ -168,6 +168,10 @@ export const routes: RouteRecord[] = [
         element: <SegmentLandingPage seg="unfair-dismissal" />,
       },
       {
+        path: "recommended-resignation",
+        element: <SegmentLandingPage seg="recommended-resignation" />,
+      },
+      {
         path: "unpaid-wages",
         element: <SegmentLandingPage seg="unpaid-wages" />,
       },

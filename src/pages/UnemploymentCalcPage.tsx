@@ -6,6 +6,7 @@ import { NAVER_CONV, naverConversion } from "../lib/naverWcs";
 import { usePageMeta, breadcrumbJsonLd, faqJsonLd } from "../hooks/usePageMeta";
 import { PrivacyConsent } from "../components/PrivacyConsent";
 import { Icon } from "../components/Icon";
+import { QuickContact } from "../components/QuickContact";
 
 // 검색·AI 답변엔진용 FAQ — 질문형 제목 + 두괄식 답. 화면과 JSON-LD에 1:1로 쓴다.
 const FAQ_ITEMS = [
@@ -307,6 +308,15 @@ export function UnemploymentCalcPage() {
           월급·나이·고용보험 가입기간을 입력하면 2026년 기준 실업급여(구직급여) 예상액을 계산합니다.{" "}
           <strong>※ 실제 수급액·자격은 고용센터 심사로 최종 결정되며, 본 계산은 단순 참고용입니다.</strong>
         </p>
+        {/* 광고 손님 78%가 이 화면에서 27초쯤 보고 위쪽 1/3에서 나갔다(2026-10-15 점검). 상담칸이 결과 아래에만
+            있어 닿지 못했다 — 첫 화면에 바로 남기는 짧은 칸을 둔다. */}
+        <div style={{ marginBottom: 24 }}>
+          <QuickContact
+            pageLabel="실업급여 계산기 화면"
+            title="회사가 퇴사 사유를 불리하게 적었나요? 변호사가 먼저 확인합니다"
+            placeholder="예) 권고사직인데 자진퇴사 처리"
+          />
+        </div>
         {/* 광고로 들어온 첫 화면에 '변호사'가 한 번도 없었다(2026-09-15 점검). 누가 운영하는지 먼저 보인다. */}
         <p className="calc-lead" style={{ marginTop: 6 }}>
           법률사무소 청송law 담당변호사 김창희가 운영합니다. 회사가 퇴사 사유를 불리하게 적어 막히면
@@ -474,7 +484,8 @@ export function UnemploymentCalcPage() {
                 )}
               </div>
 
-              <div className="calc-fields" style={{ marginTop: 18 }}>
+              {/* data-beacon="cta" — 접수함 비콘이 "결과 아래 상담칸까지 내려왔나"를 세는 표시(2026-10-15) */}
+              <div className="calc-fields" data-beacon="cta" style={{ marginTop: 18 }}>
                 <label className="full" style={{ color: "var(--cream)" }}>
                   성함 (필수)
                   <input

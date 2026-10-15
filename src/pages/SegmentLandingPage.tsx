@@ -1,15 +1,17 @@
-// 세그먼트별 랜딩(괴롭힘/5인미만/부당해고/임금체불/퇴직금) — SEO·전환용. 설정 기반 단일 컴포넌트
+// 세그먼트별 랜딩(괴롭힘/5인미만/부당해고/임금체불/퇴직금/권고사직) — SEO·전환용. 설정 기반 단일 컴포넌트
 import { Link } from "react-router-dom";
 import { usePageMeta, faqJsonLd, breadcrumbJsonLd } from "../hooks/usePageMeta";
 import { PAYMENT_COPY } from "../config/payment";
 import { Icon, type IconName } from "../components/Icon";
+import { QuickContact } from "../components/QuickContact";
 
 type Seg =
   | "harassment"
   | "small-business"
   | "unfair-dismissal"
   | "unpaid-wages"
-  | "severance-pay";
+  | "severance-pay"
+  | "recommended-resignation";
 
 type Point = { h: string; body: string };
 type QA = { q: string; a: string };
@@ -28,6 +30,8 @@ type Config = {
   pkg?: "basic" | "pro" | "max"; // 이 사안에 해당하는 상품(있으면 상담 신청 버튼을 보인다)
   priceNote?: string; // 큰 소송 등 별도 견적 안내
   relatedPosts?: { slug: string; title: string }[]; // 관련 칼럼(내부링크·OSMU)
+  // 광고로 들어오는 화면 — 첫 화면에 이름·전화 빠른 칸을 둔다(2026-10-15 대표 결정)
+  quick?: { pageLabel: string; title: string; placeholder: string };
 };
 
 const CONFIG: Record<Seg, Config> = {
@@ -161,6 +165,11 @@ const CONFIG: Record<Seg, Config> = {
     ],
     canonical: "/unfair-dismissal",
     breadcrumbName: "부당해고",
+    quick: {
+      pageLabel: "부당해고 화면",
+      title: "해고·권고사직 통보를 받으셨나요? 서명 전에 변호사가 먼저 봅니다",
+      placeholder: "예) 문자로 해고 통보받음",
+    },
     price: "분쟁 대응 · 79만원 (정액)",
     pkg: "max",
     priceNote: "노동위원회 구제신청 대리는 착수금 + 위임계약으로 상담 후 견적입니다.",
@@ -342,6 +351,92 @@ const CONFIG: Record<Seg, Config> = {
       },
     ],
   },
+  // 권고사직·위로금 광고 전용(2026-10-15). 광고 문구 "위로금과 실업급여 조건을 서명 전에 검토"와 맞춘다.
+  // 그 전에는 이 손님들이 위로금 이야기가 한 줄도 없는 부당해고 화면에 떨어졌다(광고비의 52%).
+  // 위로금 금액을 약속하는 문구는 쓰지 않는다(변호사 광고규정).
+  "recommended-resignation": {
+    icon: "contract",
+    title: "권고사직, 서명 전에 — 위로금과 실업급여 조건부터 확인하세요.",
+    sub: "사직서·합의서는 서명한 뒤에 바꾸기 어려운 경우가 많습니다. 위로금 조건, 퇴사 사유 문구, '이의를 제기하지 않는다'는 조항을 서명 전에 변호사가 함께 봅니다.",
+    metaTitle: "권고사직 위로금·합의서 서명 전 검토 — 변호사 | 퇴사히어로",
+    metaDesc:
+      "권고사직 위로금은 법으로 정해진 금액이 없어 합의서 조건이 중요합니다. 사직서·합의서 서명 전에 위로금 조건, 실업급여에 영향을 주는 퇴사 사유 문구, 부제소 조항을 법률사무소 청송law 변호사가 검토합니다.",
+    keywords: [
+      "권고사직",
+      "권고사직 위로금",
+      "권고사직 합의서",
+      "권고사직 실업급여",
+      "권고사직 사직서",
+      "권고사직 거부",
+      "퇴직 합의서 검토",
+    ],
+    canonical: "/recommended-resignation",
+    breadcrumbName: "권고사직",
+    quick: {
+      pageLabel: "권고사직 화면",
+      title: "합의서·사직서, 서명하기 전에 보내 주세요",
+      placeholder: "예) 위로금 2개월 제안받음",
+    },
+    // 상품표(2026-09-25)의 표준 절차에 "사용자 측과의 교섭 자문"이 들어 있다. 다툼이 되면 분쟁 대응으로 올린다.
+    price: "표준 절차 · 39만원 (정액)",
+    pkg: "pro",
+    priceNote:
+      "권고사직을 거절한 뒤 해고로 이어지는 등 다툼이 커지면 분쟁 대응(79만원)으로 안내합니다. 노동위원회 구제신청 대리는 착수금 + 위임계약으로 상담 후 견적입니다.",
+    relatedPosts: [
+      {
+        slug: "recommended-resignation-severance-pay",
+        title: "권고사직 위로금, 얼마를 어떻게 받아야 하나 — 협상 전 알아둘 것",
+      },
+      {
+        slug: "voluntary-vs-recommended-resignation-unemployment-benefit",
+        title: "권고사직과 실업급여 — 회사가 자발적 사직으로 처리하려는 경우",
+      },
+      {
+        slug: "forced-resignation-pressure",
+        title: "사직 강요·권고사직 압박, 어떻게 대응해야 할까",
+      },
+    ],
+    points: [
+      {
+        h: "권고사직은 회사의 '제안'입니다",
+        body: "권고사직은 회사가 그만둬 달라고 권하는 것이고, 받아들일지는 근로자가 정합니다. 거절했다는 이유로 회사가 해고한다면, 상시 5인 이상 사업장에서는 그 해고에 정당한 이유가 있는지(근로기준법 제23조)를 따져 볼 수 있습니다.",
+      },
+      {
+        h: "위로금은 법으로 정해진 금액이 없습니다",
+        body: "위로금은 회사와의 합의로 정해집니다. 그래서 금액뿐 아니라 지급일, 퇴직금·밀린 수당과 따로 받는지가 합의서에 적혀 있는지 확인해야 합니다. 1년 이상 일했다면 퇴직금은 위로금과 별개로 받을 권리입니다.",
+      },
+      {
+        h: "퇴사 사유 문구 한 줄이 실업급여를 가릅니다",
+        body: "경영 악화·조직 축소·사업 폐지 같은 회사 사정으로 퇴직을 권고받아 그만두면 실업급여를 받을 수 있는 사유가 될 수 있습니다(고용보험법 시행규칙 별표 2 제5호). 그런데 사직서에 '개인 사정'이라고 쓰거나 이직확인서에 자진퇴사로 적히면 결과가 달라질 수 있습니다.",
+      },
+      {
+        h: "'일체 이의를 제기하지 않는다'는 조항을 봅니다",
+        body: "합의서에 '민·형사상 일체의 이의를 제기하지 않는다' 같은 문구가 있으면, 나중에 밀린 수당이나 해고 문제를 다투기 어려워질 수 있습니다. 서명하면 무엇을 포기하게 되는지 먼저 확인합니다.",
+      },
+      {
+        h: "서명 전 검토부터 교섭 방향까지",
+        body: "변호사가 사직서·합의서 초안을 보고 고칠 곳을 짚어 드립니다. 필요하면 회사와의 교섭 방향도 함께 정합니다. 결과를 보장하지는 않으며, 사안마다 서류와 경위를 봐야 정확합니다.",
+      },
+    ],
+    faqs: [
+      {
+        q: "권고사직을 거절해도 되나요?",
+        a: "됩니다. 권고사직은 회사의 제안이라 받아들일 의무가 없습니다. 거절한 뒤 회사가 해고하면, 상시 5인 이상 사업장에서는 그 해고에 정당한 이유와 서면 통지가 있었는지 다툴 수 있습니다. 거절 의사와 그 뒤의 일을 날짜와 함께 기록해 두세요.",
+      },
+      {
+        q: "권고사직 위로금은 보통 얼마인가요?",
+        a: "법으로 정해진 금액은 없습니다. 회사 사정과 근속기간, 협의 내용에 따라 달라 일률적으로 말하기 어렵습니다. 금액보다 먼저 지급일, 퇴직금·미지급 수당과 따로 받는지, 합의서에 권리를 포기하는 문구가 있는지를 확인하는 것이 안전합니다.",
+      },
+      {
+        q: "권고사직이면 실업급여를 받을 수 있나요?",
+        a: "경영 악화·조직 축소 같은 회사 사정으로 퇴직을 권고받은 경우라면 받을 수 있는 사유에 해당할 수 있습니다. 다만 사직서 문구와 회사가 이직확인서에 적는 사유에 따라 결과가 달라질 수 있어 서명 전에 확인하는 것이 좋습니다. 수급 여부는 고용센터가 최종 판단합니다.",
+      },
+      {
+        q: "이미 서명했는데 방법이 있나요?",
+        a: "서명한 경위와 서류 내용에 따라 다릅니다. 사실상 강요에 가까웠는지, 합의서에 무엇이 적혔는지를 봐야 하므로 받은 서류와 대화 기록을 가지고 상담해 주세요.",
+      },
+    ],
+  },
 };
 
 export function SegmentLandingPage({ seg }: { seg: Seg }) {
@@ -373,6 +468,13 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
         <div style={{ fontSize: 44, marginTop: 8 }}><Icon name={c.icon} size={40} /></div>
         <h1 className="page-static-title">{c.title}</h1>
         <p className="page-static-sub">{c.sub}</p>
+        {c.quick ? (
+          <QuickContact
+            pageLabel={c.quick.pageLabel}
+            title={c.quick.title}
+            placeholder={c.quick.placeholder}
+          />
+        ) : null}
         {/* 광고로 들어온 첫 화면에 누가 하는지와 연락할 길이 없었다(2026-09-15 점검).
             다른 업체를 깎지 않고 우리가 하는 일만 적는다(변호사 광고규정 제4조). */}
         <div
@@ -525,7 +627,9 @@ export function SegmentLandingPage({ seg }: { seg: Seg }) {
           </div>
         ) : null}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
+        {/* data-beacon="cta" — 접수함 비콘이 "상담 자리까지 내려왔나"를 세는 표시. 이 사이트 화면에는
+            비콘이 찾는 form·상담 링크가 하나도 없어 9/22 이후 값이 늘 0이었다(2026-10-15 확인). */}
+        <div data-beacon="cta" style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
           <Link to="/diagnose" className="btn primary" style={{ padding: 15, textAlign: "center" }}>
             <Icon name="compass" size={16} /> 내 사안 1분 진단하기
           </Link>

@@ -4340,3 +4340,81 @@ body[data-mascot="false"] .mascot {
 .esign-dl dt { color: var(--muted); }
 .esign-dl dd { margin: 0; overflow-wrap: anywhere; }
 .esign-sig-img { display: block; max-width: 300px; width: 100%; margin-top: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+
+/* ─── 광고 첫 화면 빠른 연락 칸(QuickContact, 2026-10-15) ─── */
+.quick-contact {
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+.quick-contact-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.quick-contact-sub {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.quick-contact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.quick-contact-row label,
+.quick-contact-full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.quick-contact-full {
+  margin-top: 8px;
+}
+.quick-contact input[type="text"],
+.quick-contact input[type="tel"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-size: 16px;
+  font-family: var(--font-kr);
+  background: var(--paper);
+  color: var(--ink);
+}
+.quick-contact input:focus {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+.quick-contact .privacy-consent {
+  margin-top: 8px;
+  padding: 8px 10px;
+}
+.quick-contact-err {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #b42318;
+}
+.quick-contact-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px 16px;
+  font-size: 16px;
+}
+.quick-contact-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

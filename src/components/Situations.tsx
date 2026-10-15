@@ -36,6 +36,7 @@ const SITUATIONS: Array<{
 // 사안별 자세한 안내 페이지 — 예전 #labor 카드가 걸던 링크를 그대로 둔다
 const TOPICS = [
   { to: "/unfair-dismissal", label: "부당해고" },
+  { to: "/recommended-resignation", label: "권고사직·위로금" },
   { to: "/unpaid-wages", label: "임금체불" },
   { to: "/severance-pay", label: "퇴직금 미지급" },
   { to: "/harassment", label: "직장 내 괴롭힘" },

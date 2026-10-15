@@ -20,6 +20,8 @@ export function pageIntro(path: string): string | null {
     return "5인 미만 사업장은 근로기준법이 일부만 적용돼서 권리 판단이 유난히 까다로워요. 우리 회사에 뭐가 적용되는지부터 같이 확인해 볼까요?";
   if (path.startsWith("/unfair-dismissal"))
     return "해고 통보를 받으셨나요? 서면으로 받았는지 말로만 들었는지, 날짜가 언제인지가 아주 중요해요. 구제신청은 해고일부터 3개월 안에 해야 하니, 상황을 먼저 말씀해 주세요.";
+  if (path.startsWith("/recommended-resignation"))
+    return "권고사직 제안을 받으셨나요? 사직서나 합의서에 서명하기 전에 위로금 조건이랑 퇴사 사유 문구를 같이 봐요. 회사가 뭐라고 제안했는지 말씀해 주세요.";
   if (path.startsWith("/unpaid-wages"))
     return "밀린 월급·수당 문제라면 잘 오셨어요. 언제부터 얼마가 밀렸는지, 급여명세서나 통장기록이 있는지 말씀해 주시면 어떤 절차로 받을 수 있는지 정리해 드릴게요.";
   if (path.startsWith("/severance-pay"))

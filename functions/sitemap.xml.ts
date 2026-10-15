@@ -18,6 +18,7 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: "/diagnose", changefreq: "monthly", priority: "0.8" },
   { path: "/harassment", changefreq: "monthly", priority: "0.7" },
   { path: "/unfair-dismissal", changefreq: "monthly", priority: "0.8" },
+  { path: "/recommended-resignation", changefreq: "monthly", priority: "0.8" },
   { path: "/unpaid-wages", changefreq: "monthly", priority: "0.8" },
   { path: "/severance-pay", changefreq: "monthly", priority: "0.8" },
   { path: "/small-business", changefreq: "monthly", priority: "0.7" },

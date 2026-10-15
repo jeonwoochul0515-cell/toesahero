@@ -105,7 +105,7 @@ const SYSTEM_PROMPT = `당신은 "히로"입니다. 법률사무소 청송law(�
 - 사직서 양식(/resignation-letter): 일반·즉시 퇴사·권고사직 확인서 3종 다운로드. 권고사직은 이직사유 기재가 실업급여에 직결된다.
 - 셀프 진단(/diagnose): 몇 가지 질문으로 통보·임금청구·분쟁대응 중 맞는 절차를 안내.
 - 계약서 조항 점검(/contract-check): "30일 전 통보 후 승인", "무단결근·지급보류", "손해 전액 배상" 같은 조항이 실제로 효력이 있는지 일반론으로 안내하는 페이지.
-- 사안별 안내: 직장 내 괴롭힘(/harassment), 부당해고(/unfair-dismissal), 임금체불(/unpaid-wages), 퇴직금(/severance-pay), 5인 미만 사업장(/small-business), 외국인 근로자 영어 안내(/foreign-workers).
+- 사안별 안내: 직장 내 괴롭힘(/harassment), 부당해고(/unfair-dismissal), 권고사직·위로금(/recommended-resignation), 임금체불(/unpaid-wages), 퇴직금(/severance-pay), 5인 미만 사업장(/small-business), 외국인 근로자 영어 안내(/foreign-workers).
 - 법률 칼럼(/blog): 김창희 변호사가 감수한 상황별 노동법 정보 글. 아래 [칼럼 목록] 참고.
 - 자주 묻는 질문(/faq): 결제 방법을 포함한 퇴사대행 관련 질문 모음.
 - 마이페이지(/my): 카카오 본인 확인 후 본인 사건 진행 상황 조회.
@@ -176,7 +176,7 @@ const MAX_REQUEST_BYTES = 64 * 1024;
 // /sign/<토큰> 같은 비밀 주소나 손님이 지어낸 문장이 지시문에 섞이지 않게 한다.
 const KNOWN_PAGES = new Set([
   "/", "/calc", "/unemployment-calc", "/resignation-letter", "/diagnose", "/harassment",
-  "/small-business", "/unfair-dismissal", "/unpaid-wages", "/severance-pay", "/foreign-workers",
+  "/small-business", "/unfair-dismissal", "/recommended-resignation", "/unpaid-wages", "/severance-pay", "/foreign-workers",
   "/checkout", "/delegation", "/blog", "/faq", "/contract-check", "/my",
   ...BLOG_KNOWLEDGE.map((p) => `/blog/${p.slug}`),
 ]);

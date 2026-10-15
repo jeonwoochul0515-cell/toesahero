@@ -124,6 +124,7 @@ export function Footer({ openChat }: Props) {
               <a href="/diagnose">셀프 진단</a>
               <a href="#pricing">서비스 안내 (보수)</a>
               <a href="/unfair-dismissal">부당해고</a>
+              <a href="/recommended-resignation">권고사직·위로금</a>
               <a href="/unpaid-wages">임금체불</a>
               <a href="/severance-pay">퇴직금 미지급</a>
               <a href="/harassment">직장 내 괴롭힘</a>
