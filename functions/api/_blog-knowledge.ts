@@ -2,6 +2,11 @@
 // 히로 챗봇이 칼럼을 경로와 함께 안내할 수 있게 하는 지식 목록(제목·경로·요지만).
 export const BLOG_KNOWLEDGE: { slug: string; title: string; excerpt: string }[] = [
   {
+    "slug": "auto-mv7mrfae",
+    "title": "정리해고 요건은 무엇인가요 — 근로기준법 제24조 4가지 기준",
+    "excerpt": "경영상 이유로 해고 통보를 받았다면 근로기준법 제24조의 네 가지 요건 충족 여부부터 확인해야 합니다."
+  },
+  {
     "slug": "auto-muuthhpg",
     "title": "산재 요양 중 퇴사해도 되나요 — 근로기준법 제23조 해고제한",
     "excerpt": "산재로 치료 중인 근로자의 퇴사·해고 가능 여부와 퇴직금 산정 방식을 근로기준법 제23조 제2항 중심으로 정리합니다."
