@@ -149,5 +149,15 @@
   <body data-palette="sunny" data-mascot="true">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- 네이버 전환 추적 공통 스크립트 — 네이버 설치 확인이 원문 HTML을 보므로 여기 둔다.
+         첫 화면 페이지 조회는 이것이 보내고, 경로 이동·전환(lead·custom001·custom002)은 src/lib/naverWcs.ts가 보낸다.
+         관리 화면·서명 링크(/sign/<토큰>)는 앱과 같이 페이지 조회를 보내지 않는다. -->
+    <script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+    <script type="text/javascript">
+    if(!wcs_add) var wcs_add = {};
+    wcs_add["wa"] = "s_37a4386d8a06";
+    if(!_nasa) var _nasa = {};
+    if(window.wcs && !/^\/(admin|sign\/)/.test(location.pathname)){ wcs.inflow(); wcs_do(_nasa); }
+    </script>
   </body>
 </html>

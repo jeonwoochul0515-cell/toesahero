@@ -29,6 +29,11 @@ let loading: Promise<boolean> | null = null;
 function load(): Promise<boolean> {
   if (typeof window === "undefined") return Promise.resolve(false);
   if (loading) return loading;
+  // index.html 원문 스크립트가 이미 wcslog.js를 띄우고 키를 넣었으면 그것을 그대로 쓴다
+  if (window.wcs) {
+    loading = Promise.resolve(true);
+    return loading;
+  }
   loading = new Promise<boolean>((resolve) => {
     const setup = () => {
       if (!window.wcs) return resolve(false);
@@ -51,8 +56,15 @@ function load(): Promise<boolean> {
   return loading;
 }
 
+// 첫 화면 페이지 조회는 index.html 원문 스크립트가 보낸다 — 여기서 또 보내면 한 화면이 두 번 잡힌다.
+let firstViewHandled = false;
+
 /** 페이지 조회 1건. SPA라 경로가 바뀔 때마다 부른다. */
 export async function naverPageView(): Promise<void> {
+  if (!firstViewHandled) {
+    firstViewHandled = true;
+    if (typeof window !== "undefined" && window.wcs) return;
+  }
   if (!(await load())) return;
   try {
     window.wcs_do?.();
