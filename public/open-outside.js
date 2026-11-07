@@ -28,9 +28,12 @@
   var isOtherApp = /Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|everytimeApp|kakaostory/i.test(ua);
   if (!isKakao && !isOtherApp) return;
 
+  // 기록을 못 남기면 넘기지 않는다. 크롬이 없는 폰에서 같은 주소로 되돌아와 끝없이 다시 넘기게 된다.
   try {
     sessionStorage.setItem('jbj.out', '1');
-  } catch (e) {}
+  } catch (e) {
+    return;
+  }
 
   function go() {
     // 카카오톡은 밖으로 여는 길을 열어 두었다. 아이폰·안드로이드 모두 된다.
